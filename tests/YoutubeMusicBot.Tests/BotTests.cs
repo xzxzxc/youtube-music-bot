@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace YoutubeMusicBot.Tests
 {
-	public class Tests
+	public class BotTests
 	{
 		[SetUp]
 		public void Setup()
@@ -10,9 +10,9 @@ namespace YoutubeMusicBot.Tests
 		}
 
 		[Test]
-		public void Test1()
+		public void ShouldUploadAudioOnEcho()
 		{
-			Assert.Pass();
+
 		}
 	}
 }
