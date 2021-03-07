@@ -1,12 +1,37 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace YoutubeMusicBot
 {
-	class Program
+	internal class Program
 	{
-		static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
-			Console.WriteLine("Hello World!");
+			var host = CreateHostBuilder(args)
+				.Build();
+
+			await host.RunAsync();
+		}
+
+		public static IHostBuilder CreateHostBuilder(params string[] args) =>
+			Host.CreateDefaultBuilder(args)
+				.ConfigureServices(ConfigureServices)
+				.ConfigureContainer<ContainerBuilder>(ConfigureContainer);
+
+		public static void ConfigureContainer(
+			HostBuilderContext? _,
+			ContainerBuilder containerBuilder)
+		{
+		}
+
+		public static void ConfigureServices(
+			HostBuilderContext _,
+			IServiceCollection serviceCollection)
+		{
+			serviceCollection.AddHostedService<BotHostedService>();
 		}
 	}
 }
