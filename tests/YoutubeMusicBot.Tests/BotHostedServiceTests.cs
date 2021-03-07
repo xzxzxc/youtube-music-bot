@@ -1,7 +1,7 @@
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac.Extras.Moq;
 using AutoFixture;
 using Moq;
 using NUnit.Framework;
@@ -14,9 +14,10 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace YoutubeMusicBot.Tests
 {
-	public class BotTests
+	public class BotHostedServiceTests
 	{
 		private Fixture _fixture = null!;
+		private AutoMock _mock = null!;
 
 		[SetUp]
 		public void Setup()
@@ -26,20 +27,23 @@ namespace YoutubeMusicBot.Tests
 				.ToList()
 				.ForEach(b => _fixture.Behaviors.Remove(b));
 			_fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+			_mock = AutoMock.GetLoose(b => Program.ConfigureContainer(null, b));
 		}
 
 		[Test]
 		[TestCase("https://youtu.be/wuROIJ0tRPU")]
 		public async Task ShouldUploadAudioOnEcho(string url)
 		{
-			var clientMock = new Mock<ITelegramBotClient>();
-			var botHostedService = new BotHostedService(clientMock.Object);
+			var clientMock = _mock.Mock<ITelegramBotClient>();
+			var botHostedService = _mock.Create<BotHostedService>();
 			await botHostedService.StartAsync(CancellationToken.None);
+
+
 			var message = _fixture
 				.Build<Message>()
 				.With(m => m.Text, url)
 				.Create();
-
 			clientMock.Raise(
 				c => c.OnMessage += null,
 				this,
