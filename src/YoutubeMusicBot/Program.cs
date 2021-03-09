@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Builder;
+using Autofac.Core;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Serilog;
+using Telegram.Bot;
 
 namespace YoutubeMusicBot
 {
@@ -18,20 +24,34 @@ namespace YoutubeMusicBot
 
 		public static IHostBuilder CreateHostBuilder(params string[] args) =>
 			Host.CreateDefaultBuilder(args)
-				.ConfigureServices(ConfigureServices)
-				.ConfigureContainer<ContainerBuilder>(ConfigureContainer);
+				.UseServiceProviderFactory(new AutofacServiceProviderFactory())
+				.ConfigureContainer<ContainerBuilder>(ConfigureContainer)
+				.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
 
 		public static void ConfigureContainer(
 			HostBuilderContext? _,
 			ContainerBuilder containerBuilder)
 		{
-		}
+			containerBuilder.RegisterType<YoutubeDlWrapper>()
+				.AsImplementedInterfaces();
 
-		public static void ConfigureServices(
-			HostBuilderContext _,
-			IServiceCollection serviceCollection)
-		{
+			containerBuilder.Register(
+					ctx =>
+					{
+						var botOptions = ctx
+							.Resolve<IOptionsMonitor<BotOptions>>()
+							.CurrentValue;
+						return new TelegramBotClient(botOptions.Token);
+					})
+				.As<ITelegramBotClient>()
+				.SingleInstance();
+
+			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddHostedService<BotHostedService>();
+			serviceCollection.AddOptions<DownloadOptions>().BindConfiguration("Download");
+			serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
+
+			containerBuilder.Populate(serviceCollection);
 		}
 	}
 }

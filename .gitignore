@@ -341,3 +341,4 @@ healthchecksdb
 
 # secrets
 tests/YoutubeMusicBot.Tests/Secrets.cs
+/src/YoutubeMusicBot/appsettings.Development.json
