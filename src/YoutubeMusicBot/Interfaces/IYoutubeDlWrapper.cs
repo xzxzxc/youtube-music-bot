@@ -5,7 +5,8 @@ namespace YoutubeMusicBot
 {
 	internal interface IYoutubeDlWrapper
 	{
-		Task<IFileWrapper> DownloadAsync(
+		Task DownloadAsync(
+			string folderPath,
 			string url,
 			CancellationToken cancellationToken = default);
 	}

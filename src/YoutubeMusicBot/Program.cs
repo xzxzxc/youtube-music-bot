@@ -1,9 +1,8 @@
-﻿using System;
+﻿using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
-using Autofac.Builder;
-using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using MediatR.Extensions.Autofac.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -35,6 +34,9 @@ namespace YoutubeMusicBot
 			containerBuilder.RegisterType<YoutubeDlWrapper>()
 				.AsImplementedInterfaces();
 
+			containerBuilder.RegisterType<TrackFilesWatcher>()
+				.AsImplementedInterfaces();
+
 			containerBuilder.Register(
 					ctx =>
 					{
@@ -45,6 +47,8 @@ namespace YoutubeMusicBot
 					})
 				.As<ITelegramBotClient>()
 				.SingleInstance();
+
+			containerBuilder.RegisterMediatR(Assembly.GetExecutingAssembly());
 
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddHostedService<BotHostedService>();

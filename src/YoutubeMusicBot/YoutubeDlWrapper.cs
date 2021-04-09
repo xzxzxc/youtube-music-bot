@@ -1,38 +1,27 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace YoutubeMusicBot
 {
-	class YoutubeDlWrapper : IYoutubeDlWrapper
+	internal class YoutubeDlWrapper : IYoutubeDlWrapper
 	{
 		private readonly ILogger _logger;
-		private readonly IOptionsMonitor<DownloadOptions> _downloadOptions;
 
 		public YoutubeDlWrapper(
-			ILogger<YoutubeDlWrapper> logger,
-			IOptionsMonitor<DownloadOptions> downloadOptions)
+			ILogger<YoutubeDlWrapper> logger)
 		{
 			_logger = logger;
-			_downloadOptions = downloadOptions;
 		}
 
-		public async Task<IFileWrapper> DownloadAsync(
+		public async Task DownloadAsync(
+			string folderPath,
 			string url,
 			CancellationToken cancellationToken = default)
 		{
-			var directoryInfo = new DirectoryInfo(
-				Path.Join(
-					_downloadOptions.CurrentValue.CacheFilesFolderPath,
-					$"{Guid.NewGuid()}"));
-			directoryInfo.Create();
-
-			var processInfo = new ProcessStartInfo()
+			var processInfo = new ProcessStartInfo
 			{
 				FileName = @"wsl.exe",
 				ArgumentList =
@@ -40,7 +29,7 @@ namespace YoutubeMusicBot
 					"youtube-dl",
 					url,
 				},
-				WorkingDirectory = directoryInfo.FullName,
+				WorkingDirectory = folderPath,
 				CreateNoWindow = true,
 				UseShellExecute = false,
 				RedirectStandardError = true,
@@ -52,6 +41,7 @@ namespace YoutubeMusicBot
 				StartInfo = processInfo,
 			};
 
+			// TODO: think about what to do
 			process.OutputDataReceived += (
 					object sender,
 					DataReceivedEventArgs e) =>
@@ -71,10 +61,6 @@ namespace YoutubeMusicBot
 
 			await process.WaitForExitAsync(cancellationToken);
 			process.Close();
-
-			return new FileWrapper(
-				directoryInfo.EnumerateFiles("*.mp3").First(),
-				async () => directoryInfo.Delete(recursive: true));
 		}
 	}
 }

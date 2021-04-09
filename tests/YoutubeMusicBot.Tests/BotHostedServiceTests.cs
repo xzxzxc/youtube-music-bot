@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Telegram.Bot;
-using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -56,7 +56,7 @@ namespace YoutubeMusicBot.Tests
 				.Build<Message>()
 				.With(m => m.Text, url)
 				.Create();
-			var botHostedService = _mock.Create<BotHostedService>();
+			var messageHandler = _mock.Create<MessageHandler>();
 			_clientMock.Setup(
 					m => m.SendAudioAsync(
 						It.Is<ChatId>(cId => cId.Identifier == message.Chat.Id),
@@ -92,8 +92,9 @@ namespace YoutubeMusicBot.Tests
 						contentLength = audio.Content?.Length;
 					})
 				.ReturnsAsync(default(Message));
-			await botHostedService.ProcessClientMessageAsync(
-				new MessageEventArgs(message));
+			await messageHandler.Handle(new MessageHandler.Message(message));
+			// wait for events
+			await Task.Delay(TimeSpan.FromMilliseconds(500));
 
 			_clientMock.VerifyAll();
 			contentLength.Should().BeGreaterThan(0);

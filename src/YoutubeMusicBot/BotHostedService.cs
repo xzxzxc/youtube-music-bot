@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
@@ -17,17 +18,17 @@ namespace YoutubeMusicBot
 	internal class BotHostedService : IHostedService
 	{
 		private readonly ITelegramBotClient _client;
-		private readonly IYoutubeDlWrapper _youtubeDlWrapper;
 		private readonly ILogger _logger;
+		private readonly IMediator _mediator;
 
 		public BotHostedService(
 			ITelegramBotClient client,
-			IYoutubeDlWrapper youtubeDlWrapper,
-			ILogger<BotHostedService> logger)
+			ILogger<BotHostedService> logger,
+			IMediator mediator)
 		{
 			_client = client;
-			_youtubeDlWrapper = youtubeDlWrapper;
 			_logger = logger;
+			_mediator = mediator;
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)
@@ -38,20 +39,6 @@ namespace YoutubeMusicBot
 				cancellationToken);
 		}
 
-		public async Task ProcessClientMessageAsync(
-			MessageEventArgs messageEvent)
-		{
-			await using var file =
-				await _youtubeDlWrapper.DownloadAsync(
-					messageEvent.Message.Text);
-
-			await using var fileStream = file.Stream;
-
-			await _client.SendAudioAsync(
-				messageEvent.Message.Chat.Id,
-				new InputMedia(fileStream, file.Name));
-		}
-
 		public async Task StopAsync(CancellationToken cancellationToken)
 		{
 			_client.StopReceiving();
@@ -60,23 +47,27 @@ namespace YoutubeMusicBot
 
 		private async void ProcessClientMessageAsync(
 			object? _,
-			MessageEventArgs messageEvent)
+			MessageEventArgs? messageEvent)
 		{
-			using var __ = _logger.BeginScope(
-				"Message in chat with id: {Id}. Text: {text}.",
-				messageEvent.Message.Chat.Id,
-				messageEvent.Message.Text);
+			await _mediator.Publish(new MessageHandler.Message(messageEvent?.Message));
 
-			try
-			{
-				await ProcessClientMessageAsync(messageEvent);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(
-					ex,
-					$"Exception during {nameof(ProcessClientMessageAsync)}");
-			}
+			// TODO: move logging to mediator pipeline
+
+			//using var __ = _logger.BeginScope(
+			//	"Message in chat with id: {Id}. Text: {text}.",
+			//	messageEvent.Message.Chat.Id,
+			//	messageEvent.Message.Text);
+
+			//try
+			//{
+			//	await ProcessClientMessageAsync(messageEvent);
+			//}
+			//catch (Exception ex)
+			//{
+			//	_logger.LogError(
+			//		ex,
+			//		$"Exception during {nameof(ProcessClientMessageAsync)}");
+			//}
 		}
 	}
 }
