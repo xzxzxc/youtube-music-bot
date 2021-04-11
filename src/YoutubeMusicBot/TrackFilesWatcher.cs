@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.IO;
 using MediatR;
 using Microsoft.Extensions.Options;
+using YoutubeMusicBot.Interfaces;
+using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot
 {
@@ -11,7 +13,7 @@ namespace YoutubeMusicBot
 		private readonly IOptionsMonitor<DownloadOptions> _downloadOptions;
 		private readonly IMediator _mediator;
 
-		private readonly ConcurrentDictionary<long, FileSystemWatcher> _cache =
+		private readonly ConcurrentDictionary<ChatContext, FileSystemWatcher> _cache =
 			new();
 
 		public TrackFilesWatcher(
@@ -22,11 +24,11 @@ namespace YoutubeMusicBot
 			_mediator = mediator;
 		}
 
-		public string StartWatch(long chatId)
+		public string StartWatch(ChatContext chat)
 		{
 			var cacheFolderPath = Path.Join(
 				_downloadOptions.CurrentValue.CacheFilesFolderPath,
-				$"{chatId}");
+				$"{chat.Id}");
 			Directory.CreateDirectory(cacheFolderPath);
 
 			var newWatcher = new FileSystemWatcher(cacheFolderPath)
@@ -38,7 +40,7 @@ namespace YoutubeMusicBot
 					| NotifyFilters.Size,
 			};
 
-			if (!_cache.TryAdd(chatId, newWatcher))
+			if (!_cache.TryAdd(chat, newWatcher))
 				return cacheFolderPath;
 
 			newWatcher.Renamed += (_, args) =>
@@ -53,7 +55,7 @@ namespace YoutubeMusicBot
 
 				_mediator.Publish(
 					new NewTrackHandler.Notification(
-						chatId,
+						chat,
 						fileInfo));
 			};
 

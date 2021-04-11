@@ -1,7 +1,9 @@
-﻿namespace YoutubeMusicBot
+﻿using YoutubeMusicBot.Models;
+
+namespace YoutubeMusicBot.Interfaces
 {
 	public interface ITrackFilesWatcher
 	{
-		string StartWatch(long chatId);
+		string StartWatch(ChatContext chat);
 	}
 }

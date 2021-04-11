@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Interfaces
 {
 	internal interface IYoutubeDlWrapper
 	{

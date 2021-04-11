@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Interfaces;
 
 namespace YoutubeMusicBot
 {
@@ -26,7 +28,7 @@ namespace YoutubeMusicBot
 				?? throw new ArgumentNullException(nameof(notification));
 
 			var chatFolderPath = _trackFilesWatcher.StartWatch(
-				message.Chat.Id);
+				message.Chat.ToContext());
 
 			await _youtubeDlWrapper.DownloadAsync(
 					chatFolderPath,

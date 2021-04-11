@@ -2,12 +2,14 @@
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
+using YoutubeMusicBot.Behaviour;
 
 namespace YoutubeMusicBot
 {
@@ -25,7 +27,9 @@ namespace YoutubeMusicBot
 			Host.CreateDefaultBuilder(args)
 				.UseServiceProviderFactory(new AutofacServiceProviderFactory())
 				.ConfigureContainer<ContainerBuilder>(ConfigureContainer)
-				.UseSerilog((ctx, config) => config.ReadFrom.Configuration(ctx.Configuration));
+				.UseSerilog(
+					(ctx, config) =>
+						config.ReadFrom.Configuration(ctx.Configuration));
 
 		public static void ConfigureContainer(
 			HostBuilderContext? _,
@@ -34,8 +38,12 @@ namespace YoutubeMusicBot
 			containerBuilder.RegisterType<YoutubeDlWrapper>()
 				.AsImplementedInterfaces();
 
-			containerBuilder.RegisterType<TrackFilesWatcher>()
+			containerBuilder.RegisterType<TgClientWrapper>()
 				.AsImplementedInterfaces();
+
+			containerBuilder.RegisterType<TrackFilesWatcher>()
+				.AsImplementedInterfaces()
+				.SingleInstance();
 
 			containerBuilder.Register(
 					ctx =>
@@ -49,10 +57,16 @@ namespace YoutubeMusicBot
 				.SingleInstance();
 
 			containerBuilder.RegisterMediatR(Assembly.GetExecutingAssembly());
+			// exception handler must be the last one
+			containerBuilder.RegisterGeneric(
+				typeof(UnhandledExceptionBehaviour<>))
+				.AsImplementedInterfaces();
+			containerBuilder.RegisterDecorator<MediatorDecorator, IMediator>();
 
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddHostedService<BotHostedService>();
-			serviceCollection.AddOptions<DownloadOptions>().BindConfiguration("Download");
+			serviceCollection.AddOptions<DownloadOptions>()
+				.BindConfiguration("Download");
 			serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
 
 			containerBuilder.Populate(serviceCollection);
