@@ -1,4 +1,4 @@
-﻿namespace YoutubeMusicBot
+﻿namespace YoutubeMusicBot.Options
 {
 	internal class DownloadOptions
 	{

@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Models;
+using YoutubeMusicBot.Wrappers.Interfaces;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Wrappers
 {
 	internal class TgClientWrapper : ITgClientWrapper
 	{

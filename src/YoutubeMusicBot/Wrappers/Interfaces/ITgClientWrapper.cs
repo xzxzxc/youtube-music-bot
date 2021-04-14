@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Models;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Wrappers.Interfaces
 {
 	public interface ITgClientWrapper
 	{

@@ -1,6 +1,8 @@
-﻿using System.Reflection;
+﻿using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
@@ -10,6 +12,9 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
 using YoutubeMusicBot.Behaviour;
+using YoutubeMusicBot.Decorators;
+using YoutubeMusicBot.Options;
+using YoutubeMusicBot.Wrappers;
 
 namespace YoutubeMusicBot
 {
@@ -35,15 +40,24 @@ namespace YoutubeMusicBot
 			HostBuilderContext? _,
 			ContainerBuilder containerBuilder)
 		{
-			containerBuilder.RegisterType<YoutubeDlWrapper>()
-				.AsImplementedInterfaces();
-
 			containerBuilder.RegisterType<TgClientWrapper>()
 				.AsImplementedInterfaces();
 
-			containerBuilder.RegisterType<TrackFilesWatcher>()
+			containerBuilder.RegisterType<YoutubeDlWrapper>()
+				.AsImplementedInterfaces();
+
+			containerBuilder.RegisterType<Mp3SplitWrapper>()
+				.AsImplementedInterfaces();
+
+			containerBuilder.RegisterType<TrackFilesWatcherIndex>()
 				.AsImplementedInterfaces()
 				.SingleInstance();
+
+			containerBuilder.RegisterType<TrackFilesWatcher>()
+				.AsImplementedInterfaces();
+
+			containerBuilder.RegisterType<TrackListParser>()
+				.AsImplementedInterfaces();
 
 			containerBuilder.Register(
 					ctx =>
@@ -56,12 +70,28 @@ namespace YoutubeMusicBot
 				.As<ITelegramBotClient>()
 				.SingleInstance();
 
-			containerBuilder.RegisterMediatR(Assembly.GetExecutingAssembly());
+			// exception handler must be the last one
+			containerBuilder.RegisterMediatR(
+				Assembly.GetExecutingAssembly(),
+				typeof(UnhandledExceptionBehaviour<,>));
 			// exception handler must be the last one
 			containerBuilder.RegisterGeneric(
-				typeof(UnhandledExceptionBehaviour<>))
+					typeof(UnhandledExceptionBehaviour<>))
 				.AsImplementedInterfaces();
-			containerBuilder.RegisterDecorator<MediatorDecorator, IMediator>();
+			containerBuilder.RegisterDecorator<MediatorNotificationBehaviourDecorator, IMediator>();
+			containerBuilder.RegisterDecorator<IMediator>(
+				(context, parameters, instance) =>
+				{
+					if (parameters
+						.OfType<MediatorDisposableDecorator.DoNotDecorate>()
+						.Any())
+					{
+						return instance;
+					}
+
+					return new MediatorDisposableDecorator(
+						context.Resolve<ILifetimeScope>());
+				});
 
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddHostedService<BotHostedService>();

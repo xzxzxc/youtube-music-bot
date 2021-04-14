@@ -1,37 +1,34 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
 using MediatR;
 using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
+using YoutubeMusicBot.Options;
 
 namespace YoutubeMusicBot
 {
 	internal class TrackFilesWatcher : ITrackFilesWatcher, IDisposable
 	{
-		private readonly IOptionsMonitor<DownloadOptions> _downloadOptions;
 		private readonly IMediator _mediator;
-
-		private readonly ConcurrentDictionary<ChatContext, FileSystemWatcher> _cache =
-			new();
+		private readonly FileSystemWatcher _watcher;
+		private readonly ChatContext _chat;
 
 		public TrackFilesWatcher(
+			ChatContext chat,
 			IOptionsMonitor<DownloadOptions> downloadOptions,
 			IMediator mediator)
 		{
-			_downloadOptions = downloadOptions;
+			_chat = chat;
 			_mediator = mediator;
-		}
 
-		public string StartWatch(ChatContext chat)
-		{
-			var cacheFolderPath = Path.Join(
-				_downloadOptions.CurrentValue.CacheFilesFolderPath,
+			var chatFolderPath = ChatFolderPath = Path.Join(
+				downloadOptions.CurrentValue.CacheFilesFolderPath,
 				$"{chat.Id}");
-			Directory.CreateDirectory(cacheFolderPath);
 
-			var newWatcher = new FileSystemWatcher(cacheFolderPath)
+			Directory.CreateDirectory(chatFolderPath);
+
+			_watcher = new FileSystemWatcher(chatFolderPath)
 			{
 				EnableRaisingEvents = true,
 				IncludeSubdirectories = false,
@@ -40,31 +37,32 @@ namespace YoutubeMusicBot
 					| NotifyFilters.Size,
 			};
 
-			if (!_cache.TryAdd(chat, newWatcher))
-				return cacheFolderPath;
+			_watcher.Created += CreatedOrRenamed;
+			_watcher.Renamed += CreatedOrRenamed;
+		}
 
-			newWatcher.Renamed += (_, args) =>
+		public string ChatFolderPath { get; }
+
+		private void CreatedOrRenamed(object _, FileSystemEventArgs args)
+		{
+			var fileInfo = new FileInfo(args.FullPath);
+			if (!fileInfo.Exists
+				|| fileInfo.Name.EndsWith(".temp.mp3")
+				|| !fileInfo.Name.EndsWith(".mp3")
+				|| fileInfo.Length == 0)
 			{
-				var fileInfo = new FileInfo(args.FullPath);
-				if (!fileInfo.Exists
-					|| fileInfo.Name.EndsWith(".temp.mp3")
-					|| !fileInfo.Name.EndsWith(".mp3"))
-				{
-					return;
-				}
+				return;
+			}
 
-				_mediator.Publish(
-					new NewTrackHandler.Notification(
-						chat,
-						fileInfo));
-			};
-
-			return cacheFolderPath;
+			_mediator.Publish(
+				new NewTrackHandler.Notification(
+					_chat,
+					fileInfo));
 		}
 
 		public void Dispose()
 		{
-			//TODO: dispose cache
+			_watcher.Dispose();
 		}
 	}
 }

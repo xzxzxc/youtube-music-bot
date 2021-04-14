@@ -1,22 +1,25 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac.Features.Indexed;
 using MediatR;
 using YoutubeMusicBot.Extensions;
 using YoutubeMusicBot.Interfaces;
+using YoutubeMusicBot.Models;
+using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
 {
 	internal class MessageHandler : INotificationHandler<MessageHandler.Message>
 	{
-		private readonly ITrackFilesWatcher _trackFilesWatcher;
+		private readonly IIndex<ChatContext, ITrackFilesWatcher> _trackFilesWatchers;
 		private readonly IYoutubeDlWrapper _youtubeDlWrapper;
 
 		public MessageHandler(
-			ITrackFilesWatcher trackFilesWatcher,
+			IIndex<ChatContext, ITrackFilesWatcher> trackFilesWatchers,
 			IYoutubeDlWrapper youtubeDlWrapper)
 		{
-			_trackFilesWatcher = trackFilesWatcher;
+			_trackFilesWatchers = trackFilesWatchers;
 			_youtubeDlWrapper = youtubeDlWrapper;
 		}
 
@@ -27,11 +30,10 @@ namespace YoutubeMusicBot
 			var message = notification.Value
 				?? throw new ArgumentNullException(nameof(notification));
 
-			var chatFolderPath = _trackFilesWatcher.StartWatch(
-				message.Chat.ToContext());
+			var trackFilesWatcher = _trackFilesWatchers[message.Chat.ToContext()];
 
 			await _youtubeDlWrapper.DownloadAsync(
-					chatFolderPath,
+					trackFilesWatcher.ChatFolderPath,
 					message.Text,
 					cancellationToken);
 		}

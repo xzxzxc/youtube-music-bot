@@ -18,17 +18,14 @@ namespace YoutubeMusicBot
 	internal class BotHostedService : IHostedService
 	{
 		private readonly ITelegramBotClient _client;
-		private readonly ILogger _logger;
-		private readonly IMediator _mediator;
+		private readonly Func<IMediator> _mediatorFactory;
 
 		public BotHostedService(
 			ITelegramBotClient client,
-			ILogger<BotHostedService> logger,
-			IMediator mediator)
+			Func<IMediator> mediatorFactory)
 		{
 			_client = client;
-			_logger = logger;
-			_mediator = mediator;
+			_mediatorFactory = mediatorFactory;
 		}
 
 		public async Task StartAsync(CancellationToken cancellationToken)
@@ -45,29 +42,12 @@ namespace YoutubeMusicBot
 			_client.OnMessage -= ProcessClientMessageAsync;
 		}
 
-		private async void ProcessClientMessageAsync(
+		private void ProcessClientMessageAsync(
 			object? _,
 			MessageEventArgs? messageEvent)
 		{
-			await _mediator.Publish(new MessageHandler.Message(messageEvent?.Message));
-
-			// TODO: move logging to mediator pipeline
-
-			//using var __ = _logger.BeginScope(
-			//	"Message in chat with id: {Id}. Text: {text}.",
-			//	messageEvent.Message.Chat.Id,
-			//	messageEvent.Message.Text);
-
-			//try
-			//{
-			//	await ProcessClientMessageAsync(messageEvent);
-			//}
-			//catch (Exception ex)
-			//{
-			//	_logger.LogError(
-			//		ex,
-			//		$"Exception during {nameof(ProcessClientMessageAsync)}");
-			//}
+			_mediatorFactory().Publish(
+				new MessageHandler.Message(messageEvent?.Message));
 		}
 	}
 }

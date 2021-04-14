@@ -7,14 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace YoutubeMusicBot.Behaviour
 {
 	public class UnhandledExceptionBehaviour<TNotification> :
+		BaseUnhandledExceptionBehaviour<TNotification>,
 		INotificationBehavior<TNotification>
 		where TNotification : INotification
 	{
-		private readonly ILogger<TNotification> _logger;
-
 		public UnhandledExceptionBehaviour(ILogger<TNotification> logger)
+			: base(logger)
 		{
-			_logger = logger;
 		}
 
 		public async Task Handle(
@@ -28,25 +27,36 @@ namespace YoutubeMusicBot.Behaviour
 			}
 			catch (Exception ex)
 			{
-				var requestName = typeof(TNotification).Name;
-
-				_logger.LogError(
-					ex,
-					"Request: Unhandled Exception for Request {Name} {@Request}",
-					requestName,
-					notification);
-
+				LogException(ex, notification);
 				throw;
 			}
 		}
 	}
 
-	public interface INotificationBehavior<TNotification>
-		where TNotification : INotification
+	public class UnhandledExceptionBehaviour<TRequest, TResponse> :
+		BaseUnhandledExceptionBehaviour<TRequest>,
+		IPipelineBehavior<TRequest, TResponse>
+		where TRequest : IRequest
 	{
-		Task Handle(
-			TNotification notification,
+		public UnhandledExceptionBehaviour(ILogger<TRequest> logger)
+			: base(logger)
+		{
+		}
+
+		public async Task<TResponse> Handle(
+			TRequest request,
 			CancellationToken cancellationToken,
-			Func<Task> next);
+			RequestHandlerDelegate<TResponse> next)
+		{
+			try
+			{
+				return await next();
+			}
+			catch (Exception ex)
+			{
+				LogException(ex, request);
+				throw;
+			}
+		}
 	}
 }

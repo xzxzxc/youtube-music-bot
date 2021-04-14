@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using YoutubeMusicBot.Interfaces;
+using YoutubeMusicBot.Wrappers.Interfaces;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Wrappers
 {
 	internal class YoutubeDlWrapper : IYoutubeDlWrapper
 	{

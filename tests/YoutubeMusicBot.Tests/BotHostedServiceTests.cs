@@ -1,28 +1,37 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
 using AutoFixture;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
+using Moq.Sequences;
 using NUnit.Framework;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Models;
+using YoutubeMusicBot.Options;
+using YoutubeMusicBot.Tests.Stubs;
+using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Tests
 {
 	public class BotHostedServiceTests
 	{
 		private Fixture _fixture = null!;
-		private AutoMock _mock = null!;
 		private Mock<ITgClientWrapper> _clientWrapperMock = null!;
+		private IContainer _container = null!;
 
 		[SetUp]
 		public void Setup()
 		{
+			Sequence.ContextMode = SequenceContextMode.Async;
+
 			_fixture = new Fixture();
 			_fixture.Behaviors.OfType<ThrowingRecursionBehavior>()
 				.ToList()
@@ -32,16 +41,16 @@ namespace YoutubeMusicBot.Tests
 			_clientWrapperMock =
 				new Mock<ITgClientWrapper>(MockBehavior.Strict);
 
-			_mock = AutoMock.GetLoose(
-				b =>
-				{
-					Program.ConfigureContainer(null, b);
+			var builder = new ContainerBuilder();
+			Program.ConfigureContainer(null, builder);
+			// replaces real impl
+			builder.RegisterGeneric(typeof(OptionsMonitorStub<>))
+				.AsImplementedInterfaces();
+			builder.RegisterGeneric(typeof(LoggerStub<>))
+				.As(typeof(ILogger<>));
+			builder.RegisterMock(_clientWrapperMock);
 
-					// replaces real impl
-					b.RegisterGeneric(typeof(OptionsMonitorStub<>))
-						.As(typeof(IOptionsMonitor<>));
-					b.RegisterMock(_clientWrapperMock);
-				});
+			_container = builder.Build();
 		}
 
 		[Test]
@@ -52,6 +61,11 @@ namespace YoutubeMusicBot.Tests
 			"https://soundcloud.com/potvorno/sets/kyiv",
 			"1-Київ.mp3",
 			"2-Заспіваю ще.mp3")]
+		[TestCase(
+			"https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
+			"NA-Drake Scary Hours 2 Full Ep_00m_00s__03m_00s.mp3",
+			"NA-Drake Scary Hours 2 Full Ep_03m_00s__06m_13s.mp3",
+			"NA-Drake Scary Hours 2 Full Ep_06m_13s__12m_34s_13h.mp3")]
 		public async Task ShouldUploadAudioOnEcho(
 			string url,
 			params string[] fileNames)
@@ -63,21 +77,17 @@ namespace YoutubeMusicBot.Tests
 			var sequence = new MockSequence();
 			foreach (var fileName in fileNames)
 				SetupSendAudioCall(fileName);
-			var messageHandler = _mock.Create<MessageHandler>();
+			var messageHandler = _container.Resolve<MessageHandler>();
 
 			await messageHandler.Handle(new MessageHandler.Message(message));
-			// wait for events
-			await Task.Delay(TimeSpan.FromMilliseconds(500));
+			await SequenceFullOrTimeout(
+				//sequence,
+				TimeSpan.FromSeconds(30));
 
-			_mock.Mock<ILogger<NewTrackHandler.Notification>>()
-				.Verify(
-					l => l.Log(
-						It.Is<LogLevel>(ll => ll >= LogLevel.Error),
-						It.IsAny<EventId>(),
-						It.IsAny<It.IsAnyType>(),
-						It.IsAny<Exception>(),
-						It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-					Times.Never);
+			LoggerStub<object>.Executions.Should()
+				.NotContain(e => e.LogLevel >= LogLevel.Error);
+			_clientWrapperMock.Invocations.Should().HaveCount(
+				fileNames.Length);
 
 			void SetupSendAudioCall(string fileName)
 			{
@@ -86,8 +96,8 @@ namespace YoutubeMusicBot.Tests
 					.Setup(
 						m => m.SendAudioAsync(
 							It.Is<ChatContext>(
-								cId =>
-									cId.Id == message.Chat.Id),
+								context =>
+									context.Id == message.Chat.Id),
 							It.Is<FileInfo>(
 								f =>
 									f.Length > 0 && f.Name == fileName)))
@@ -95,9 +105,34 @@ namespace YoutubeMusicBot.Tests
 			}
 		}
 
-		[TearDown]
-		public async Task TearDown()
+		private async Task SequenceFullOrTimeout(TimeSpan timeOut)
 		{
+			var cancellationTokenSource = new CancellationTokenSource();
+			cancellationTokenSource.CancelAfter(timeOut);
+
+			var allStepsCompleted = false;
+
+			try
+			{
+				do
+				{
+					allStepsCompleted = _clientWrapperMock.Setups
+						.All(s => s.IsMatched);
+
+					await Task.Delay(
+						TimeSpan.FromSeconds(2),
+						cancellationTokenSource.Token);
+				} while (!allStepsCompleted);
+			}
+			catch (TaskCanceledException)
+			{
+			}
+		}
+
+		[OneTimeTearDown]
+		public async Task OneTimeTearDown()
+		{
+			await _container.DisposeAsync();
 			Directory.Delete(
 				new DownloadOptions().CacheFilesFolderPath,
 				recursive: true);
