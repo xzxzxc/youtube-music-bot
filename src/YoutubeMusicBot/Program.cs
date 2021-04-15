@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
-using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
@@ -11,7 +10,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
-using YoutubeMusicBot.Behaviour;
 using YoutubeMusicBot.Decorators;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers;
@@ -74,7 +72,6 @@ namespace YoutubeMusicBot
 			containerBuilder.RegisterMediatR(
 				Assembly.GetExecutingAssembly());
 
-			containerBuilder.RegisterDecorator<MediatorNotificationBehaviourDecorator, IMediator>();
 			containerBuilder.RegisterDecorator<IMediator>(
 				(context, parameters, instance) =>
 				{
