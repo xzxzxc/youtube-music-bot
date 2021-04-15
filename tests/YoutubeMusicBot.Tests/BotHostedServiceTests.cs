@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
+using Autofac.Features.Indexed;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,8 @@ using Moq;
 using Moq.Sequences;
 using NUnit.Framework;
 using Telegram.Bot.Types;
+using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Tests.Stubs;
@@ -88,6 +91,11 @@ namespace YoutubeMusicBot.Tests
 				.NotContain(e => e.LogLevel >= LogLevel.Error);
 			_clientWrapperMock.Invocations.Should().HaveCount(
 				fileNames.Length);
+			var watcher = _container.Resolve<IIndex<ChatContext, ITrackFilesWatcher>>()[
+				message.Chat.ToContext()];
+			Directory.EnumerateFileSystemEntries(watcher.ChatFolderPath)
+				.Should()
+				.BeEmpty();
 
 			void SetupSendAudioCall(string fileName)
 			{
