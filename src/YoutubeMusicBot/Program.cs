@@ -72,12 +72,8 @@ namespace YoutubeMusicBot
 
 			// exception handler must be the last one
 			containerBuilder.RegisterMediatR(
-				Assembly.GetExecutingAssembly(),
-				typeof(UnhandledExceptionBehaviour<,>));
-			// exception handler must be the last one
-			containerBuilder.RegisterGeneric(
-					typeof(UnhandledExceptionBehaviour<>))
-				.AsImplementedInterfaces();
+				Assembly.GetExecutingAssembly());
+
 			containerBuilder.RegisterDecorator<MediatorNotificationBehaviourDecorator, IMediator>();
 			containerBuilder.RegisterDecorator<IMediator>(
 				(context, parameters, instance) =>

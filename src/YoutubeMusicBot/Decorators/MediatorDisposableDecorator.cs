@@ -5,67 +5,100 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Core;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace YoutubeMusicBot.Decorators
 {
 	internal class MediatorDisposableDecorator : IMediator
 	{
-		//private readonly IMediator _mediator;
 		private readonly ILifetimeScope _lifetimeScope;
 
 		public MediatorDisposableDecorator(
-			//IMediator mediator,
 			ILifetimeScope lifetimeScope)
 		{
-			//_mediator = mediator;
 			_lifetimeScope = lifetimeScope;
 		}
 
 		public async Task<TResponse> Send<TResponse>(
 			IRequest<TResponse> request,
-			CancellationToken cancellationToken = new CancellationToken())
+			CancellationToken cancellationToken = default)
 		{
-			// TODO: add try-catch
-			await using var scope = BeginLifetimeScope();
-
-			// we would get _mediator here
-			var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
-
-			return await mediator.Send(request, cancellationToken);
+			try
+			{
+				await using var scope = _lifetimeScope.BeginLifetimeScope();
+				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
+				return await mediator.Send(request, cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				LogException(ex, request);
+				throw;
+			}
 		}
 
 		public async Task<object?> Send(
 			object request,
-			CancellationToken cancellationToken = new CancellationToken())
+			CancellationToken cancellationToken = default)
 		{
-			await using var scope = BeginLifetimeScope();
-			var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
-			return await mediator.Send(request, cancellationToken);
+			try
+			{
+				await using var scope = _lifetimeScope.BeginLifetimeScope();
+				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
+				return await mediator.Send(request, cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				LogException(ex, request);
+				throw;
+			}
 		}
 
 		public async Task Publish(
 			object notification,
-			CancellationToken cancellationToken = new CancellationToken())
+			CancellationToken cancellationToken = default)
 		{
-			await using var scope = BeginLifetimeScope();
-			var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
-			await mediator.Publish(notification, cancellationToken);
+			try
+			{
+				await using var scope = _lifetimeScope.BeginLifetimeScope();
+				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
+				await mediator.Publish(notification, cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				LogException(ex, notification);
+				throw;
+			}
 		}
 
 		public async Task Publish<TNotification>(
 			TNotification notification,
-			CancellationToken cancellationToken = new CancellationToken())
+			CancellationToken cancellationToken = default)
 			where TNotification : INotification
 		{
-			await using var scope = BeginLifetimeScope();
-			var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
-			await mediator.Publish(notification, cancellationToken);
+			try
+			{
+				await using var scope = _lifetimeScope.BeginLifetimeScope();
+				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
+				await mediator.Publish(notification, cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				LogException(ex, notification);
+				throw;
+			}
 		}
 
-		private ILifetimeScope BeginLifetimeScope() =>
-			_lifetimeScope.BeginLifetimeScope(
-				//c => c.RegisterDecorator<IMediator>((_, _, _) => _mediator)
-				);
+		private void LogException<T>(Exception exception, T value)
+		{
+			var requestName = typeof(T).Name;
+			var logger = _lifetimeScope.Resolve<ILogger<T>>();
+
+			logger.LogError(
+				exception,
+				"Request: Unhandled Exception for {Name} {@Request}",
+				requestName,
+				value);
+		}
 
 		public class DoNotDecorate : Parameter
 		{
