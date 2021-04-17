@@ -1,29 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
-using Autofac.Features.Indexed;
 using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Sequences;
+using MoreLinq;
 using NUnit.Framework;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Extensions;
-using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Tests.Stubs;
+using YoutubeMusicBot.Wrappers;
 using YoutubeMusicBot.Wrappers.Interfaces;
+using TagFile = TagLib.File;
 
 namespace YoutubeMusicBot.Tests
 {
+	[Parallelizable]
 	public class BotHostedServiceTests
 	{
 		private Fixture _fixture = null!;
@@ -57,84 +58,91 @@ namespace YoutubeMusicBot.Tests
 		}
 
 		[Test]
-		[TestCase(
-			"https://youtu.be/wuROIJ0tRPU",
-			"NA-Гоня & Довгий Пес - Бронепоїзд.mp3")]
-		[TestCase(
-			"https://soundcloud.com/potvorno/sets/kyiv",
-			"1-Київ.mp3",
-			"2-Заспіваю ще.mp3")]
-		[TestCase(
-			"https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
-			"NA-Drake Scary Hours 2 Full Ep_00m_00s__03m_00s.mp3",
-			"NA-Drake Scary Hours 2 Full Ep_03m_00s__06m_13s.mp3",
-			"NA-Drake Scary Hours 2 Full Ep_06m_13s__12m_34s_13h.mp3")]
+		[Timeout(60_000)] // 60 seconds
+		[TestCaseSource(nameof(TestCases))]
 		public async Task ShouldUploadAudioOnEcho(
 			string url,
-			params string[] fileNames)
+			IReadOnlyCollection<ExpectedFile> expectedFiles)
 		{
 			var message = _fixture
 				.Build<Message>()
 				.With(m => m.Text, url)
 				.Create();
-			var sequence = new MockSequence();
-			foreach (var fileName in fileNames)
-				SetupSendAudioCall(fileName);
+			var cacheFolder = _container
+				.BeginMessageLifetimeScope(message.ToContext())
+				.Resolve<ICacheFolder>()
+				.Value;
+			var resultTagFiles = new List<TagFile>();
+			_clientWrapperMock
+				.Setup(m => m.SendAudioAsync(It.IsAny<FileInfo>()))
+				.Callback<FileInfo>(
+					audio => resultTagFiles.Add(
+						TagFile.Create(
+							Path.Join(cacheFolder, audio.Name))))
+				.ReturnsAsync(new Message());
 			var messageHandler = _container.Resolve<MessageHandler>();
 
-			await messageHandler.Handle(new MessageHandler.Message(message));
-			await SequenceFullOrTimeout(
-				//sequence,
-				TimeSpan.FromSeconds(30));
+			await messageHandler.Handle(new MessageHandler.Request(message));
 
-			LoggerStub<object>.Executions.Should()
+			LogsHolder.Executions.Should()
 				.NotContain(e => e.LogLevel >= LogLevel.Error);
-			_clientWrapperMock.Invocations.Should().HaveCount(
-				fileNames.Length);
-			var watcher = _container.Resolve<IIndex<ChatContext, ITrackFilesWatcher>>()[
-				message.Chat.ToContext()];
-			Directory.EnumerateFileSystemEntries(watcher.ChatFolderPath)
+			resultTagFiles.Should().HaveSameCount(expectedFiles);
+			foreach (var (expected, result) in expectedFiles
+				.Zip(resultTagFiles))
+			{
+				result.Tag.Title.Should().Be(expected.Title);
+				result.Tag.FirstPerformer.Should().Be(expected.Author);
+				result.Properties.Duration.Should()
+					.BeCloseTo(
+						expected.Duration,
+						precision: TimeSpan.FromSeconds(1));
+			}
+
+			Directory.EnumerateFileSystemEntries(cacheFolder)
 				.Should()
 				.BeEmpty();
-
-			void SetupSendAudioCall(string fileName)
-			{
-				_clientWrapperMock
-					.InSequence(sequence)
-					.Setup(
-						m => m.SendAudioAsync(
-							It.Is<ChatContext>(
-								context =>
-									context.Id == message.Chat.Id),
-							It.Is<FileInfo>(
-								f =>
-									f.Length > 0 && f.Name == fileName)))
-					.ReturnsAsync(new Message());
-			}
 		}
 
-		private async Task SequenceFullOrTimeout(TimeSpan timeOut)
+		public static IEnumerable<TestCaseData> TestCases()
 		{
-			var cancellationTokenSource = new CancellationTokenSource();
-			cancellationTokenSource.CancelAfter(timeOut);
-
-			var allStepsCompleted = false;
-
-			try
-			{
-				do
-				{
-					allStepsCompleted = _clientWrapperMock.Setups
-						.All(s => s.IsMatched);
-
-					await Task.Delay(
-						TimeSpan.FromSeconds(2),
-						cancellationTokenSource.Token);
-				} while (!allStepsCompleted);
-			}
-			catch (TaskCanceledException)
-			{
-			}
+			yield return new TestCaseData(
+				"https://youtu.be/wuROIJ0tRPU",
+				ImmutableArray.Create(
+					new ExpectedFile(
+						//"NA-Гоня & Довгий Пес - Бронепоїзд.mp3",
+						"Бронепоїзд (feat. Довгий Пес)",
+						"Гоня & Довгий Пес",
+						TimeSpan.Parse("00:02:06"))));
+			const string secondAuthor = "Ницо Потворно";
+			yield return new TestCaseData(
+				"https://soundcloud.com/potvorno/sets/kyiv",
+				ImmutableArray.Create(
+					new ExpectedFile(
+						//"1-Київ.mp3",
+						"Київ",
+						secondAuthor,
+						TimeSpan.Parse("00:01:55")),
+					new ExpectedFile(
+						//"2-Заспіваю ще.mp3",
+						"Заспіваю ще",
+						secondAuthor,
+						TimeSpan.Parse("00:03:40"))));
+			const string thirdAuthor = "VISANCE";
+			yield return new TestCaseData(
+				"https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
+				ImmutableArray.Create(
+					new ExpectedFile(
+						"Drake - What's Next",
+						thirdAuthor,
+						TimeSpan.Parse("00:03:00")),
+					new ExpectedFile(
+						"Drake - Wants and Needs (ft. Lil Baby)",
+						thirdAuthor,
+						TimeSpan.Parse("00:03:13")),
+					new ExpectedFile(
+						"Drake - Lemon Pepper Freestyle (ft. Rick Ross)",
+						thirdAuthor,
+						TimeSpan.Parse("00:06:21"))));
 		}
 
 		[OneTimeTearDown]
@@ -145,5 +153,11 @@ namespace YoutubeMusicBot.Tests
 				new DownloadOptions().CacheFilesFolderPath,
 				recursive: true);
 		}
+
+		public record ExpectedFile(
+			//string Name,
+			string Title,
+			string Author,
+			TimeSpan Duration);
 	}
 }

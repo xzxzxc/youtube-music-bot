@@ -1,44 +1,47 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Autofac.Features.Indexed;
+using Autofac;
 using MediatR;
 using YoutubeMusicBot.Extensions;
-using YoutubeMusicBot.Interfaces;
-using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
 {
-	internal class MessageHandler : INotificationHandler<MessageHandler.Message>
+	internal class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
 	{
-		private readonly IIndex<ChatContext, ITrackFilesWatcher> _trackFilesWatchers;
-		private readonly IYoutubeDlWrapper _youtubeDlWrapper;
+		private readonly ILifetimeScope _lifetimeScope;
 
 		public MessageHandler(
-			IIndex<ChatContext, ITrackFilesWatcher> trackFilesWatchers,
-			IYoutubeDlWrapper youtubeDlWrapper)
+			ILifetimeScope lifetimeScope)
 		{
-			_trackFilesWatchers = trackFilesWatchers;
-			_youtubeDlWrapper = youtubeDlWrapper;
+			_lifetimeScope = lifetimeScope;
 		}
 
-		public async Task Handle(
-			Message notification,
+		public async Task<Unit> Handle(
+			Request request,
 			CancellationToken cancellationToken = default)
 		{
-			var message = notification.Value
-				?? throw new ArgumentNullException(nameof(notification));
+			var message = request.Value
+				?? throw new ArgumentNullException(nameof(request));
 
-			var trackFilesWatcher = _trackFilesWatchers[message.Chat.ToContext()];
+			var messageContext = message.ToContext();
 
-			await _youtubeDlWrapper.DownloadAsync(
-					trackFilesWatcher.ChatFolderPath,
+			await using var messageScope =
+				_lifetimeScope.BeginMessageLifetimeScope(
+					messageContext);
+
+			// TODO: add validation
+
+			await messageScope.Resolve<IYoutubeDlWrapper>()
+				.DownloadAsync(
 					message.Text,
 					cancellationToken);
+
+			return Unit.Value;
 		}
 
-		public record Message(Telegram.Bot.Types.Message? Value) : INotification
+		public record Request(Telegram.Bot.Types.Message? Value) : IRequest
 		{
 		}
 	}

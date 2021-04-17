@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
@@ -13,12 +16,22 @@ namespace YoutubeMusicBot.Wrappers
 {
 	internal class Mp3SplitWrapper : IMp3SplitWrapper
 	{
+		private readonly string _cacheFolder;
 		private readonly ILogger _logger;
+		private readonly IMediator _mediator;
+		private readonly Regex _regex;
 
 		public Mp3SplitWrapper(
+			ICacheFolder cacheFolder,
+			IMediator mediator,
 			ILogger<Mp3SplitWrapper> logger)
 		{
+			_cacheFolder = cacheFolder.Value;
 			_logger = logger;
+			_mediator = mediator;
+			_regex = new Regex(
+				@"^   File ""(?<file_name>.+)"" created$",
+				RegexOptions.Compiled | RegexOptions.Multiline);
 		}
 
 		public async Task SplitAsync(
@@ -32,26 +45,22 @@ namespace YoutubeMusicBot.Wrappers
 				ArgumentList =
 				{
 					"mp3splt",
+					"-q",
 					"-g",
-					$"%[@o,@b=#t,@t=\"{tracks.First().Name}\"]"
-					+
-					string.Concat(
+					$"%[@o,@b=#t,@t={tracks.First().Title}]"
+					+ string.Concat(
 						tracks
 							.Skip(1)
-							.Select(t => $"[@t=\"{t.Name}\"]")),
+							.Select(t => $"[@t={t.Title}]")),
 					file.Name,
-					//string.Concat(
-					//	tracks
-					//		.Select(
-					//			t => $"{t.Start.Minutes}.{t.Start.Seconds}")),
-					//"EOF"
 				},
-				WorkingDirectory = file.DirectoryName
-					?? throw new InvalidOperationException(), // TODO:
+				WorkingDirectory = _cacheFolder,
 				CreateNoWindow = true,
 				UseShellExecute = false,
 				RedirectStandardError = true,
-				RedirectStandardOutput = true
+				RedirectStandardOutput = true,
+				StandardErrorEncoding = Encoding.UTF8,
+				StandardOutputEncoding = Encoding.UTF8,
 			};
 
 			foreach (var track in tracks)
@@ -68,26 +77,63 @@ namespace YoutubeMusicBot.Wrappers
 				StartInfo = processInfo,
 			};
 
-			// TODO: think about what to do
-			process.OutputDataReceived += (
-					object sender,
-					DataReceivedEventArgs e) =>
-				Console.WriteLine("output>>" + e.Data);
-
-			process.ErrorDataReceived += (
-				object sender,
-				DataReceivedEventArgs e) =>
-			{
-				if (!string.IsNullOrEmpty(e.Data))
-					_logger.LogError(e.Data);
-			};
-
 			process.Start();
-			process.BeginOutputReadLine();
-			process.BeginErrorReadLine();
+
+			Task<string?>? readOutputTask = null;
+			Task<string?>? readErrorTask = null;
+			while ((readOutputTask == null
+					&& !process.StandardOutput.EndOfStream)
+				|| (readErrorTask == null
+					&& !process.StandardError.EndOfStream))
+			{
+				readOutputTask ??= process.StandardOutput.ReadLineAsync();
+				readErrorTask ??= process.StandardError.ReadLineAsync();
+
+				var resTask = await Task.WhenAny(
+					readOutputTask,
+					readErrorTask);
+
+				if (resTask == readOutputTask)
+				{
+					await ProcessOutput(readOutputTask.Result);
+					readOutputTask = null;
+				}
+				else if (resTask == readErrorTask)
+				{
+					await ProcessError(readErrorTask.Result);
+					readErrorTask = null;
+				}
+			}
 
 			await process.WaitForExitAsync(cancellationToken);
 			process.Close();
+		}
+
+		private async Task ProcessOutput(string? line)
+		{
+			if (string.IsNullOrEmpty(line))
+				return;
+
+			var match = _regex.Match(line);
+			if (match.Success)
+			{
+				var file = new FileInfo(
+					Path.Join(
+						_cacheFolder,
+						match.Groups["file_name"].Value));
+				await _mediator.Send(
+					new NewTrackHandler.Request(file, TrySplit: false));
+			}
+
+			_logger.LogInformation(line);
+		}
+
+		private async Task ProcessError(string? line)
+		{
+			if (string.IsNullOrEmpty(line))
+				return;
+
+			_logger.LogError(line);
 		}
 	}
 }

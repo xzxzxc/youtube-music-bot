@@ -7,5 +7,8 @@ namespace YoutubeMusicBot.Extensions
 	{
 		public static ChatContext ToContext(this Chat chat) =>
 			new(chat.Id);
+
+		public static MessageContext ToContext(this Message message) =>
+			new(message.Chat.ToContext());
 	}
 }

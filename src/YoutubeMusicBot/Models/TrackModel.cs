@@ -2,7 +2,7 @@
 
 namespace YoutubeMusicBot.Models
 {
-	public record TrackModel(TimeSpan Start, string Name)
+	public record TrackModel(TimeSpan Start, string Title)
 	{
 	}
 }

@@ -6,8 +6,10 @@ using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Tests
 {
+	[Parallelizable]
 	public class TrackListParserTests
 	{
+		[Parallelizable]
 		[TestCaseSource(nameof(ParseData))]
 		public void ShouldParseDescription(
 			string description,

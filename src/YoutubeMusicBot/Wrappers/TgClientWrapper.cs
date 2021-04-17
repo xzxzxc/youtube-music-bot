@@ -9,22 +9,24 @@ namespace YoutubeMusicBot.Wrappers
 {
 	internal class TgClientWrapper : ITgClientWrapper
 	{
+		private readonly MessageContext _messageContext;
 		private readonly ITelegramBotClient _telegramBotClient;
 
 		public TgClientWrapper(
+			MessageContext messageContext,
 			ITelegramBotClient telegramBotClient)
 		{
+			_messageContext = messageContext;
 			_telegramBotClient = telegramBotClient;
 		}
 
 		public async Task<Message> SendAudioAsync(
-			ChatContext chat,
 			FileInfo audio)
 		{
 			// TODO: add flood control handling
 			await using var fileStream = audio.OpenRead();
 			return await _telegramBotClient.SendAudioAsync(
-				chat.Id,
+				_messageContext.Chat.Id,
 				new InputMedia(
 					fileStream,
 					audio.Name));

@@ -4,13 +4,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
 {
 	internal class TrySplitHandler :
-		IRequestHandler<TrySplitHandler.Notification, bool>,
+		IRequestHandler<TrySplitHandler.Request, bool>,
 		IDisposable
 	{
 		private readonly IMp3SplitWrapper _mp3SplitWrapper;
@@ -26,10 +25,10 @@ namespace YoutubeMusicBot
 		}
 
 		public async Task<bool> Handle(
-			Notification notification,
+			Request request,
 			CancellationToken cancellationToken)
 		{
-			var file = notification.File;
+			var file = request.File;
 			var descriptionFile = new FileInfo(
 				Path.Join(
 					file.DirectoryName ?? throw new InvalidOperationException(), // TODO
@@ -53,7 +52,7 @@ namespace YoutubeMusicBot
 				return false;
 
 			await _mp3SplitWrapper.SplitAsync(
-				notification.File,
+				request.File,
 				trackList,
 				cancellationToken);
 
@@ -65,8 +64,7 @@ namespace YoutubeMusicBot
 			_descriptionFile?.Delete();
 		}
 
-		internal record Notification(
-				ChatContext Chat,
+		internal record Request(
 				FileInfo File)
 			: IRequest<bool>
 		{

@@ -8,7 +8,6 @@ namespace YoutubeMusicBot.Wrappers.Interfaces
 	public interface ITgClientWrapper
 	{
 		Task<Message> SendAudioAsync(
-			ChatContext chat,
 			FileInfo audio);
 	}
 }

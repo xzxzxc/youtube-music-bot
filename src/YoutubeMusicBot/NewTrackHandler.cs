@@ -4,14 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Options;
-using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
 {
 	internal class NewTrackHandler :
-		INotificationHandler<NewTrackHandler.Notification>,
+		IRequestHandler<NewTrackHandler.Request, Unit>,
 		IDisposable
 	{
 		private readonly ITgClientWrapper _tgClientWrapper;
@@ -29,20 +28,29 @@ namespace YoutubeMusicBot
 			_mediator = mediator;
 		}
 
-		public async Task Handle(
-			Notification notification,
+		public async Task<Unit> Handle(
+			Request request,
 			CancellationToken cancellationToken)
 		{
-			var file = _file = notification.File;
+			if (!request.File.Exists)
+			{
+				throw new ArgumentException(
+					"File doesn't exists!",
+					nameof(request));
+			}
 
-			var split = await _mediator.Send(
-				new TrySplitHandler.Notification(
-					notification.Chat,
-					notification.File),
-				cancellationToken);
+			var file = _file = request.File;
 
-			if (split)
-				return;
+			if (request.TrySplit)
+			{
+				var split = await _mediator.Send(
+					new TrySplitHandler.Request(
+						request.File),
+					cancellationToken);
+
+				if (split)
+					return Unit.Value;
+			}
 
 			// TODO: implement response
 			if (file.Length > _botOptions.CurrentValue.MaxFileSize)
@@ -50,18 +58,19 @@ namespace YoutubeMusicBot
 			}
 
 			// TODO: add retry policy
-			await _tgClientWrapper.SendAudioAsync(notification.Chat, file);
+			await _tgClientWrapper.SendAudioAsync(file);
+
+			return Unit.Value;
 		}
 
 		public void Dispose()
 		{
-			// TODO: check this called in case of exception
 			_file?.Delete();
 		}
 
-		public record Notification(
-			ChatContext Chat,
-			FileInfo File) : INotification
+		public record Request(
+			FileInfo File,
+			bool TrySplit = true) : IRequest
 		{
 		}
 	}

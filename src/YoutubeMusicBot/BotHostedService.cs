@@ -4,10 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Args;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 [assembly: InternalsVisibleTo("YoutubeMusicBot.Tests")]
@@ -42,12 +40,12 @@ namespace YoutubeMusicBot
 			_client.OnMessage -= ProcessClientMessageAsync;
 		}
 
-		private void ProcessClientMessageAsync(
+		private async void ProcessClientMessageAsync(
 			object? _,
 			MessageEventArgs? messageEvent)
 		{
-			_mediatorFactory().Publish(
-				new MessageHandler.Message(messageEvent?.Message));
+			await _mediatorFactory().Send(
+				new MessageHandler.Request(messageEvent?.Message));
 		}
 	}
 }
