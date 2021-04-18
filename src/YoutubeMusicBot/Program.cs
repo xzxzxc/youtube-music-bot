@@ -10,7 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
-using YoutubeMusicBot.Decorators;
+using YoutubeMusicBot.Behaviour;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers;
 
@@ -70,21 +70,8 @@ namespace YoutubeMusicBot
 
 			// exception handler must be the last one
 			containerBuilder.RegisterMediatR(
-				Assembly.GetExecutingAssembly());
-
-			containerBuilder.RegisterDecorator<IMediator>(
-				(context, parameters, instance) =>
-				{
-					if (parameters
-						.OfType<MediatorDisposableDecorator.DoNotDecorate>()
-						.Any())
-					{
-						return instance;
-					}
-
-					return new MediatorDisposableDecorator(
-						context.Resolve<ILifetimeScope>());
-				});
+				Assembly.GetExecutingAssembly(),
+				typeof(UnhandledExceptionBehaviour<,>));
 
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddHostedService<BotHostedService>();
