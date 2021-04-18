@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using YoutubeMusicBot.Models;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Interfaces
 {
 	public interface ITrackListParser
 	{

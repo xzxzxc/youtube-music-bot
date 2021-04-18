@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using Microsoft.Extensions.Options;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
-using YoutubeMusicBot.Wrappers;
 
 namespace YoutubeMusicBot
 {

@@ -1,7 +1,7 @@
 ﻿using Autofac;
 using YoutubeMusicBot.Models;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Extensions
 {
 	public static class AutofacExtensions
 	{

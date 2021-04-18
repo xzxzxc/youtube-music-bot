@@ -15,6 +15,7 @@ using MoreLinq;
 using NUnit.Framework;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Tests.Stubs;
