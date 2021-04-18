@@ -1,9 +1,7 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

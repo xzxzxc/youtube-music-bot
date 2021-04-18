@@ -11,15 +11,12 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Sequences;
-using MoreLinq;
 using NUnit.Framework;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Extensions;
 using YoutubeMusicBot.Interfaces;
-using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Tests.Stubs;
-using YoutubeMusicBot.Wrappers;
 using YoutubeMusicBot.Wrappers.Interfaces;
 using TagFile = TagLib.File;
 
