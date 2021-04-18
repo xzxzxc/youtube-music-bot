@@ -9,8 +9,10 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
 using YoutubeMusicBot.Behaviour;
+using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers;
+using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
 {
@@ -36,8 +38,12 @@ namespace YoutubeMusicBot
 			HostBuilderContext? _,
 			ContainerBuilder containerBuilder)
 		{
-			containerBuilder.RegisterType<TgClientWrapper>()
-				.AsImplementedInterfaces();
+			containerBuilder.RegisterType<TgClientWrapper>();
+			containerBuilder.RegisterType<TgClientsHolder>()
+				.SingleInstance();
+			containerBuilder.Register<ITgClientWrapper>(
+				ctx => ctx.Resolve<TgClientsHolder>()
+					.Get(ctx.Resolve<MessageContext>().Chat));
 
 			containerBuilder.RegisterType<YoutubeDlWrapper>()
 				.AsImplementedInterfaces();

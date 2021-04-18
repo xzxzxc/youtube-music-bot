@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Options;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
@@ -57,7 +58,6 @@ namespace YoutubeMusicBot
 			{
 			}
 
-			// TODO: add retry policy
 			await _tgClientWrapper.SendAudioAsync(file);
 
 			return Unit.Value;
