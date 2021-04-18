@@ -45,10 +45,6 @@ namespace YoutubeMusicBot
 			containerBuilder.RegisterType<Mp3SplitWrapper>()
 				.AsImplementedInterfaces();
 
-			containerBuilder.RegisterType<TrackFilesWatcherIndex>()
-				.AsImplementedInterfaces()
-				.SingleInstance();
-
 			containerBuilder.RegisterType<CacheFolder>()
 				.AsImplementedInterfaces();
 
