@@ -1,14 +1,18 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using YoutubeMusicBot.Behaviour;
+using YoutubeMusicBot.Extensions;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers;
@@ -38,12 +42,8 @@ namespace YoutubeMusicBot
 			HostBuilderContext? _,
 			ContainerBuilder containerBuilder)
 		{
-			containerBuilder.RegisterType<TgClientWrapper>();
-			containerBuilder.RegisterType<TgClientsHolder>()
-				.SingleInstance();
-			containerBuilder.Register<ITgClientWrapper>(
-				ctx => ctx.Resolve<TgClientsHolder>()
-					.Get(ctx.Resolve<MessageContext>().Chat));
+			containerBuilder.RegisterType<TgClientWrapper>()
+				.AsImplementedInterfaces();
 
 			containerBuilder.RegisterType<YoutubeDlWrapper>()
 				.AsImplementedInterfaces();

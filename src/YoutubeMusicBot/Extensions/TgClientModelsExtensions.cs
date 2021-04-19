@@ -1,4 +1,6 @@
-﻿using Telegram.Bot.Types;
+﻿//using Telegram.Bot.Types;
+
+using Telegram.Bot.Types;
 using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Extensions
@@ -8,7 +10,11 @@ namespace YoutubeMusicBot.Extensions
 		public static ChatContext ToContext(this Chat chat) =>
 			new(chat.Id);
 
+		//public static MessageContext ToContext(this Message message) =>
+		//	new(message.Chat.ToContext());
+
 		public static MessageContext ToContext(this Message message) =>
-			new(message.Chat.ToContext());
+			new(message.Chat.ToContext(),
+				message.Text);
 	}
 }

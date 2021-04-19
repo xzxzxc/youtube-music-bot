@@ -28,7 +28,7 @@ namespace YoutubeMusicBot.Wrappers
 
 			_cacheFolder = cacheFolder.Value;
 			_fileCompleted = new Regex(
-				@"^file for bot: '(?<file_name>.+)'$",
+				@"^\[completed\] (?<file_name>.+)$",
 				RegexOptions.Compiled | RegexOptions.Multiline);
 		}
 
@@ -97,10 +97,11 @@ namespace YoutubeMusicBot.Wrappers
 			var match = _fileCompleted.Match(line);
 			if (match.Success)
 			{
+				var fileName = match.Groups["file_name"].Value;
 				var file = new FileInfo(
 					Path.Join(
 						_cacheFolder,
-						match.Groups["file_name"].Value));
+						fileName));
 				await _mediator.Send(
 					new NewTrackHandler.Request(file));
 			}

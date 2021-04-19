@@ -16,8 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.build.props = Directory.build.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.Bot", "..\Telegram.Bot\src\Telegram.Bot\Telegram.Bot.csproj", "{1A56E01D-1961-4958-B5B3-66B197B46292}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,10 +30,6 @@ Global
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A56E01D-1961-4958-B5B3-66B197B46292}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A56E01D-1961-4958-B5B3-66B197B46292}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A56E01D-1961-4958-B5B3-66B197B46292}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A56E01D-1961-4958-B5B3-66B197B46292}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

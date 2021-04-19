@@ -1,7 +1,8 @@
 ﻿namespace YoutubeMusicBot.Models
 {
 	public record MessageContext(
-		ChatContext Chat)
+		ChatContext Chat,
+		string Text)
 	{
 	}
 }

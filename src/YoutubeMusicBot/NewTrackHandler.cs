@@ -35,9 +35,10 @@ namespace YoutubeMusicBot
 		{
 			if (!request.File.Exists)
 			{
-				throw new ArgumentException(
-					"File doesn't exists!",
-					nameof(request));
+				throw new ArgumentOutOfRangeException(
+					nameof(request),
+					request.File.Name,
+					"File doesn't exists!");
 			}
 
 			var file = _file = request.File;
@@ -56,9 +57,10 @@ namespace YoutubeMusicBot
 			// TODO: implement response
 			if (file.Length > _botOptions.CurrentValue.MaxFileSize)
 			{
+				return Unit.Value;
 			}
 
-			await _tgClientWrapper.SendAudioAsync(file);
+			await _tgClientWrapper.SendAudioAsync(file, cancellationToken);
 
 			return Unit.Value;
 		}

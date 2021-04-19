@@ -1,6 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
@@ -9,28 +14,55 @@ namespace YoutubeMusicBot.Wrappers
 {
 	internal class TgClientWrapper : ITgClientWrapper
 	{
-		private readonly ChatContext _chatContext;
+		private readonly MessageContext _context;
 		private readonly ITelegramBotClient _telegramBotClient;
 
 		public TgClientWrapper(
-			ChatContext chatContext,
+			MessageContext context,
 			ITelegramBotClient telegramBotClient)
 		{
-			_chatContext = chatContext;
+			_context = context;
 			_telegramBotClient = telegramBotClient;
 		}
 
 		public async Task<Message> SendAudioAsync(
-			FileInfo audio)
+			FileInfo audio,
+			CancellationToken cancellationToken = default)
 		{
 			// TODO: add retry policy
-			// TODO: add flood control handling
 			await using var fileStream = audio.OpenRead();
-			return await _telegramBotClient.SendAudioAsync(
-				_chatContext.Id,
-				new InputMedia(
-					fileStream,
-					audio.Name));
+			var inputMedia = new InputMedia(
+				fileStream,
+				audio.Name);
+			return await Ivoke(
+				() => _telegramBotClient.SendAudioAsync(
+					_context.Chat.Id,
+					inputMedia,
+					cancellationToken: cancellationToken));
+		}
+
+		public async Task<Message> SendMessageAsync(
+			string message,
+			CancellationToken cancellationToken = default) =>
+			await Ivoke(
+				() => _telegramBotClient.SendTextMessageAsync(
+					_context.Chat.Id,
+					message,
+					cancellationToken: cancellationToken));
+
+		private async Task<Message> Ivoke(Func<Task<Message>> action)
+		{
+			try
+			{
+				return await action();
+			}
+			catch (ApiRequestException ex)
+				when (ex.Parameters?.RetryAfter != null)
+			{
+				var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter.Value);
+				await Task.Delay(time);
+				return await Ivoke(action);
+			}
 		}
 	}
 }

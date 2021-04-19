@@ -1,6 +1,6 @@
 ﻿namespace YoutubeMusicBot.Options
 {
-	internal class DownloadOptions
+	public class DownloadOptions
 	{
 		public string CacheFilesFolderPath { get; set; } = "cache";
 	}

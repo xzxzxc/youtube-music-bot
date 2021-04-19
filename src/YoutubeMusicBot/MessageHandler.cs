@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Autofac;
 using MediatR;
 using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
@@ -22,16 +23,13 @@ namespace YoutubeMusicBot
 			Request request,
 			CancellationToken cancellationToken = default)
 		{
+			// TODO: add validation
 			var message = request.Value
-				?? throw new ArgumentNullException(nameof(request));
-
-			var messageContext = message.ToContext();
+				?? throw new ArgumentNullException();
 
 			await using var messageScope =
 				_lifetimeScope.BeginMessageLifetimeScope(
-					messageContext);
-
-			// TODO: add validation
+					message);
 
 			await messageScope.Resolve<IYoutubeDlWrapper>()
 				.DownloadAsync(
@@ -41,7 +39,7 @@ namespace YoutubeMusicBot
 			return Unit.Value;
 		}
 
-		public record Request(Telegram.Bot.Types.Message? Value) : IRequest
+		public record Request(MessageContext? Value) : IRequest
 		{
 		}
 	}

@@ -3,19 +3,24 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
+using MediatR.Pipeline;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Sequences;
 using NUnit.Framework;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Extensions;
 using YoutubeMusicBot.Interfaces;
+using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
+using YoutubeMusicBot.Tests.Extensions;
 using YoutubeMusicBot.Tests.Stubs;
 using YoutubeMusicBot.Wrappers.Interfaces;
 using TagFile = TagLib.File;
@@ -23,11 +28,10 @@ using TagFile = TagLib.File;
 namespace YoutubeMusicBot.Tests
 {
 	[Parallelizable]
-	public class BotHostedServiceTests
+	public class MessageHandlerTests
 	{
 		private Fixture _fixture = null!;
-		private Mock<ITgClientWrapper> _clientWrapperMock = null!;
-		private IContainer _container = null!;
+		private AutoMock _autoMock = null!;
 
 		[SetUp]
 		public void Setup()
@@ -40,45 +44,50 @@ namespace YoutubeMusicBot.Tests
 				.ForEach(b => _fixture.Behaviors.Remove(b));
 			_fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-			_clientWrapperMock =
-				new Mock<ITgClientWrapper>(MockBehavior.Strict);
+			_autoMock = AutoMock.GetStrict(
+				builder =>
+				{
+					Program.ConfigureContainer(null, builder);
 
-			var builder = new ContainerBuilder();
-			Program.ConfigureContainer(null, builder);
-			// replaces real impl
-			builder.RegisterGeneric(typeof(OptionsMonitorStub<>))
-				.AsImplementedInterfaces();
-			builder.RegisterGeneric(typeof(LoggerStub<>))
-				.As(typeof(ILogger<>));
-			builder.RegisterMock(_clientWrapperMock);
-
-			_container = builder.Build();
+					builder.RegisterGeneric(typeof(LoggerStub<>))
+						.As(typeof(ILogger<>));
+					builder.RegisterMediatrDependenciesMocks();
+					builder.RegisterOpenGenericMock(
+						typeof(IOptionsMonitor<>),
+						defaultValue: DefaultValue.Mock);
+					builder.RegisterMock(
+						new Mock<ITgClientWrapper>());
+				});
 		}
 
 		[Test]
-		[Timeout(60_000)] // 60 seconds
+		[Timeout(120_000)] // 2 minutes
 		[TestCaseSource(nameof(TestCases))]
 		public async Task ShouldUploadAudioOnEcho(
 			string url,
 			IReadOnlyCollection<ExpectedFile> expectedFiles)
 		{
+			LogsHolder.Executions.Clear();
 			var message = _fixture
-				.Build<Message>()
+				.Build<MessageContext>()
 				.With(m => m.Text, url)
 				.Create();
-			var cacheFolder = _container
-				.BeginMessageLifetimeScope(message.ToContext())
+			var cacheFolder = _autoMock.Container
+				.BeginMessageLifetimeScope(message)
 				.Resolve<ICacheFolder>()
 				.Value;
 			var resultTagFiles = new List<TagFile>();
-			_clientWrapperMock
-				.Setup(m => m.SendAudioAsync(It.IsAny<FileInfo>()))
-				.Callback<FileInfo>(
-					audio => resultTagFiles.Add(
+			_autoMock.Mock<ITgClientWrapper>()
+				.Setup(
+					m => m.SendAudioAsync(
+						It.IsAny<FileInfo>(),
+						It.IsAny<CancellationToken>()))
+				.Callback<FileInfo, CancellationToken>(
+					(audio, _) => resultTagFiles.Add(
 						TagFile.Create(
 							Path.Join(cacheFolder, audio.Name))))
 				.ReturnsAsync(new Message());
-			var messageHandler = _container.Resolve<MessageHandler>();
+			var messageHandler = _autoMock.Create<MessageHandler>();
 
 			await messageHandler.Handle(new MessageHandler.Request(message));
 
@@ -107,24 +116,27 @@ namespace YoutubeMusicBot.Tests
 				"https://youtu.be/wuROIJ0tRPU",
 				ImmutableArray.Create(
 					new ExpectedFile(
-						//"NA-Гоня & Довгий Пес - Бронепоїзд.mp3",
 						"Бронепоїзд (feat. Довгий Пес)",
 						"Гоня & Довгий Пес",
-						TimeSpan.Parse("00:02:06"))));
+						TimeSpan.Parse("00:02:06"))))
+			{
+				TestName = "Simple track",
+			};
 			const string secondAuthor = "Ницо Потворно";
 			yield return new TestCaseData(
 				"https://soundcloud.com/potvorno/sets/kyiv",
 				ImmutableArray.Create(
 					new ExpectedFile(
-						//"1-Київ.mp3",
 						"Київ",
 						secondAuthor,
 						TimeSpan.Parse("00:01:55")),
 					new ExpectedFile(
-						//"2-Заспіваю ще.mp3",
 						"Заспіваю ще",
 						secondAuthor,
-						TimeSpan.Parse("00:03:40"))));
+						TimeSpan.Parse("00:03:40"))))
+			{
+				TestName = "SoundCloud playlist",
+			};
 			const string thirdAuthor = "VISANCE";
 			yield return new TestCaseData(
 				"https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
@@ -140,13 +152,36 @@ namespace YoutubeMusicBot.Tests
 					new ExpectedFile(
 						"Drake - Lemon Pepper Freestyle (ft. Rick Ross)",
 						thirdAuthor,
-						TimeSpan.Parse("00:06:21"))));
+						TimeSpan.Parse("00:06:21"))))
+			{
+				TestName = "Track list in description",
+			};
+			yield return new TestCaseData(
+				"https://youtu.be/1PYGkzyz_YM",
+				ImmutableArray.Create(
+					new ExpectedFile(
+						"Глава 94 \"Gavno\"",
+						"Stepan Glava",
+						TimeSpan.Parse("00:03:30"))))
+			{
+				TestName = "Double quotes in file name",
+			};
+			yield return new TestCaseData(
+				"https://youtu.be/kqrcUKehT_Y",
+				ImmutableArray.Create(
+					new ExpectedFile(
+						"Зав'язав / Stage 13",
+						"Глава 94",
+						TimeSpan.Parse("00:03:40"))))
+			{
+				TestName = "Single quotes in file name",
+			};
 		}
 
 		[OneTimeTearDown]
-		public async Task OneTimeTearDown()
+		public void OneTimeTearDown()
 		{
-			await _container.DisposeAsync();
+			_autoMock.Dispose();
 			Directory.Delete(
 				new DownloadOptions().CacheFilesFolderPath,
 				recursive: true);
