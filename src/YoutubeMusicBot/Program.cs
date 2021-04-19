@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
@@ -10,13 +10,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
-using Telegram.Bot.Types;
-using YoutubeMusicBot.Behaviour;
-using YoutubeMusicBot.Extensions;
-using YoutubeMusicBot.Models;
+using YoutubeMusicBot.Decorators;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers;
-using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot
 {
@@ -70,8 +66,21 @@ namespace YoutubeMusicBot
 
 			// exception handler must be the last one
 			containerBuilder.RegisterMediatR(
-				Assembly.GetExecutingAssembly(),
-				typeof(UnhandledExceptionBehaviour<,>));
+				Assembly.GetExecutingAssembly());
+
+			containerBuilder.RegisterDecorator<IMediator>(
+				(context, parameters, instance) =>
+				{
+					if (parameters
+						.OfType<MediatorDisposableDecorator.DoNotDecorate>()
+						.Any())
+					{
+						return instance;
+					}
+
+					return new MediatorDisposableDecorator(
+						context.Resolve<ILifetimeScope>());
+				});
 
 			var serviceCollection = new ServiceCollection();
 			serviceCollection.AddHostedService<BotHostedService>();
