@@ -339,6 +339,12 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# cache
+/src/YoutubeMusicBot/cache/
+
+# deb packages
+*.deb
+
 # secrets
 /tests/YoutubeMusicBot.Tests/Secrets.cs
 /src/YoutubeMusicBot/appsettings.Secrets.json
