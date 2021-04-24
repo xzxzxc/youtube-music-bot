@@ -17,9 +17,8 @@ namespace YoutubeMusicBot.Tests
 	{
 		[Test]
 		[Timeout(120_000)] // 2 minutes
-		[InlineAutoData(Secrets.BotToken, Secrets.GroupChatId, 21)]
+		[InlineAutoData(Secrets.GroupChatId, 21)]
 		public async Task ShouldHandleFloodControl(
-			string botToken,
 			long chatId,
 			int messagesCount,
 			string message)
@@ -34,7 +33,7 @@ namespace YoutubeMusicBot.Tests
 					builder.RegisterOptions(
 						new BotOptions
 						{
-							Token = botToken
+							Token = Secrets.BotToken
 						});
 				});
 			var wrapper = autoMock.Create<TgClientWrapper>();

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -29,7 +27,6 @@ namespace YoutubeMusicBot.Wrappers
 			FileInfo audio,
 			CancellationToken cancellationToken = default)
 		{
-			// TODO: add retry policy
 			await using var fileStream = audio.OpenRead();
 			var inputMedia = new InputMedia(
 				fileStream,
@@ -54,6 +51,7 @@ namespace YoutubeMusicBot.Wrappers
 		{
 			try
 			{
+				// TODO: add retry policy
 				return await action();
 			}
 			catch (ApiRequestException ex)
