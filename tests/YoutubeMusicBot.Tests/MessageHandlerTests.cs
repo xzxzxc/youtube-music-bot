@@ -61,6 +61,34 @@ namespace YoutubeMusicBot.Tests
 		}
 
 		[Test]
+		[TestCase(
+			"https://youtu.be/wuROIJ0tRPU",
+			"Loading \"Гоня & Довгий Пес - Бронепоїзд\" started.")]
+		public async Task ShouldSendLoadingStartedOnEcho(
+			string url,
+			string expectedMessage)
+		{
+			LogsHolder.Executions.Clear();
+			var message = _fixture
+				.Build<MessageContext>()
+				.With(m => m.Text, url)
+				.Create();
+
+			var messageHandler = _autoMock.Create<MessageHandler>();
+
+			await messageHandler.Handle(new MessageHandler.Request(message));
+
+			LogsHolder.Executions.Should()
+				.NotContain(e => e.LogLevel >= LogLevel.Error);
+			_autoMock.Mock<ITgClientWrapper>()
+				.Verify(
+					c => c.SendMessageAsync(
+						expectedMessage,
+						It.IsAny<CancellationToken>()),
+					Times.Once);
+		}
+
+		[Test]
 		[Timeout(120_000)] // 2 minutes
 		[TestCaseSource(nameof(TestCases))]
 		public async Task ShouldUploadAudioOnEcho(

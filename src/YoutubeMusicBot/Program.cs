@@ -5,6 +5,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -16,7 +17,7 @@ using YoutubeMusicBot.Wrappers;
 
 namespace YoutubeMusicBot
 {
-	internal class Program
+	public class Program
 	{
 		public static async Task Main(string[] args)
 		{
@@ -52,6 +53,9 @@ namespace YoutubeMusicBot
 				.AsImplementedInterfaces();
 
 			containerBuilder.RegisterType<TrackListParser>()
+				.AsImplementedInterfaces();
+
+			containerBuilder.RegisterType<RunProcessHandler>()
 				.AsImplementedInterfaces();
 
 			containerBuilder.Register(

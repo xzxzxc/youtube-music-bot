@@ -10,5 +10,9 @@ namespace YoutubeMusicBot.Wrappers.Interfaces
 		Task<Message> SendAudioAsync(
 			FileInfo audio,
 			CancellationToken cancellationToken = default);
+
+		Task<Message> SendMessageAsync(
+			string text,
+			CancellationToken cancellationToken = default);
 	}
 }

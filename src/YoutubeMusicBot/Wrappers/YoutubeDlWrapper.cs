@@ -1,11 +1,8 @@
-﻿using System.Diagnostics;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
@@ -13,108 +10,63 @@ namespace YoutubeMusicBot.Wrappers
 {
 	internal class YoutubeDlWrapper : IYoutubeDlWrapper
 	{
-		private readonly ILogger _logger;
+		private readonly ITgClientWrapper _tgClientWrapper;
 		private readonly IMediator _mediator;
+		private readonly Regex _downloadingStarted;
 		private readonly Regex _fileCompleted;
 		private readonly string _cacheFolder;
 
 		public YoutubeDlWrapper(
 			ICacheFolder cacheFolder,
-			ILogger<YoutubeDlWrapper> logger,
+			ITgClientWrapper tgClientWrapper,
 			IMediator mediator)
 		{
-			_logger = logger;
+			_tgClientWrapper = tgClientWrapper;
 			_mediator = mediator;
 
 			_cacheFolder = cacheFolder.Value;
 			_fileCompleted = new Regex(
 				@"^\[completed\] (?<file_name>.+)$",
 				RegexOptions.Compiled | RegexOptions.Multiline);
+			_downloadingStarted = new Regex(
+				@"^\[info\] Writing video description to: (\d|N)(\d|A)\d*-(?<title>.+)\.description$",
+				RegexOptions.Compiled | RegexOptions.Multiline);
 		}
 
-		public async Task DownloadAsync(
+		public Task DownloadAsync(
 			string url,
-			CancellationToken cancellationToken = default)
-		{
-			var processInfo = new ProcessStartInfo
-			{
-				FileName = @"wsl.exe",
-				ArgumentList =
-				{
-					"-e",
+			CancellationToken cancellationToken = default) =>
+			_mediator.Send(
+				new RunProcessHandler.Request(
 					"youtube-dl",
-					url,
-				},
-				WorkingDirectory = _cacheFolder,
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true,
-				RedirectStandardOutput = true,
-				StandardErrorEncoding = Encoding.UTF8,
-				StandardOutputEncoding = Encoding.UTF8,
-			};
+					_cacheFolder,
+					ProcessOutput,
+					Arguments: url),
+				cancellationToken);
 
-			using var process = new Process
+		private async Task ProcessOutput(string line)
+		{
+			var startedMatch = _downloadingStarted.Match(line);
+			if (startedMatch.Success)
 			{
-				StartInfo = processInfo,
-			};
-
-			process.Start();
-
-			Task<string?>? readOutputTask = null;
-			Task<string?>? readErrorTask = null;
-			while ((readOutputTask == null && !process.StandardOutput.EndOfStream)
-				|| (readErrorTask == null && !process.StandardError.EndOfStream))
-			{
-				readOutputTask ??= process.StandardOutput.ReadLineAsync();
-				readErrorTask ??= process.StandardError.ReadLineAsync();
-
-				var resTask = await Task.WhenAny(
-					readOutputTask,
-					readErrorTask);
-
-				if (resTask == readOutputTask)
-				{
-					await ProcessOutput(readOutputTask.Result);
-					readOutputTask = null;
-				}
-				else if (resTask == readErrorTask)
-				{
-					await ProcessError(readErrorTask.Result);
-					readErrorTask = null;
-				}
+				var title = startedMatch.Groups["title"].Value;
+				await _tgClientWrapper.SendMessageAsync(
+					$"Loading \"{title}\" started.");
+				return;
 			}
 
-			await process.WaitForExitAsync(cancellationToken);
-			process.Close();
-		}
-
-		private async Task ProcessOutput(string? line)
-		{
-			if (string.IsNullOrEmpty(line))
-				return;
-
-			var match = _fileCompleted.Match(line);
-			if (match.Success)
+			var completedMatch = _fileCompleted.Match(line);
+			if (completedMatch.Success)
 			{
-				var fileName = match.Groups["file_name"].Value;
+				var fileName = completedMatch.Groups["file_name"].Value;
 				var file = new FileInfo(
 					Path.Join(
 						_cacheFolder,
 						fileName));
 				await _mediator.Send(
 					new NewTrackHandler.Request(file));
-			}
-
-			_logger.LogInformation(line);
-		}
-
-		private async Task ProcessError(string? line)
-		{
-			if (string.IsNullOrEmpty(line))
 				return;
-
-			_logger.LogError(line);
+			}
 		}
 	}
 }
