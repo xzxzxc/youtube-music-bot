@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Hosting;
 using Telegram.Bot;
-using Telegram.Bot.Args;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -16,7 +15,7 @@ using YoutubeMusicBot.Extensions;
 
 namespace YoutubeMusicBot
 {
-	internal class BotHostedService : IHostedService
+	internal class BotHostedService : BackgroundService
 	{
 		private readonly ITelegramBotClient _client;
 		private readonly IMediator _mediator;
@@ -36,10 +35,10 @@ namespace YoutubeMusicBot
 
 		private TimeSpan Timeout => _client.Timeout;
 
-		public UpdateType[] AllowedUpdates { get; } =
+		private UpdateType[] AllowedUpdates { get; } =
 			{ UpdateType.Message };
 
-		public async Task StartAsync(CancellationToken cancellationToken)
+		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
@@ -73,7 +72,7 @@ namespace YoutubeMusicBot
 					foreach (var update in updates)
 					{
 #pragma warning disable 4014
-						ProcessMessageAsync(update);
+						ProcessMessageAsync(update, cancellationToken);
 #pragma warning restore 4014
 						MessageOffset = update.Id + 1;
 					}
@@ -85,20 +84,19 @@ namespace YoutubeMusicBot
 			}
 		}
 
-		public async Task StopAsync(CancellationToken cancellationToken)
-		{
-		}
-
 		private async Task ProcessMessageAsync(
-			Update update)
+			Update update,
+			CancellationToken cancellationToken)
 		{
 			try
 			{
 				await _mediator.Send(
-					new MessageHandler.Request(update.Message?.ToContext()));
+					new MessageHandler.Request(update.Message?.ToContext()),
+					cancellationToken);
 			}
 			catch
 			{
+				// exception is handled in mediatr
 			}
 		}
 	}
