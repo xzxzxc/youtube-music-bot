@@ -28,6 +28,7 @@ namespace YoutubeMusicBot
 
 		public static IHostBuilder CreateHostBuilder(params string[] args) =>
 			Host.CreateDefaultBuilder(args)
+				.ConfigureAppConfiguration(ConfigureConfiguration)
 				.UseServiceProviderFactory(new AutofacServiceProviderFactory())
 				.ConfigureContainer<ContainerBuilder>(ConfigureContainer)
 				.UseSerilog(
@@ -89,6 +90,13 @@ namespace YoutubeMusicBot
 			serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
 
 			containerBuilder.Populate(serviceCollection);
+		}
+
+		private static void ConfigureConfiguration(
+			HostBuilderContext _,
+			IConfigurationBuilder builder)
+		{
+			builder.AddJsonFile("appsettings.Secrets.json");
 		}
 	}
 }
