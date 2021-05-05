@@ -5,8 +5,7 @@ using MediatR;
 
 namespace YoutubeMusicBot
 {
-	public class GetLinuxPathHandler :
-		IRequestHandler<GetLinuxPathHandler.Request, string>
+	public class GetLinuxPathHandler : IRequestHandler<GetLinuxPathHandler.Request, string>
 	{
 		private static readonly bool IsWindows = OperatingSystem.IsWindows();
 
