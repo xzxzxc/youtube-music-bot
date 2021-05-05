@@ -340,6 +340,7 @@ ASALocalRun/
 healthchecksdb
 
 # cache
+/cache/
 /src/YoutubeMusicBot/cache/
 
 # deb packages
