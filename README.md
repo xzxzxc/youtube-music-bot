@@ -79,7 +79,7 @@ dotnet run --environment Production
 python git_auto_updater.py -p ~/youtube-music-bot/ -c "dotnet run --project ./src/YoutubeMusicBot/YoutubeMusicBot.csproj --configuration Release -- --environment Production" -g https://github.com/xzxzxc/youtube-music-bot
 ```
 
-> python 3.6 and git v 2.2 or above is required
+> git v 2.2 or above is required
 
 to update to latest git version
 ```
