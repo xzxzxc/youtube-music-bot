@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,15 +35,25 @@ namespace YoutubeMusicBot.Wrappers
 				RegexOptions.Compiled | RegexOptions.Multiline);
 		}
 
-		public Task DownloadAsync(
+		public async Task DownloadAsync(
 			string url,
 			CancellationToken cancellationToken = default) =>
-			_mediator.Send(
+			await _mediator.Send(
 				new RunProcessHandler.Request(
 					"youtube-dl",
 					_cacheFolder,
 					ProcessOutput,
-					Arguments: url),
+					Arguments: new[]
+					{
+						"--config-location",
+						await _mediator.Send(
+							new GetLinuxPathHandler.Request(
+								Path.Join(
+									AppDomain.CurrentDomain.BaseDirectory,
+									"youtube-dl.conf")),
+							cancellationToken),
+						url,
+					}),
 				cancellationToken);
 
 		private async Task ProcessOutput(string line)
