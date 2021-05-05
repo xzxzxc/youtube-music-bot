@@ -64,3 +64,26 @@ git clone https://github.com/xzxzxc/youtube-music-bot.git ~/youtube-music-bot
 cd ~/youtube-music-bot/src/YoutubeMusicBot/
 dotnet run --environment Production
 ```
+
+# Run with auto-update
+
+- install [git_auto_updater](https://github.com/xzxzxc/git_auto_updater)
+
+```
+cd ~/youtube-music-bot/src/YoutubeMusicBot/
+dotnet run --environment Production
+```
+
+- run
+```
+python3 git_auto_updater.py -p ~/youtube-music-bot/ -c "dotnet run --project ./src/YoutubeMusicBot/YoutubeMusicBot.csproj --configuration Release -- --environment Production" -g https://github.com/xzxzxc/youtube-music-bot
+```
+
+> python 3.6 and git v 2.2 or above is required
+
+to update to latest git version
+```
+sudo add-apt-repository -y ppa:git-core/ppa
+sudo apt-get update
+sudo apt-get install git -y
+```
