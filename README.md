@@ -62,5 +62,5 @@ git clone https://github.com/xzxzxc/youtube-music-bot.git ~/youtube-music-bot
 
 ```
 cd ~/youtube-music-bot/src/YoutubeMusicBot/
-dotnet run YoutubeMusicBot.csproj --environment Production
+dotnet run --environment Production
 ```
