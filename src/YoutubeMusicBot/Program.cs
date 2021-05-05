@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
@@ -100,6 +101,7 @@ namespace YoutubeMusicBot
 			HostBuilderContext _,
 			IConfigurationBuilder builder)
 		{
+			builder.SetBasePath(AppDomain.CurrentDomain.BaseDirectory);
 			builder.AddJsonFile("appsettings.Secrets.json");
 		}
 	}
