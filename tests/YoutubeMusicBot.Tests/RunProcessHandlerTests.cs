@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Autofac;
-using Autofac.Extras.Moq;
 using AutoFixture.NUnit3;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using YoutubeMusicBot.Tests.Stubs;
+using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.InMemory;
 
 namespace YoutubeMusicBot.Tests
 {
@@ -15,15 +15,10 @@ namespace YoutubeMusicBot.Tests
 		[AutoData]
 		public async Task ShouldEcho(string message)
 		{
-			LogsHolder.Executions.Clear();
-			using var autoMock = AutoMock.GetStrict(
-				builder =>
-				{
-					Program.ConfigureContainer(null, builder);
-					builder.RegisterGeneric(typeof(LoggerStub<>))
-						.As(typeof(ILogger<>));
-				});
-			var runProcessHandler = autoMock.Create<RunProcessHandler>();
+			using var host = Program.CreateHostBuilder()
+				.UseSerilog(new LoggerConfiguration().WriteTo.InMemory().CreateLogger())
+				.Build();
+			var runProcessHandler = host.Services.GetRequiredService<RunProcessHandler>();
 			string outputLine = string.Empty;
 
 			await runProcessHandler.Handle(
@@ -33,8 +28,8 @@ namespace YoutubeMusicBot.Tests
 					async line => outputLine = line,
 					Arguments: message));
 
-			LogsHolder.Executions.Should()
-				.NotContain(e => e.LogLevel >= LogLevel.Error);
+			InMemorySink.Instance.LogEvents.Should()
+				.NotContain(e => e.Level >= LogEventLevel.Error);
 			outputLine.Should().Be(message);
 		}
 	}

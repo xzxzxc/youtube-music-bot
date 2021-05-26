@@ -14,11 +14,19 @@
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="Serilog.Sinks.InMemory" Version="0.6.0" />
     <PackageReference Include="TagLibSharp" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\YoutubeMusicBot\YoutubeMusicBot.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\youtube-dl.conf">
+      <Link>youtube-dl.conf</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

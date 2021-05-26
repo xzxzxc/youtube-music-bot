@@ -7,7 +7,7 @@ using Autofac.Core;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace YoutubeMusicBot.Decorators
+namespace YoutubeMusicBot.Mediatr
 {
 	internal class MediatorDisposableDecorator : IMediator
 	{

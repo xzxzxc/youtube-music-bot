@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using FluentValidation;
 using MediatR;
 using MediatR.Extensions.Autofac.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Telegram.Bot;
-using YoutubeMusicBot.Decorators;
+using YoutubeMusicBot.Mediatr;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers;
 
@@ -38,7 +39,7 @@ namespace YoutubeMusicBot
 						config.ReadFrom.Configuration(ctx.Configuration));
 
 		public static void ConfigureContainer(
-			HostBuilderContext? _,
+			HostBuilderContext _,
 			ContainerBuilder containerBuilder)
 		{
 			containerBuilder.RegisterType<TgClientWrapper>()
@@ -70,9 +71,7 @@ namespace YoutubeMusicBot
 				.As<ITelegramBotClient>()
 				.SingleInstance();
 
-			// exception handler must be the last one
-			containerBuilder.RegisterMediatR(
-				Assembly.GetExecutingAssembly());
+			containerBuilder.RegisterMediatR(Assembly.GetExecutingAssembly());
 
 			containerBuilder.RegisterDecorator<IMediator>(
 				(context, parameters, instance) =>
@@ -89,6 +88,7 @@ namespace YoutubeMusicBot
 				});
 
 			var serviceCollection = new ServiceCollection();
+			serviceCollection.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 			serviceCollection.AddHostedService<BotHostedService>();
 			serviceCollection.AddOptions<DownloadOptions>()
 				.BindConfiguration("Download");
