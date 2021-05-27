@@ -46,11 +46,12 @@ namespace YoutubeMusicBot.Handlers
 
             using var cancellationProvider = cancellationRegistration.RegisterNewProvider();
 
+            var inlineButton = new InlineButton("Cancel", cancellationProvider.Str);
             var sentMessage = await tgClientWrapper.SendMessageAsync(
                 "Loading started.",
-                new InlineButton("Cancel", cancellationProvider.Str),
+                inlineButton,
                 cancellationToken);
-            message.MessageToUpdateId = sentMessage.Id;
+            message.MessageToUpdate = sentMessage;
 
             var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken,

@@ -140,6 +140,7 @@ namespace YoutubeMusicBot.Tests
                     c => c.UpdateMessageAsync(
                         replyMessage.Id,
                         expectedMessageText,
+                        replyMessage.InlineButton,
                         It.IsAny<CancellationToken>()),
                     Times.Once);
             }
@@ -161,6 +162,7 @@ namespace YoutubeMusicBot.Tests
                         It.Is<string>(s => s.StartsWith("Loading")),
                         It.Is<InlineButton?>(
                             ib => ib != null
+                                && ib.CallbackData != null
                                 && ib.Text == "Cancel"
                                 && Encoding.Unicode.GetBytes(ib.CallbackData).Length
                                 <= TelegramMaxCallbackDataSize),

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Extensions
@@ -17,7 +19,8 @@ namespace YoutubeMusicBot.Extensions
                 : new(
                     message.MessageId,
                     message.Chat.ToContext(),
-                    message.Text ?? string.Empty);
+                    message.Text ?? string.Empty,
+                    message.ReplyMarkup?.InlineKeyboard.First().First().ToButton());
 
         public static CallbackQueryContext ToContext(this CallbackQuery? callbackQuery)
         {

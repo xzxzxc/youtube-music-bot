@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,11 +66,13 @@ namespace YoutubeMusicBot.Wrappers
             if (startedMatch.Success)
             {
                 var title = startedMatch.Groups["title"].Value;
-                await _tgClientWrapper.UpdateMessageAsync(
-                    _messageContext.MessageToUpdateId
+                var messageToUpdate = _messageContext.MessageToUpdate
                     ?? throw new InvalidOperationException(
-                        $"{nameof(_messageContext.MessageToUpdateId)} is not initialized!"),
+                        $"{nameof(_messageContext.MessageToUpdate)} is not initialized!");
+                await _tgClientWrapper.UpdateMessageAsync(
+                    messageToUpdate.Id,
                     $"Loading \"{title}\" started.",
+                    messageToUpdate.InlineButton,
                     cancellationToken);
                 return;
             }

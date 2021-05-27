@@ -19,6 +19,7 @@ namespace YoutubeMusicBot.Wrappers.Interfaces
         Task<MessageContext> UpdateMessageAsync(
             int messageId,
             string text,
+            InlineButton inlineButton,
             CancellationToken cancellationToken);
     }
 }
