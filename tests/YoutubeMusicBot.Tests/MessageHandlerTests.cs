@@ -32,7 +32,7 @@ namespace YoutubeMusicBot.Tests
         private const string CacheFolderName = "cache";
         private const int TelegramMaxCallbackDataSize = 64;
 
-        private readonly Fixture _fixture;
+        private readonly IFixture _fixture;
         private readonly IHost _host;
         private readonly Mock<ITgClientWrapper> _tgClientMock;
         private readonly IMediator _mediator;
@@ -47,7 +47,10 @@ namespace YoutubeMusicBot.Tests
                 .ForEach(b => _fixture.Behaviors.Remove(b));
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-            _tgClientMock = new Mock<ITgClientWrapper>();
+            _tgClientMock = new Mock<ITgClientWrapper>
+            {
+                DefaultValueProvider = new AutoFixtureValueProvider(_fixture)
+            };
             _host = Program.CreateHostBuilder()
                 .ConfigureContainer<ContainerBuilder>(
                     (_, b) => { b.RegisterMock(_tgClientMock); })
@@ -116,22 +119,26 @@ namespace YoutubeMusicBot.Tests
                 .With(m => m.Text, url)
                 .Create();
 
+            var replyMessage = _fixture.Create<MessageContext>();
+            _tgClientMock.Setup(
+                    c => c.SendMessageAsync(
+                        expectedMessageTexts[0],
+                        It.IsAny<InlineButton?>(),
+                        It.IsAny<CancellationToken>()))
+                .ReturnsAsync(replyMessage)
+                .Verifiable();
+
             await _mediator.Send(new MessageHandler.Request(message));
 
             InMemorySink.Instance.LogEvents.Should()
                 .NotContain(e => e.Level >= LogEventLevel.Error);
 
-            _tgClientMock.Verify(
-                c => c.SendMessageAsync(
-                    expectedMessageTexts[0],
-                    It.IsAny<InlineButton?>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-
+            _tgClientMock.VerifyAll();
             foreach (var expectedMessageText in expectedMessageTexts.Skip(1))
             {
                 _tgClientMock.Verify(
                     c => c.UpdateMessageAsync(
+                        replyMessage.Id,
                         expectedMessageText,
                         It.IsAny<CancellationToken>()),
                     Times.Once);

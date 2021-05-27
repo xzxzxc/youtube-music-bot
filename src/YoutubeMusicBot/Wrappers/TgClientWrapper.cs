@@ -51,12 +51,13 @@ namespace YoutubeMusicBot.Wrappers
                     cancellationToken: cancellationToken));
 
         public async Task<MessageContext> UpdateMessageAsync(
+            int messageId,
             string text,
             CancellationToken cancellationToken) =>
             await Ivoke(
                 () => _telegramBotClient.EditMessageTextAsync(
                     _context.Chat.Id,
-                    _context.Id,
+                    messageId,
                     text,
                     cancellationToken: cancellationToken));
 

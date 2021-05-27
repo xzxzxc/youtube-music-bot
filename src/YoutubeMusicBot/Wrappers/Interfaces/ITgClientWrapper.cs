@@ -17,6 +17,7 @@ namespace YoutubeMusicBot.Wrappers.Interfaces
             CancellationToken cancellationToken = default);
 
         Task<MessageContext> UpdateMessageAsync(
+            int messageId,
             string text,
             CancellationToken cancellationToken);
     }

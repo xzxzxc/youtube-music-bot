@@ -3,5 +3,8 @@
     public record MessageContext(
         int Id,
         ChatContext Chat,
-        string Text);
+        string Text)
+    {
+        public int? MessageToUpdateId { get; set; }
+    }
 }

@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using MediatR;
 using YoutubeMusicBot.Handlers;
 using YoutubeMusicBot.Interfaces;
+using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Wrappers
 {
     internal class YoutubeDlWrapper : IYoutubeDlWrapper
     {
+        private readonly MessageContext _messageContext;
         private readonly ITgClientWrapper _tgClientWrapper;
         private readonly IMediator _mediator;
         private readonly Regex _downloadingStarted;
@@ -19,10 +21,12 @@ namespace YoutubeMusicBot.Wrappers
         private readonly string _cacheFolder;
 
         public YoutubeDlWrapper(
+            MessageContext messageContext,
             ICacheFolder cacheFolder,
             ITgClientWrapper tgClientWrapper,
             IMediator mediator)
         {
+            _messageContext = messageContext;
             _tgClientWrapper = tgClientWrapper;
             _mediator = mediator;
 
@@ -62,6 +66,9 @@ namespace YoutubeMusicBot.Wrappers
             {
                 var title = startedMatch.Groups["title"].Value;
                 await _tgClientWrapper.UpdateMessageAsync(
+                    _messageContext.MessageToUpdateId
+                    ?? throw new InvalidOperationException(
+                        $"{nameof(_messageContext.MessageToUpdateId)} is not initialized!"),
                     $"Loading \"{title}\" started.",
                     cancellationToken);
                 return;
