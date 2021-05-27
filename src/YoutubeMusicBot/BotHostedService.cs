@@ -37,7 +37,7 @@ namespace YoutubeMusicBot
 		private TimeSpan Timeout => _client.Timeout;
 
 		private UpdateType[] AllowedUpdates { get; } =
-			{ UpdateType.Message };
+			{ UpdateType.Message, UpdateType.CallbackQuery };
 
 		protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 		{
