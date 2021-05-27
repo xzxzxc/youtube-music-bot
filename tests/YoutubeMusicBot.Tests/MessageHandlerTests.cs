@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -18,220 +19,264 @@ using NUnit.Framework;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
-using Telegram.Bot.Types;
+using YoutubeMusicBot.Handlers;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 using TagFile = TagLib.File;
+using static FluentAssertions.FluentActions;
 
 namespace YoutubeMusicBot.Tests
 {
-	public class MessageHandlerTests
-	{
-		private const string CacheFolderName = "cache";
+    public class MessageHandlerTests
+    {
+        private const string CacheFolderName = "cache";
+        private const int TelegramMaxCallbackDataSize = 64;
 
-		private readonly Fixture _fixture;
-		private readonly IHost _host;
-		private readonly ILifetimeScope _rootScope;
-		private readonly Mock<ITgClientWrapper> _tgClientMock;
+        private readonly Fixture _fixture;
+        private readonly IHost _host;
+        private readonly Mock<ITgClientWrapper> _tgClientMock;
+        private readonly IMediator _mediator;
 
-		public MessageHandlerTests()
-		{
-			Sequence.ContextMode = SequenceContextMode.Async;
+        public MessageHandlerTests()
+        {
+            Sequence.ContextMode = SequenceContextMode.Async;
 
-			_fixture = new Fixture();
-			_fixture.Behaviors.OfType<ThrowingRecursionBehavior>()
-				.ToList()
-				.ForEach(b => _fixture.Behaviors.Remove(b));
-			_fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            _fixture = new Fixture();
+            _fixture.Behaviors.OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => _fixture.Behaviors.Remove(b));
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-			_tgClientMock = new Mock<ITgClientWrapper>();
-			_host = Program.CreateHostBuilder()
-				.ConfigureContainer<ContainerBuilder>(
-					(_, b) => { b.RegisterMock(_tgClientMock); })
-				.UseSerilog(new LoggerConfiguration().WriteTo.InMemory().CreateLogger())
-				.Build();
+            _tgClientMock = new Mock<ITgClientWrapper>();
+            _host = Program.CreateHostBuilder()
+                .ConfigureContainer<ContainerBuilder>(
+                    (_, b) => { b.RegisterMock(_tgClientMock); })
+                .UseSerilog(new LoggerConfiguration().WriteTo.InMemory().CreateLogger())
+                .Build();
 
-			_rootScope = _host.Services.GetRequiredService<ILifetimeScope>();
-		}
+            var rootScope = _host.Services.GetRequiredService<ILifetimeScope>();
+            _mediator = rootScope.Resolve<IMediator>();
+        }
 
-		[SetUp]
-		public async Task SetUp()
-		{
-			if (Directory.Exists(CacheFolderName))
-			{
-				// idk why, but folder could be locked, so wait a little bit
-				await Task.Delay(TimeSpan.FromMilliseconds(30));
-				Directory.Delete(CacheFolderName, recursive: true);
-			}
+        [SetUp]
+        public void SetUp()
+        {
+            var filesFromPrevRun = Directory.Exists(CacheFolderName)
+                ? Directory.EnumerateFiles(
+                    CacheFolderName,
+                    "*",
+                    SearchOption.AllDirectories)
+                : Enumerable.Empty<string>();
+            foreach (var filePath in filesFromPrevRun)
+                File.Delete(filePath);
 
-			_tgClientMock.Reset();
-			InMemorySink.Instance.Dispose(); // this would clear all events
-		}
+            _tgClientMock.Reset();
+            InMemorySink.Instance.Dispose(); // this would clear all events
+        }
 
-		[Test]
-		[TestCase("", "Message must be not empty.")]
-		[TestCase("kljjk", "Message must be valid URL.")]
-		[TestCase("htt://test.com", "Message must be valid URL.")]
-		[TestCase("http:/test.com", "Message must be valid URL.")]
-		[TestCase("test.com", "Message must be valid URL.")]
-		public async Task ShouldSendErrorMessageOnInvalidUrl(
-			string url,
-			string expectedMessage)
-		{
-			var message = _fixture
-				.Build<MessageContext>()
-				.With(m => m.Text, url)
-				.Create();
-			var mediator = _rootScope.Resolve<IMediator>();
+        [Test]
+        [TestCase("", "Message must be not empty.")]
+        [TestCase("kljjk", "Message must be valid URL.")]
+        [TestCase("htt://test.com", "Message must be valid URL.")]
+        [TestCase("http:/test.com", "Message must be valid URL.")]
+        [TestCase("test.com", "Message must be valid URL.")]
+        public async Task ShouldSendErrorMessageOnInvalidUrl(
+            string url,
+            string expectedMessage)
+        {
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
 
-			await mediator.Send(new MessageHandler.Request(message));
+            await _mediator.Send(new MessageHandler.Request(message));
 
-			InMemorySink.Instance.LogEvents.Should()
-				.NotContain(e => e.Level >= LogEventLevel.Error);
-			_tgClientMock.Verify(
-				c => c.SendMessageAsync(expectedMessage, It.IsAny<CancellationToken>()),
-				Times.Once);
-			_tgClientMock.VerifyNoOtherCalls();
-		}
+            InMemorySink.Instance.LogEvents.Should()
+                .NotContain(e => e.Level >= LogEventLevel.Error);
+            _tgClientMock.Verify(
+                c => c.SendMessageAsync(
+                    expectedMessage,
+                    It.IsAny<InlineButton?>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            _tgClientMock.VerifyNoOtherCalls();
+        }
 
-		[Test]
-		[TestCase(
-			"https://youtu.be/wuROIJ0tRPU",
-			"Loading \"Гоня & Довгий Пес - Бронепоїзд\" started.")]
-		public async Task ShouldSendLoadingStartedOnEcho(
-			string url,
-			string expectedMessage)
-		{
-			var message = _fixture
-				.Build<MessageContext>()
-				.With(m => m.Text, url)
-				.Create();
-			var mediator = _rootScope.Resolve<IMediator>();
+        [Test]
+        [TestCase(
+            "https://youtu.be/wuROIJ0tRPU",
+            "Loading started.",
+            "Loading \"Гоня & Довгий Пес - Бронепоїзд\" started.")]
+        public async Task ShouldSendLoadingStartedOnEcho(
+            string url,
+            params string[] expectedMessageTexts)
+        {
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
 
-			await mediator.Send(new MessageHandler.Request(message));
+            await _mediator.Send(new MessageHandler.Request(message));
 
-			InMemorySink.Instance.LogEvents.Should()
-				.NotContain(e => e.Level >= LogEventLevel.Error);
-			_tgClientMock.Verify(
-				c => c.SendMessageAsync(expectedMessage, It.IsAny<CancellationToken>()),
-				Times.Once);
-		}
+            InMemorySink.Instance.LogEvents.Should()
+                .NotContain(e => e.Level >= LogEventLevel.Error);
 
-		[Test]
-		[Timeout(120_000)] // 2 minutes
-		[TestCaseSource(nameof(TestCases))]
-		public async Task ShouldUploadAudioOnEcho(
-			string url,
-			IReadOnlyCollection<ExpectedFile> expectedFiles)
-		{
-			var message = _fixture
-				.Build<MessageContext>()
-				.With(m => m.Text, url)
-				.Create();
-			var resultTagFiles = new List<TagFile>();
-			_tgClientMock
-				.Setup(m => m.SendAudioAsync(It.IsAny<FileInfo>(), It.IsAny<CancellationToken>()))
-				.Callback<FileInfo, CancellationToken>(
-					(audio, _) =>
-						resultTagFiles.Add(
-							TagFile.Create(
-								Path.Join(CacheFolderName, $"{message.Chat.Id}", audio.Name))))
-				.ReturnsAsync(new Message());
-			var mediator = _rootScope.Resolve<IMediator>();
+            _tgClientMock.Verify(
+                c => c.SendMessageAsync(
+                    expectedMessageTexts[0],
+                    It.IsAny<InlineButton?>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
 
-			await mediator.Send(new MessageHandler.Request(message));
+            foreach (var expectedMessageText in expectedMessageTexts.Skip(1))
+            {
+                _tgClientMock.Verify(
+                    c => c.UpdateMessageAsync(
+                        expectedMessageText,
+                        It.IsAny<CancellationToken>()),
+                    Times.Once);
+            }
+        }
 
-			InMemorySink.Instance.LogEvents.Should()
-				.NotContain(e => e.Level >= LogEventLevel.Error);
-			resultTagFiles.Should().HaveSameCount(expectedFiles);
-			foreach (var (expected, result) in expectedFiles
-				.Zip(resultTagFiles))
-			{
-				result.Tag.Title.Should().Be(expected.Title);
-				result.Tag.FirstPerformer.Should().Be(expected.Author);
-				result.Properties.Duration.Should()
-					.BeCloseTo(expected.Duration, precision: TimeSpan.FromSeconds(1));
-			}
+        [Test]
+        [Timeout(10_000)] // 10 seconds
+        [TestCase("https://youtu.be/wuROIJ0tRPU")]
+        public async Task ShouldCancelLoadingUsingButton(string url)
+        {
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
+            var completionSource = new TaskCompletionSource<InlineButton?>();
 
-			Directory.EnumerateFileSystemEntries(Path.Join(CacheFolderName, $"{message.Chat.Id}"))
-				.Should()
-				.BeEmpty();
-		}
+            _tgClientMock.Setup(
+                    m => m.SendMessageAsync(
+                        It.Is<string>(s => s.StartsWith("Loading")),
+                        It.Is<InlineButton?>(
+                            ib => ib != null
+                                && ib.Text == "Cancel"
+                                && Encoding.Unicode.GetBytes(ib.CallbackData).Length
+                                <= TelegramMaxCallbackDataSize),
+                        It.IsAny<CancellationToken>()))
+                .Callback<string, InlineButton?, CancellationToken>(
+                    (_, ib, _) => completionSource.SetResult(ib))
+                .ReturnsAsync(_fixture.Create<MessageContext>());
 
-		public static IEnumerable<TestCaseData> TestCases()
-		{
-			yield return new TestCaseData(
-				"https://youtu.be/wuROIJ0tRPU",
-				ImmutableArray.Create(
-					new ExpectedFile(
-						"Бронепоїзд (feat. Довгий Пес)",
-						"Гоня & Довгий Пес",
-						TimeSpan.Parse("00:02:06"))))
-			{
-				TestName = "Simple track",
-			};
-			const string secondAuthor = "Ницо Потворно";
-			yield return new TestCaseData(
-				"https://soundcloud.com/potvorno/sets/kyiv",
-				ImmutableArray.Create(
-					new ExpectedFile(
-						"Київ",
-						secondAuthor,
-						TimeSpan.Parse("00:01:55")),
-					new ExpectedFile(
-						"Заспіваю ще",
-						secondAuthor,
-						TimeSpan.Parse("00:03:40"))))
-			{
-				TestName = "SoundCloud playlist",
-			};
-			const string thirdAuthor = "VISANCE";
-			yield return new TestCaseData(
-				"https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
-				ImmutableArray.Create(
-					new ExpectedFile(
-						"Drake - What's Next",
-						thirdAuthor,
-						TimeSpan.Parse("00:03:00")),
-					new ExpectedFile(
-						"Drake - Wants and Needs (ft. Lil Baby)",
-						thirdAuthor,
-						TimeSpan.Parse("00:03:13")),
-					new ExpectedFile(
-						"Drake - Lemon Pepper Freestyle (ft. Rick Ross)",
-						thirdAuthor,
-						TimeSpan.Parse("00:06:21"))))
-			{
-				TestName = "Track list in description",
-			};
-			yield return new TestCaseData(
-				"https://youtu.be/1PYGkzyz_YM",
-				ImmutableArray.Create(
-					new ExpectedFile(
-						"Глава 94 \"Gavno\"",
-						"Stepan Glava",
-						TimeSpan.Parse("00:03:30"))))
-			{
-				TestName = "Double quotes in file name",
-			};
-			yield return new TestCaseData(
-				"https://youtu.be/kqrcUKehT_Y",
-				ImmutableArray.Create(
-					new ExpectedFile(
-						"Зав'язав / Stage 13",
-						"Глава 94",
-						TimeSpan.Parse("00:03:40"))))
-			{
-				TestName = "Single quotes in file name",
-			};
-		}
+            var sendTask = _mediator.Send(new MessageHandler.Request(message));
 
-		[OneTimeTearDown]
-		public void OneTimeTearDown()
-		{
-			_host.Dispose();
-		}
+            var inlineButton = await completionSource.Task;
+            var callbackQuery = _fixture
+                .Build<CallbackQueryContext>()
+                .With(m => m.Chat, message.Chat)
+                .With(m => m.CallbackData, inlineButton?.CallbackData)
+                .Create();
+            await _mediator.Send(new CallbackQueryHandler.Request(callbackQuery));
 
-		public record ExpectedFile(string Title, string Author, TimeSpan Duration);
-	}
+            await Awaiting(async () => await sendTask).Should().ThrowAsync<TaskCanceledException>();
+
+            InMemorySink.Instance.LogEvents.Should()
+                .NotContain(e => e.Level >= LogEventLevel.Error);
+        }
+
+        [Test]
+        [Timeout(120_000)] // 2 minutes
+        [TestCaseSource(nameof(TestCases))]
+        public async Task ShouldUploadAudioOnEcho(
+            string url,
+            IReadOnlyCollection<ExpectedFile> expectedFiles)
+        {
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
+            var resultTagFiles = new List<TagFile>();
+            _tgClientMock
+                .Setup(m => m.SendAudioAsync(It.IsAny<FileInfo>(), It.IsAny<CancellationToken>()))
+                .Callback<FileInfo, CancellationToken>(
+                    (audio, _) =>
+                        resultTagFiles.Add(
+                            TagFile.Create(
+                                Path.Join(CacheFolderName, $"{message.Chat.Id}", audio.Name))))
+                .ReturnsAsync(_fixture.Create<MessageContext>());
+
+            await _mediator.Send(new MessageHandler.Request(message));
+
+            InMemorySink.Instance.LogEvents.Should()
+                .NotContain(e => e.Level >= LogEventLevel.Error);
+            resultTagFiles.Should().HaveSameCount(expectedFiles);
+            foreach (var (expected, result) in expectedFiles
+                .Zip(resultTagFiles))
+            {
+                result.Tag.Title.Should().Be(expected.Title);
+                result.Tag.FirstPerformer.Should().Be(expected.Author);
+                result.Properties.Duration.Should()
+                    .BeCloseTo(expected.Duration, precision: TimeSpan.FromSeconds(1));
+            }
+
+            Directory.EnumerateFileSystemEntries(Path.Join(CacheFolderName, $"{message.Chat.Id}"))
+                .Should()
+                .BeEmpty();
+        }
+
+        public static IEnumerable<TestCaseData> TestCases()
+        {
+            yield return new TestCaseData(
+                "https://youtu.be/wuROIJ0tRPU",
+                ImmutableArray.Create(
+                    new ExpectedFile(
+                        "Бронепоїзд (feat. Довгий Пес)",
+                        "Гоня & Довгий Пес",
+                        TimeSpan.Parse("00:02:06")))) { TestName = "Simple track", };
+            const string secondAuthor = "Ницо Потворно";
+            yield return new TestCaseData(
+                "https://soundcloud.com/potvorno/sets/kyiv",
+                ImmutableArray.Create(
+                    new ExpectedFile(
+                        "Київ",
+                        secondAuthor,
+                        TimeSpan.Parse("00:01:55")),
+                    new ExpectedFile(
+                        "Заспіваю ще",
+                        secondAuthor,
+                        TimeSpan.Parse("00:03:40")))) { TestName = "SoundCloud playlist", };
+            const string thirdAuthor = "VISANCE";
+            yield return new TestCaseData(
+                "https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
+                ImmutableArray.Create(
+                    new ExpectedFile(
+                        "Drake - What's Next",
+                        thirdAuthor,
+                        TimeSpan.Parse("00:03:00")),
+                    new ExpectedFile(
+                        "Drake - Wants and Needs (ft. Lil Baby)",
+                        thirdAuthor,
+                        TimeSpan.Parse("00:03:13")),
+                    new ExpectedFile(
+                        "Drake - Lemon Pepper Freestyle (ft. Rick Ross)",
+                        thirdAuthor,
+                        TimeSpan.Parse("00:06:21")))) { TestName = "Track list in description", };
+            yield return new TestCaseData(
+                "https://youtu.be/1PYGkzyz_YM",
+                ImmutableArray.Create(
+                    new ExpectedFile(
+                        "Глава 94 \"Gavno\"",
+                        "Stepan Glava",
+                        TimeSpan.Parse("00:03:30")))) { TestName = "Double quotes in file name", };
+            yield return new TestCaseData(
+                "https://youtu.be/kqrcUKehT_Y",
+                ImmutableArray.Create(
+                    new ExpectedFile(
+                        "Зав'язав / Stage 13",
+                        "Глава 94",
+                        TimeSpan.Parse("00:03:40")))) { TestName = "Single quotes in file name", };
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            _host.Dispose();
+        }
+
+        public record ExpectedFile(string Title, string Author, TimeSpan Duration);
+    }
 }

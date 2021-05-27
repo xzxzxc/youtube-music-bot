@@ -9,6 +9,7 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Handlers;
 
 [assembly: InternalsVisibleTo("YoutubeMusicBot.Tests")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
@@ -72,7 +73,7 @@ namespace YoutubeMusicBot
 					foreach (var update in updates)
 					{
 #pragma warning disable 4014
-						ProcessMessageAsync(update, cancellationToken);
+						ProcessUpdateAsync(update, cancellationToken);
 #pragma warning restore 4014
 						MessageOffset = update.Id + 1;
 					}
@@ -84,14 +85,14 @@ namespace YoutubeMusicBot
 			}
 		}
 
-		private async Task ProcessMessageAsync(
+		private async Task ProcessUpdateAsync(
 			Update update,
 			CancellationToken cancellationToken)
 		{
 			try
 			{
 				await _mediator.Send(
-					new MessageHandler.Request(update.Message?.ToContext()),
+					new UpdateHandler.Request(update),
 					cancellationToken);
 			}
 			catch

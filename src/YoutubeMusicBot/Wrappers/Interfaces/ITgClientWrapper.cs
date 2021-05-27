@@ -1,18 +1,23 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
+using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Wrappers.Interfaces
 {
-	public interface ITgClientWrapper
-	{
-		Task<Message> SendAudioAsync(
-			FileInfo audio,
-			CancellationToken cancellationToken = default);
+    public interface ITgClientWrapper
+    {
+        Task<MessageContext> SendAudioAsync(
+            FileInfo audio,
+            CancellationToken cancellationToken = default);
 
-		Task<Message> SendMessageAsync(
-			string text,
-			CancellationToken cancellationToken = default);
-	}
+        Task<MessageContext> SendMessageAsync(
+            string text,
+            InlineButton? inlineButton = null,
+            CancellationToken cancellationToken = default);
+
+        Task<MessageContext> UpdateMessageAsync(
+            string text,
+            CancellationToken cancellationToken);
+    }
 }

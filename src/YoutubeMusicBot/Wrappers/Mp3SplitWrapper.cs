@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using YoutubeMusicBot.Handlers;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
@@ -59,7 +60,7 @@ namespace YoutubeMusicBot.Wrappers
 				cancellationToken);
 		}
 
-		private async Task ProcessOutput(string line)
+		private async Task ProcessOutput(string line, CancellationToken cancellationToken)
 		{
 			var match = _regex.Match(line);
 			if (match.Success)
@@ -69,7 +70,8 @@ namespace YoutubeMusicBot.Wrappers
 						_cacheFolder,
 						match.Groups["file_name"].Value));
 				await _mediator.Send(
-					new NewTrackHandler.Request(file, TrySplit: false));
+					new NewTrackHandler.Request(file, TrySplit: false),
+                    cancellationToken);
 			}
 		}
 	}

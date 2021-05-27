@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace YoutubeMusicBot.Mediatr
 				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
 				return await mediator.Send(request, cancellationToken);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not TaskCanceledException)
 			{
 				LogException(ex, request);
 				throw;
@@ -46,7 +47,7 @@ namespace YoutubeMusicBot.Mediatr
 				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
 				return await mediator.Send(request, cancellationToken);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not TaskCanceledException)
 			{
 				LogException(ex, request);
 				throw;
@@ -63,7 +64,7 @@ namespace YoutubeMusicBot.Mediatr
 				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
 				await mediator.Publish(notification, cancellationToken);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not TaskCanceledException)
 			{
 				LogException(ex, notification);
 				throw;
@@ -81,7 +82,7 @@ namespace YoutubeMusicBot.Mediatr
 				var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
 				await mediator.Publish(notification, cancellationToken);
 			}
-			catch (Exception ex)
+			catch (Exception ex) when (ex is not TaskCanceledException)
 			{
 				LogException(ex, notification);
 				throw;
@@ -105,7 +106,7 @@ namespace YoutubeMusicBot.Mediatr
 			public override bool CanSupplyValue(
 				ParameterInfo pi,
 				IComponentContext context,
-				out Func<object?>? valueProvider)
+				[NotNullWhen(returnValue: true)] out Func<object?>? valueProvider)
 			{
 				// this is dummy parameter type used as a flag
 				valueProvider = null;

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
+using YoutubeMusicBot.Handlers;
 
 namespace YoutubeMusicBot.Tests
 {
@@ -25,7 +26,7 @@ namespace YoutubeMusicBot.Tests
 				new RunProcessHandler.Request(
 					"echo",
 					WorkingDirectory: ".",
-					async line => outputLine = line,
+					async (line, _) => outputLine = line,
 					Arguments: message));
 
 			InMemorySink.Instance.LogEvents.Should()

@@ -4,11 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Options;
-using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Handlers
 {
 	internal class NewTrackHandler :
 		IRequestHandler<NewTrackHandler.Request, Unit>,

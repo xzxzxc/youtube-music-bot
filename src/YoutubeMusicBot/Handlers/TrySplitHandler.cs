@@ -7,7 +7,7 @@ using MediatR;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Handlers
 {
 	internal class TrySplitHandler :
 		IRequestHandler<TrySplitHandler.Request, bool>,

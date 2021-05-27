@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Handlers
 {
 	public class GetLinuxPathHandler : IRequestHandler<GetLinuxPathHandler.Request, string>
 	{
@@ -28,7 +28,7 @@ namespace YoutubeMusicBot
 				new RunProcessHandler.Request(
 					"wslpath",
 					".",
-					async line => result = line,
+					async (line, _) => result = line,
 					Arguments: request.WindowsPath));
 
 			return result
