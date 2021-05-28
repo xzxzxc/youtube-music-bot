@@ -35,7 +35,7 @@ namespace YoutubeMusicBot.Tests
 							})
 						.RegisterSource(new AnyConcreteTypeNotAlreadyRegisteredSource()))
 				.Build();
-			var fixture = new Fixture();
+			var fixture = AutoFixtureFactory.Create();
 			var chat = fixture
 				.Build<ChatContext>()
 				.With(c => c.Id, chatId)

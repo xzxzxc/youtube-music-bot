@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace YoutubeMusicBot.Wrappers.Interfaces
 {
-	internal interface IYoutubeDlWrapper
+    public interface IYoutubeDlWrapper
 	{
 		Task DownloadAsync(
 			string url,

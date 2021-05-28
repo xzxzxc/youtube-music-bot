@@ -8,31 +8,31 @@ using YoutubeMusicBot.Extensions;
 
 namespace YoutubeMusicBot.Handlers
 {
-	internal class UpdateHandler : IRequestHandler<UpdateHandler.Request, Unit>
-	{
-		private readonly IMediator _mediator;
+    internal class UpdateHandler : IRequestHandler<UpdateHandler.Request, Unit>
+    {
+        private readonly IMediator _mediator;
 
-		public UpdateHandler(IMediator mediator)
-		{
-			_mediator = mediator;
-		}
+        public UpdateHandler(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
 
-		public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
-		{
-			await _mediator.Send(
-				request.Update.Type switch
-				{
-					UpdateType.Message =>
-						new MessageHandler.Request(request.Update.Message.ToContext()),
-					UpdateType.CallbackQuery =>
-						new CallbackQueryHandler.Request(request.Update.CallbackQuery.ToContext()),
-					_ => throw new ArgumentOutOfRangeException(),
-				},
-				cancellationToken);
+        public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
+        {
+            await _mediator.Send(
+                request.Update.Type switch
+                {
+                    UpdateType.Message =>
+                        new MessageHandler.Request(request.Update.Message.ToContext()),
+                    UpdateType.CallbackQuery =>
+                        new CallbackQueryHandler.Request(request.Update.CallbackQuery.ToContext()),
+                    _ => throw new ArgumentOutOfRangeException(),
+                },
+                cancellationToken);
 
-			return Unit.Value;
-		}
+            return Unit.Value;
+        }
 
-		public record Request(Update Update) : IRequest;
-	}
+        public record Request(Update Update) : IRequest;
+    }
 }

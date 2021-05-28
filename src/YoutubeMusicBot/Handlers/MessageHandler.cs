@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -11,83 +10,82 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-    public class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
+    internal class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
     {
         private readonly ILifetimeScope _lifetimeScope;
-        private readonly IValidator<MessageContext> _validator;
 
-        public MessageHandler(ILifetimeScope lifetimeScope, IValidator<MessageContext> validator)
+        public MessageHandler(ILifetimeScope lifetimeScope)
         {
             _lifetimeScope = lifetimeScope;
-            _validator = validator;
         }
 
-        public async Task<Unit> Handle(
-            Request request,
-            CancellationToken cancellationToken = default)
+        public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
         {
-            var message = request.Value;
-
-            await using var messageScope = _lifetimeScope.BeginMessageLifetimeScope(message);
-
-            // TODO: remove ugly resolves
-            var validationResult = await _validator.ValidateAsync(message, cancellationToken);
-            var tgClientWrapper = messageScope.Resolve<ITgClientWrapper>();
-
-            if (!validationResult.IsValid)
-            {
-                await tgClientWrapper.SendMessageAsync(
-                    string.Join('\n', validationResult.Errors),
-                    cancellationToken: cancellationToken);
-                return Unit.Value;
-            }
-
-            var cancellationRegistration = messageScope.Resolve<ICancellationRegistration>();
-
-            using var cancellationProvider = cancellationRegistration.RegisterNewProvider();
-
-            var inlineButton = new InlineButton("Cancel", cancellationProvider.Str);
-            var sentMessage = await tgClientWrapper.SendMessageAsync(
-                "Loading started.",
-                inlineButton,
-                cancellationToken);
-            message.MessageToUpdate = sentMessage;
-
-            var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
-                cancellationToken,
-                cancellationProvider.Token);
-
-            var youtubeDlWrapper = messageScope.Resolve<IYoutubeDlWrapper>();
-
-            await youtubeDlWrapper
-                .DownloadAsync(
-                    message.Text,
-                    cancellationSource.Token);
+            await using var messageScope = _lifetimeScope.BeginMessageLifetimeScope(
+                request.Value);
+            var internalHandler = messageScope.Resolve<Internal>();
+            await internalHandler.HandleAsync(request.Value, cancellationToken);
 
             return Unit.Value;
         }
 
-        public record Request(MessageContext Value) : IRequest;
-
-        public class MessageContextValidator : AbstractValidator<MessageContext>
+        public class Internal : IAsyncDisposable
         {
-            private static readonly string[] AllowedSchemes = { "http", "https", "ftp" };
+            private readonly ITgClientWrapper _tgClientWrapper;
+            private readonly IValidator<MessageContext> _validator;
+            private readonly ICancellationRegistration _cancellationRegistration;
+            private readonly IYoutubeDlWrapper _youtubeDlWrapper;
+            private MessageContext? _messageToDeleteOnDispose = null;
 
-            public MessageContextValidator()
+            public Internal(
+                ITgClientWrapper tgClientWrapper,
+                IValidator<MessageContext> validator,
+                ICancellationRegistration cancellationRegistration,
+                IYoutubeDlWrapper youtubeDlWrapper)
             {
-                RuleFor(r => r.Text)
-                    .NotEmpty()
-                    .WithMessage("Message must be not empty.")
-                    .DependentRules(
-                        () =>
-                        {
-                            RuleFor(r => r.Text)
-                                .Must(
-                                    m => Uri.TryCreate(m, UriKind.Absolute, out var uri)
-                                        && AllowedSchemes.Contains(uri.Scheme))
-                                .WithMessage("Message must be valid URL.");
-                        });
+                _tgClientWrapper = tgClientWrapper;
+                _validator = validator;
+                _cancellationRegistration = cancellationRegistration;
+                _youtubeDlWrapper = youtubeDlWrapper;
+            }
+
+            public async Task HandleAsync(
+                MessageContext message,
+                CancellationToken cancellationToken = default)
+            {
+                var validationResult = await _validator.ValidateAsync(message, cancellationToken);
+
+                if (!validationResult.IsValid)
+                {
+                    await _tgClientWrapper.SendMessageAsync(
+                        string.Join('\n', validationResult.Errors),
+                        cancellationToken: cancellationToken);
+                    return;
+                }
+
+                using var cancellationProvider = _cancellationRegistration.RegisterNewProvider();
+
+                var inlineButton = new InlineButton("Cancel", cancellationProvider.Str);
+                message.MessageToUpdate = _messageToDeleteOnDispose =
+                    await _tgClientWrapper.SendMessageAsync(
+                        "Loading started.",
+                        inlineButton,
+                        cancellationToken);
+
+                var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    cancellationToken,
+                    cancellationProvider.Token);
+
+                await _youtubeDlWrapper.DownloadAsync(message.Text, cancellationSource.Token);
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (_messageToDeleteOnDispose != null)
+                    await _tgClientWrapper.DeleteMessageAsync(_messageToDeleteOnDispose.Id);
             }
         }
+
+        public record Request(MessageContext Value) : IRequest;
     }
 }

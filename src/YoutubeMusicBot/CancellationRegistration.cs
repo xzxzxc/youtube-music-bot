@@ -13,7 +13,8 @@ namespace YoutubeMusicBot
 
         public CancellationProvider RegisterNewProvider()
         {
-            var id = Guid.NewGuid().ToString("N")[..^2];
+            // TODO: move to CancellationCallbackFactory and create wrapper with dispose functionality
+            var id = Guid.NewGuid().ToString("N")[..^4];
             var provider = new CancellationProvider(id, () => _providers.TryRemove(id, out _));
             _providers.AddOrUpdate(
                 provider.Id,

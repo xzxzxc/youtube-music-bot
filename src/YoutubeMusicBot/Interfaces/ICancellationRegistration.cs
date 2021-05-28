@@ -2,7 +2,7 @@
 
 namespace YoutubeMusicBot
 {
-    internal interface ICancellationRegistration
+    public interface ICancellationRegistration
     {
         CancellationProvider GetProvider(string cancellationProviderId);
 

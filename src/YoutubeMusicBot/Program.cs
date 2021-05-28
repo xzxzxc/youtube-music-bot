@@ -43,6 +43,10 @@ namespace YoutubeMusicBot
             HostBuilderContext _,
             ContainerBuilder containerBuilder)
         {
+            containerBuilder.RegisterType<CancellationRegistration>()
+                .AsImplementedInterfaces()
+                .SingleInstance();
+
             containerBuilder.RegisterType<TgClientWrapper>()
                 .AsImplementedInterfaces();
 
@@ -61,12 +65,10 @@ namespace YoutubeMusicBot
             containerBuilder.RegisterType<RunProcessHandler>()
                 .AsImplementedInterfaces();
 
-            containerBuilder.RegisterType<CancellationRegistration>()
-                .AsImplementedInterfaces()
-                .SingleInstance();
-
             containerBuilder.RegisterType<CancellationProviderFactory>()
                 .AsImplementedInterfaces();
+
+            containerBuilder.RegisterType<MessageHandler.Internal>();
 
             containerBuilder.Register(
                     ctx =>

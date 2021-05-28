@@ -53,14 +53,23 @@ namespace YoutubeMusicBot.Wrappers
         public async Task<MessageContext> UpdateMessageAsync(
             int messageId,
             string text,
-            InlineButton? inlineButton,
-            CancellationToken cancellationToken) =>
+            InlineButton? inlineButton = null,
+            CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.EditMessageTextAsync(
                     _context.Chat.Id,
                     messageId,
                     text,
                     replyMarkup: inlineButton?.ToMarkup(),
+                    cancellationToken: cancellationToken));
+
+        public async Task DeleteMessageAsync(
+            int messageId,
+            CancellationToken cancellationToken = default) =>
+            await Ivoke(
+                () => _telegramBotClient.DeleteMessageAsync(
+                    _context.Chat.Id,
+                    messageId,
                     cancellationToken: cancellationToken));
 
         private async Task<MessageContext> Ivoke(Func<Task<Message>> action)
@@ -76,6 +85,22 @@ namespace YoutubeMusicBot.Wrappers
                 var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter.Value);
                 await Task.Delay(time);
                 return await Ivoke(action);
+            }
+        }
+
+        private async Task Ivoke(Func<Task> action)
+        {
+            try
+            {
+                // TODO: add retry policy
+                await action();
+            }
+            catch (ApiRequestException ex)
+                when (ex.Parameters?.RetryAfter != null)
+            {
+                var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter.Value);
+                await Task.Delay(time);
+                await Ivoke(action);
             }
         }
     }

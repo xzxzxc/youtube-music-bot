@@ -18,7 +18,7 @@ namespace YoutubeMusicBot.Models
 
         public string Id { get; }
 
-        // TODO: move somewhere
+        // TODO: move to CancellationCallbackFactory
         public string Str => $"c_{Id}";
 
         public CancellationToken Token => _source.Token;
@@ -29,6 +29,7 @@ namespace YoutubeMusicBot.Models
         public void Dispose() =>
             _dispose();
 
+        // TODO: move to CancellationCallbackFactory
         public static bool TryGetId(string str, [NotNullWhen(returnValue: true)] out string? id)
         {
             var res = str.StartsWith("c_");

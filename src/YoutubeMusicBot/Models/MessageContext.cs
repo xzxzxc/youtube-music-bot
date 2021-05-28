@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace YoutubeMusicBot.Models
+﻿namespace YoutubeMusicBot.Models
 {
     public record MessageContext(
         int Id,
         ChatContext Chat,
         string Text,
-        InlineButton InlineButton)
+        InlineButton? InlineButton)
     {
         public MessageContext? MessageToUpdate { get; set; }
     }

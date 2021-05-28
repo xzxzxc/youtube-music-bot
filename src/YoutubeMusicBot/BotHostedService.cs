@@ -8,7 +8,6 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using YoutubeMusicBot.Extensions;
 using YoutubeMusicBot.Handlers;
 
 [assembly: InternalsVisibleTo("YoutubeMusicBot.Tests")]

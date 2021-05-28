@@ -8,7 +8,8 @@ namespace YoutubeMusicBot.Extensions
         public static InlineKeyboardMarkup ToMarkup(this InlineButton button) =>
             new(new InlineKeyboardButton
             {
-                Text = button.Text, CallbackData = button.CallbackData,
+                Text = button.Text,
+                CallbackData = button.CallbackData,
             });
 
 

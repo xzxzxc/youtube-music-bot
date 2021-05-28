@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,11 +42,7 @@ namespace YoutubeMusicBot.Tests
         {
             Sequence.ContextMode = SequenceContextMode.Async;
 
-            _fixture = new Fixture();
-            _fixture.Behaviors.OfType<ThrowingRecursionBehavior>()
-                .ToList()
-                .ForEach(b => _fixture.Behaviors.Remove(b));
-            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            _fixture = AutoFixtureFactory.Create();
 
             _tgClientMock = new Mock<ITgClientWrapper>
             {
@@ -147,6 +144,35 @@ namespace YoutubeMusicBot.Tests
         }
 
         [Test]
+        [TestCase("https://youtu.be/wuROIJ0tRPU")]
+        public async Task ShouldDeleteMessageAfterFileSent(string url)
+        {
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
+
+            var replyMessage = _fixture.Create<MessageContext>();
+            _tgClientMock.Setup(
+                    m => m.SendMessageAsync(
+                        It.Is<string>(s => s.StartsWith("Loading")),
+                        It.IsAny<InlineButton?>(),
+                        It.IsAny<CancellationToken>()))
+                .ReturnsAsync(replyMessage);
+
+            await _mediator.Send(new MessageHandler.Request(message));
+
+            InMemorySink.Instance.LogEvents.Should()
+                .NotContain(e => e.Level >= LogEventLevel.Error);
+
+            _tgClientMock.Verify(
+                c => c.DeleteMessageAsync(
+                    replyMessage.Id,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Test]
         [Timeout(10_000)] // 10 seconds
         [TestCase("https://youtu.be/wuROIJ0tRPU")]
         public async Task ShouldCancelLoadingUsingButton(string url)
@@ -162,8 +188,8 @@ namespace YoutubeMusicBot.Tests
                         It.Is<string>(s => s.StartsWith("Loading")),
                         It.Is<InlineButton?>(
                             ib => ib != null
-                                && ib.CallbackData != null
                                 && ib.Text == "Cancel"
+                                && ib.CallbackData != null
                                 && Encoding.Unicode.GetBytes(ib.CallbackData).Length
                                 <= TelegramMaxCallbackDataSize),
                         It.IsAny<CancellationToken>()))
@@ -179,9 +205,11 @@ namespace YoutubeMusicBot.Tests
                 .With(m => m.Chat, message.Chat)
                 .With(m => m.CallbackData, inlineButton?.CallbackData)
                 .Create();
-            await _mediator.Send(new CallbackQueryHandler.Request(callbackQuery));
 
+            var sw = Stopwatch.StartNew();
+            await _mediator.Send(new CallbackQueryHandler.Request(callbackQuery));
             await Awaiting(async () => await sendTask).Should().ThrowAsync<TaskCanceledException>();
+            sw.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
 
             InMemorySink.Instance.LogEvents.Should()
                 .NotContain(e => e.Level >= LogEventLevel.Error);
