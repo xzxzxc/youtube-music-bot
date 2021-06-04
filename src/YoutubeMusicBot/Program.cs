@@ -65,7 +65,7 @@ namespace YoutubeMusicBot
             containerBuilder.RegisterType<RunProcessHandler>()
                 .AsImplementedInterfaces();
 
-            containerBuilder.RegisterType<CancellationProviderFactory>()
+            containerBuilder.RegisterType<CallbackFactory>()
                 .AsImplementedInterfaces();
 
             containerBuilder.RegisterType<MessageHandler.Internal>();

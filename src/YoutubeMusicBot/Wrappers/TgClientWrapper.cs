@@ -76,7 +76,6 @@ namespace YoutubeMusicBot.Wrappers
         {
             try
             {
-                // TODO: add retry policy
                 return (await action()).ToContext();
             }
             catch (ApiRequestException ex)
@@ -92,7 +91,6 @@ namespace YoutubeMusicBot.Wrappers
         {
             try
             {
-                // TODO: add retry policy
                 await action();
             }
             catch (ApiRequestException ex)

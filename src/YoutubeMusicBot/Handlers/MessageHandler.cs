@@ -5,6 +5,7 @@ using Autofac;
 using FluentValidation;
 using MediatR;
 using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
@@ -35,18 +36,21 @@ namespace YoutubeMusicBot.Handlers
             private readonly IValidator<MessageContext> _validator;
             private readonly ICancellationRegistration _cancellationRegistration;
             private readonly IYoutubeDlWrapper _youtubeDlWrapper;
+            private readonly ICallbackFactory _callbackFactory;
             private MessageContext? _messageToDeleteOnDispose = null;
 
             public Internal(
                 ITgClientWrapper tgClientWrapper,
                 IValidator<MessageContext> validator,
                 ICancellationRegistration cancellationRegistration,
-                IYoutubeDlWrapper youtubeDlWrapper)
+                IYoutubeDlWrapper youtubeDlWrapper,
+                ICallbackFactory callbackFactory)
             {
                 _tgClientWrapper = tgClientWrapper;
                 _validator = validator;
                 _cancellationRegistration = cancellationRegistration;
                 _youtubeDlWrapper = youtubeDlWrapper;
+                _callbackFactory = callbackFactory;
             }
 
             public async Task HandleAsync(
@@ -65,7 +69,7 @@ namespace YoutubeMusicBot.Handlers
 
                 using var cancellationProvider = _cancellationRegistration.RegisterNewProvider();
 
-                var inlineButton = new InlineButton("Cancel", cancellationProvider.Str);
+                var inlineButton = new InlineButton("Cancel", cancellationProvider.CallbackData);
                 message.MessageToUpdate = _messageToDeleteOnDispose =
                     await _tgClientWrapper.SendMessageAsync(
                         "Loading started.",

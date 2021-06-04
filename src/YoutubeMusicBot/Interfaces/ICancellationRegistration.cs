@@ -1,11 +1,17 @@
-﻿using YoutubeMusicBot.Models;
-
-namespace YoutubeMusicBot
+﻿namespace YoutubeMusicBot.Interfaces
 {
     public interface ICancellationRegistration
     {
-        CancellationProvider GetProvider(string cancellationProviderId);
+        /// <summary>
+        /// Find provider by <see cref="callbackData"/>.
+        /// </summary>
+        ICancellationProvider GetProvider(string callbackData);
 
-        CancellationProvider RegisterNewProvider();
+
+        /// <summary>
+        /// Create and register provider that could be used to cancel command.
+        /// <remarks>Created provider need to be unregistered using Dispose method.</remarks>
+        /// </summary>
+        ICancellationProvider RegisterNewProvider();
     }
 }

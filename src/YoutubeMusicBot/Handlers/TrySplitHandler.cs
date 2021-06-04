@@ -9,66 +9,66 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-	internal class TrySplitHandler :
-		IRequestHandler<TrySplitHandler.Request, bool>,
-		IDisposable
-	{
-		private readonly IMp3SplitWrapper _mp3SplitWrapper;
-		private readonly ITrackListParser _trackListParser;
-		private FileInfo? _descriptionFile;
+    internal class TrySplitHandler :
+        IRequestHandler<TrySplitHandler.Request, bool>,
+        IDisposable
+    {
+        private readonly IMp3SplitWrapper _mp3SplitWrapper;
+        private readonly ITrackListParser _trackListParser;
+        private FileInfo? _descriptionFile;
 
-		public TrySplitHandler(
-			IMp3SplitWrapper mp3SplitWrapper,
-			ITrackListParser trackListParser)
-		{
-			_mp3SplitWrapper = mp3SplitWrapper;
-			_trackListParser = trackListParser;
-		}
+        public TrySplitHandler(
+            IMp3SplitWrapper mp3SplitWrapper,
+            ITrackListParser trackListParser)
+        {
+            _mp3SplitWrapper = mp3SplitWrapper;
+            _trackListParser = trackListParser;
+        }
 
-		public async Task<bool> Handle(
-			Request request,
-			CancellationToken cancellationToken)
-		{
-			var file = request.File;
-			var descriptionFile = new FileInfo(
-				Path.Join(
-					file.DirectoryName ?? throw new InvalidOperationException(), // TODO
-					$"{Path.GetFileNameWithoutExtension(file.Name)}.description"));
+        public async Task<bool> Handle(
+            Request request,
+            CancellationToken cancellationToken)
+        {
+            var file = request.File;
+            var directoryName = file.DirectoryName
+                ?? throw new ArgumentOutOfRangeException(
+                    nameof(request),
+                    request,
+                    "File has no dictionary ");
 
-			if (!descriptionFile.Exists)
-				return false;
+            var descriptionFileName = Path.ChangeExtension(file.Name, "description");
+            var descriptionFile = new FileInfo(Path.Join(directoryName, descriptionFileName));
 
-			_descriptionFile = descriptionFile;
+            if (!descriptionFile.Exists)
+                return false;
 
-			var description = await File.ReadAllTextAsync(
-				descriptionFile.FullName,
-				cancellationToken);
+            _descriptionFile = descriptionFile;
 
-			if (string.IsNullOrEmpty(description))
-				return false;
+            var description = await File.ReadAllTextAsync(
+                descriptionFile.FullName,
+                cancellationToken);
 
-			var trackList = _trackListParser.Parse(description)
-				.ToArray();
-			if (trackList.Length == 0)
-				return false;
+            if (string.IsNullOrEmpty(description))
+                return false;
 
-			await _mp3SplitWrapper.SplitAsync(
-				request.File,
-				trackList,
-				cancellationToken);
+            var trackList = _trackListParser.Parse(description)
+                .ToArray();
+            if (trackList.Length == 0)
+                return false;
 
-			return true;
-		}
+            await _mp3SplitWrapper.SplitAsync(
+                request.File,
+                trackList,
+                cancellationToken);
 
-		public void Dispose()
-		{
-			_descriptionFile?.Delete();
-		}
+            return true;
+        }
 
-		internal record Request(
-				FileInfo File)
-			: IRequest<bool>
-		{
-		}
-	}
+        public void Dispose()
+        {
+            _descriptionFile?.Delete();
+        }
+
+        internal record Request(FileInfo File) : IRequest<bool>;
+    }
 }

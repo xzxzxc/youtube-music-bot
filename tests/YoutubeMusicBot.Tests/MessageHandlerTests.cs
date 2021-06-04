@@ -199,17 +199,24 @@ namespace YoutubeMusicBot.Tests
 
             var sendTask = _mediator.Send(new MessageHandler.Request(message));
 
+            var task = await Task.WhenAny(completionSource.Task, sendTask);
+            if (sendTask == task)
+            {
+                throw sendTask.Exception
+                    ?? throw new InvalidOperationException(
+                        "Message request completed before callback");
+            }
+
             var inlineButton = await completionSource.Task;
+
             var callbackQuery = _fixture
                 .Build<CallbackQueryContext>()
                 .With(m => m.Chat, message.Chat)
                 .With(m => m.CallbackData, inlineButton?.CallbackData)
                 .Create();
 
-            var sw = Stopwatch.StartNew();
             await _mediator.Send(new CallbackQueryHandler.Request(callbackQuery));
             await Awaiting(async () => await sendTask).Should().ThrowAsync<TaskCanceledException>();
-            sw.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
 
             InMemorySink.Instance.LogEvents.Should()
                 .NotContain(e => e.Level >= LogEventLevel.Error);
