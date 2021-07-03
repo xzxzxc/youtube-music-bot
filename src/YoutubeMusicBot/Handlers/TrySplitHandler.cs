@@ -53,7 +53,7 @@ namespace YoutubeMusicBot.Handlers
 
             var trackList = _trackListParser.Parse(description)
                 .ToArray();
-            if (trackList.Length == 0)
+            if (trackList.Length < 2)
                 return false;
 
             await _mp3SplitWrapper.SplitAsync(

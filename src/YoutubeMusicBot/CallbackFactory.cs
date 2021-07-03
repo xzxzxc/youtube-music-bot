@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using YoutubeMusicBot.Interfaces;
 
 namespace YoutubeMusicBot
@@ -7,9 +6,10 @@ namespace YoutubeMusicBot
     internal class CallbackFactory : ICallbackFactory
     {
         private const int MaxDataBytesCount = 64;
-        private const char CancellationPrefix = 'c';
+        private const byte CancellationPrefix = 1;
+        private static Random _random = new();
 
-        public CallbackAction GetActionFromData(string callbackData) =>
+        public CallbackAction GetActionFromData(byte[] callbackData) =>
             callbackData[0] switch
             {
                 CancellationPrefix => CallbackAction.Cancel,
@@ -20,26 +20,14 @@ namespace YoutubeMusicBot
                         "Callback data couldn't be parsed"),
             };
 
-        public string CreateDataForCancellation()
+        public byte[] CreateDataForCancellation()
         {
-            var prefix = CancellationPrefix.ToString();
-            var randomStr = Guid.NewGuid().ToString("N");
+            var bytes = new byte[MaxDataBytesCount];
+            bytes[0] = CancellationPrefix;
+            var bytesSpan = new Span<byte>(bytes, 1, MaxDataBytesCount - 1);
+            _random.NextBytes(bytesSpan);
 
-            var prefixBytesCount = Encoding.Unicode.GetByteCount(prefix);
-            var randomBytesCount = Encoding.Unicode.GetByteCount(randomStr);
-            var randomStrBytesOverflow = MaxDataBytesCount - prefixBytesCount - randomBytesCount;
-
-            if (randomStrBytesOverflow < 0)
-            {
-                var randomStrBytesAllowedLength =
-                    randomStr.Length
-                    * (randomBytesCount + randomStrBytesOverflow)
-                    / randomBytesCount;
-
-                randomStr = randomStr.Substring(0, randomStrBytesAllowedLength);
-            }
-
-            return $"{prefix}{randomStr}";
+            return bytes;
         }
     }
 }

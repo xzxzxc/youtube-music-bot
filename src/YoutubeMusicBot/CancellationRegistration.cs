@@ -14,10 +14,10 @@ namespace YoutubeMusicBot
             _callbackFactory = callbackFactory;
         }
 
-        private readonly ConcurrentDictionary<string, CancellationProvider> _providers = new();
+        private readonly ConcurrentDictionary<long, CancellationProvider> _providers = new();
 
-        public ICancellationProvider GetProvider(string cancellationProviderId) =>
-            _providers[cancellationProviderId];
+        public ICancellationProvider GetProvider(byte[] id) =>
+            _providers[GetHash(id)];
 
         public ICancellationProvider RegisterNewProvider()
         {
@@ -25,11 +25,28 @@ namespace YoutubeMusicBot
 
             var provider = new CancellationProvider(callbackData, this);
             _providers.AddOrUpdate(
-                callbackData,
+                GetHash(callbackData),
                 _ => provider,
                 (_, _) => throw new InvalidOperationException("Hash collision!"));
 
             return provider;
+        }
+
+        private void RemoveProvider(byte[] id) =>
+            _providers.TryRemove(GetHash(id), out _);
+
+        private static long GetHash(byte[] bytes)
+        {
+            var res = 0L;
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                const int bytesInLong = sizeof(long) / sizeof(byte);
+                var bytePositionInLong = i % bytesInLong;
+
+                res = res ^ (((long)bytes[i]) << bytePositionInLong * sizeof(byte));
+            }
+
+            return res;
         }
 
         private class CancellationProvider : ICancellationProvider
@@ -38,7 +55,7 @@ namespace YoutubeMusicBot
             private readonly CancellationTokenSource _source;
 
             public CancellationProvider(
-                string callbackData,
+                byte[] callbackData,
                 CancellationRegistration cancellationRegistration)
             {
                 _cancellationRegistration = cancellationRegistration;
@@ -47,7 +64,7 @@ namespace YoutubeMusicBot
             }
 
 
-            public string CallbackData { get; }
+            public byte[] CallbackData { get; }
 
             public CancellationToken Token => _source.Token;
 
@@ -56,7 +73,7 @@ namespace YoutubeMusicBot
 
             public void Dispose()
             {
-                _cancellationRegistration._providers.TryRemove(CallbackData, out _);
+                _cancellationRegistration.RemoveProvider(CallbackData);
             }
         }
     }

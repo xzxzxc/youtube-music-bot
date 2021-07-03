@@ -7,5 +7,7 @@
         InlineButton? InlineButton)
     {
         public MessageContext? MessageToUpdate { get; set; }
+
+        public string? Title { get; set; }
     }
 }

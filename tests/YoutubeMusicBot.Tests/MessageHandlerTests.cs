@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
@@ -22,6 +21,7 @@ using Serilog.Events;
 using Serilog.Sinks.InMemory;
 using YoutubeMusicBot.Handlers;
 using YoutubeMusicBot.Models;
+using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers.Interfaces;
 using TagFile = TagLib.File;
 using static FluentAssertions.FluentActions;
@@ -37,6 +37,8 @@ namespace YoutubeMusicBot.Tests
         private readonly IHost _host;
         private readonly Mock<ITgClientWrapper> _tgClientMock;
         private readonly IMediator _mediator;
+        private Action<BotOptions>? _configureBotOptions = null;
+        private Action<FeatureOptions>? _configureFeatureOptions = null;
 
         public MessageHandlerTests()
         {
@@ -50,7 +52,14 @@ namespace YoutubeMusicBot.Tests
             };
             _host = Program.CreateHostBuilder()
                 .ConfigureContainer<ContainerBuilder>(
-                    (_, b) => { b.RegisterMock(_tgClientMock); })
+                    (_, b) =>
+                    {
+                        b.RegisterMock(_tgClientMock);
+                        var services = new ServiceCollection();
+                        services.Configure<BotOptions>(o => _configureBotOptions?.Invoke(o));
+                        services.Configure<FeatureOptions>(o => _configureFeatureOptions?.Invoke(o));
+                        b.Populate(services);
+                    })
                 .UseSerilog(new LoggerConfiguration().WriteTo.InMemory().CreateLogger())
                 .Build();
 
@@ -96,7 +105,6 @@ namespace YoutubeMusicBot.Tests
             _tgClientMock.Verify(
                 c => c.SendMessageAsync(
                     expectedMessage,
-                    It.IsAny<InlineButton?>(),
                     It.IsAny<CancellationToken>()),
                 Times.Once);
             _tgClientMock.VerifyNoOtherCalls();
@@ -117,11 +125,14 @@ namespace YoutubeMusicBot.Tests
                 .Create();
 
             var replyMessage = _fixture.Create<MessageContext>();
+            InlineButton? inlineButton = null;
             _tgClientMock.Setup(
                     c => c.SendMessageAsync(
                         expectedMessageTexts[0],
-                        It.IsAny<InlineButton?>(),
+                        It.Is<InlineButton>(ib => ib != null && ib.Text == "Cancel"),
                         It.IsAny<CancellationToken>()))
+                .Callback<string, InlineButton, CancellationToken>(
+                    (_, ib, _) => inlineButton = ib)
                 .ReturnsAsync(replyMessage)
                 .Verifiable();
 
@@ -131,6 +142,9 @@ namespace YoutubeMusicBot.Tests
                 .NotContain(e => e.Level >= LogEventLevel.Error);
 
             _tgClientMock.VerifyAll();
+
+            CheckCallbackData(inlineButton);
+
             foreach (var expectedMessageText in expectedMessageTexts.Skip(1))
             {
                 _tgClientMock.Verify(
@@ -144,36 +158,7 @@ namespace YoutubeMusicBot.Tests
         }
 
         [Test]
-        [TestCase("https://youtu.be/wuROIJ0tRPU")]
-        public async Task ShouldDeleteMessageAfterFileSent(string url)
-        {
-            var message = _fixture
-                .Build<MessageContext>()
-                .With(m => m.Text, url)
-                .Create();
-
-            var replyMessage = _fixture.Create<MessageContext>();
-            _tgClientMock.Setup(
-                    m => m.SendMessageAsync(
-                        It.Is<string>(s => s.StartsWith("Loading")),
-                        It.IsAny<InlineButton?>(),
-                        It.IsAny<CancellationToken>()))
-                .ReturnsAsync(replyMessage);
-
-            await _mediator.Send(new MessageHandler.Request(message));
-
-            InMemorySink.Instance.LogEvents.Should()
-                .NotContain(e => e.Level >= LogEventLevel.Error);
-
-            _tgClientMock.Verify(
-                c => c.DeleteMessageAsync(
-                    replyMessage.Id,
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-        }
-
-        [Test]
-        [Timeout(10_000)] // 10 seconds
+        [Timeout(30_000)] // 30 seconds
         [TestCase("https://youtu.be/wuROIJ0tRPU")]
         public async Task ShouldCancelLoadingUsingButton(string url)
         {
@@ -186,26 +171,13 @@ namespace YoutubeMusicBot.Tests
             _tgClientMock.Setup(
                     m => m.SendMessageAsync(
                         It.Is<string>(s => s.StartsWith("Loading")),
-                        It.Is<InlineButton?>(
-                            ib => ib != null
-                                && ib.Text == "Cancel"
-                                && ib.CallbackData != null
-                                && Encoding.Unicode.GetBytes(ib.CallbackData).Length
-                                <= TelegramMaxCallbackDataSize),
+                        It.IsAny<InlineButton>(),
                         It.IsAny<CancellationToken>()))
-                .Callback<string, InlineButton?, CancellationToken>(
+                .Callback<string, InlineButton, CancellationToken>(
                     (_, ib, _) => completionSource.SetResult(ib))
                 .ReturnsAsync(_fixture.Create<MessageContext>());
 
             var sendTask = _mediator.Send(new MessageHandler.Request(message));
-
-            var task = await Task.WhenAny(completionSource.Task, sendTask);
-            if (sendTask == task)
-            {
-                throw sendTask.Exception
-                    ?? throw new InvalidOperationException(
-                        "Message request completed before callback");
-            }
 
             var inlineButton = await completionSource.Task;
 
@@ -216,10 +188,11 @@ namespace YoutubeMusicBot.Tests
                 .Create();
 
             await _mediator.Send(new CallbackQueryHandler.Request(callbackQuery));
-            await Awaiting(async () => await sendTask).Should().ThrowAsync<TaskCanceledException>();
+            await Awaiting(() => sendTask).Should().ThrowAsync<OperationCanceledException>();
 
             InMemorySink.Instance.LogEvents.Should()
                 .NotContain(e => e.Level >= LogEventLevel.Error);
+            CheckDirectoryIsEmpty(message.Chat.Id); // TODO: fix this
         }
 
         [Test]
@@ -257,9 +230,78 @@ namespace YoutubeMusicBot.Tests
                     .BeCloseTo(expected.Duration, precision: TimeSpan.FromSeconds(1));
             }
 
-            Directory.EnumerateFileSystemEntries(Path.Join(CacheFolderName, $"{message.Chat.Id}"))
-                .Should()
-                .BeEmpty();
+            CheckDirectoryIsEmpty(message.Chat.Id);
+        }
+
+        [Test]
+        [TestCase("https://youtu.be/lc3wg72Jzc8")]
+        public async Task ShouldProposeSplitFileIfTooLarge(string url)
+        {
+            _configureFeatureOptions = options => options.SplitButtonsEnabled = true;
+            _configureBotOptions = options => options.MaxFileBytesCount = 4 * 1024 * 1024; // 4 mb
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
+
+            InlineButtonCollection? inlineButtons = null;
+            _tgClientMock
+                .Setup(
+                    m => m.SendMessageAsync(
+                        "\"ВІА 'Опришки' - платівка-гранд 1973 р.\" is too large to be sent in "
+                        + "telegram. But I could split it.",
+                        It.IsAny<InlineButtonCollection>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<string, InlineButtonCollection, CancellationToken>(
+                    (_, ibs, _) => inlineButtons = ibs)
+                .ReturnsAsync(_fixture.Create<MessageContext>())
+                .Verifiable();
+
+            await _mediator.Send(new MessageHandler.Request(message));
+
+            _tgClientMock.VerifyAll();
+            inlineButtons.Should().NotBeNull();
+            inlineButtons.Should().SatisfyRespectively(
+                button => button.Text.Should().Be("Split into 3 equal parts."),
+                button => button.Text.Should().Be("Split into 6 parts using silence detection."));
+            CheckDirectoryIsEmpty(message.Chat.Id);
+        }
+
+        private static void CheckCallbackData(InlineButton? inlineButton)
+        {
+            inlineButton.Should().NotBeNull();
+            var callbackData = inlineButton!.CallbackData;
+            callbackData.Should().NotBeNullOrEmpty();
+            callbackData!.Should().HaveCountLessOrEqualTo(TelegramMaxCallbackDataSize);
+        }
+
+        [Test]
+        [TestCase("https://youtu.be/wuROIJ0tRPU")]
+        public async Task ShouldDeleteMessageAfterFileSent(string url)
+        {
+            var message = _fixture
+                .Build<MessageContext>()
+                .With(m => m.Text, url)
+                .Create();
+
+            var replyMessage = _fixture.Create<MessageContext>();
+            _tgClientMock.Setup(
+                    m => m.SendMessageAsync(
+                        It.Is<string>(s => s.StartsWith("Loading")),
+                        It.IsAny<InlineButton>(),
+                        It.IsAny<CancellationToken>()))
+                .ReturnsAsync(replyMessage);
+
+            await _mediator.Send(new MessageHandler.Request(message));
+
+            InMemorySink.Instance.LogEvents.Should()
+                .NotContain(e => e.Level >= LogEventLevel.Error);
+
+            _tgClientMock.Verify(
+                c => c.DeleteMessageAsync(
+                    replyMessage.Id,
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         public static IEnumerable<TestCaseData> TestCases()
@@ -313,6 +355,13 @@ namespace YoutubeMusicBot.Tests
                         "Зав'язав / Stage 13",
                         "Глава 94",
                         TimeSpan.Parse("00:03:40")))) { TestName = "Single quotes in file name", };
+        }
+
+        private static void CheckDirectoryIsEmpty(long chatId)
+        {
+            Directory.EnumerateFileSystemEntries(Path.Join(CacheFolderName, $"{chatId}"))
+                .Should()
+                .BeEmpty();
         }
 
         [OneTimeTearDown]

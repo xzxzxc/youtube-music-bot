@@ -5,7 +5,7 @@
         /// <summary>
         /// Find provider by <see cref="callbackData"/>.
         /// </summary>
-        ICancellationProvider GetProvider(string callbackData);
+        ICancellationProvider GetProvider(byte[] id);
 
 
         /// <summary>

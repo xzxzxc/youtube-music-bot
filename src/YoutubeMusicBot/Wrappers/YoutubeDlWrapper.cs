@@ -65,7 +65,7 @@ namespace YoutubeMusicBot.Wrappers
             var startedMatch = _downloadingStarted.Match(line);
             if (startedMatch.Success)
             {
-                var title = startedMatch.Groups["title"].Value;
+                var title = _messageContext.Title = startedMatch.Groups["title"].Value;
                 var messageToUpdate = _messageContext.MessageToUpdate
                     ?? throw new InvalidOperationException(
                         $"{nameof(_messageContext.MessageToUpdate)} is not initialized!");

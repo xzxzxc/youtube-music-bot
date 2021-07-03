@@ -36,21 +36,18 @@ namespace YoutubeMusicBot.Handlers
             private readonly IValidator<MessageContext> _validator;
             private readonly ICancellationRegistration _cancellationRegistration;
             private readonly IYoutubeDlWrapper _youtubeDlWrapper;
-            private readonly ICallbackFactory _callbackFactory;
             private MessageContext? _messageToDeleteOnDispose = null;
 
             public Internal(
                 ITgClientWrapper tgClientWrapper,
                 IValidator<MessageContext> validator,
                 ICancellationRegistration cancellationRegistration,
-                IYoutubeDlWrapper youtubeDlWrapper,
-                ICallbackFactory callbackFactory)
+                IYoutubeDlWrapper youtubeDlWrapper)
             {
                 _tgClientWrapper = tgClientWrapper;
                 _validator = validator;
                 _cancellationRegistration = cancellationRegistration;
                 _youtubeDlWrapper = youtubeDlWrapper;
-                _callbackFactory = callbackFactory;
             }
 
             public async Task HandleAsync(

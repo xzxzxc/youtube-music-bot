@@ -29,7 +29,7 @@ namespace YoutubeMusicBot.Mediatr
                 var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
                 return await mediator.Send(request, cancellationToken);
             }
-            catch (Exception ex) when (ex is not (TaskCanceledException or DecoratedException))
+            catch (Exception ex) when (ex is not (OperationCanceledException or DecoratedException))
             {
                 LogException(ex, request);
                 throw new DecoratedException(ex);
@@ -46,7 +46,7 @@ namespace YoutubeMusicBot.Mediatr
                 var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
                 return await mediator.Send(request, cancellationToken);
             }
-            catch (Exception ex) when (ex is not (TaskCanceledException or DecoratedException))
+            catch (Exception ex) when (ex is not (OperationCanceledException or DecoratedException))
             {
                 LogException(ex, request);
                 throw new DecoratedException(ex);
@@ -63,7 +63,7 @@ namespace YoutubeMusicBot.Mediatr
                 var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
                 await mediator.Publish(notification, cancellationToken);
             }
-            catch (Exception ex) when (ex is not (TaskCanceledException or DecoratedException))
+            catch (Exception ex) when (ex is not (OperationCanceledException or DecoratedException))
             {
                 LogException(ex, notification);
                 throw new DecoratedException(ex);
@@ -81,7 +81,7 @@ namespace YoutubeMusicBot.Mediatr
                 var mediator = scope.Resolve<IMediator>(new DoNotDecorate());
                 await mediator.Publish(notification, cancellationToken);
             }
-            catch (Exception ex) when (ex is not (TaskCanceledException or DecoratedException))
+            catch (Exception ex) when (ex is not (OperationCanceledException or DecoratedException))
             {
                 LogException(ex, notification);
                 throw new DecoratedException(ex);
@@ -119,7 +119,7 @@ namespace YoutubeMusicBot.Mediatr
         private class DecoratedException : Exception
         {
             public DecoratedException(Exception inner)
-                : base(nameof(DecoratedException), inner)
+                : base(inner.Message, inner)
             {
             }
         }

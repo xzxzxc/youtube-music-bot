@@ -5,7 +5,7 @@ namespace YoutubeMusicBot.Interfaces
 {
     public interface ICancellationProvider : IDisposable
     {
-        string CallbackData { get; }
+        byte[] CallbackData { get; }
 
         CancellationToken Token { get; }
 

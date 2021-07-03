@@ -1,11 +1,9 @@
-using System.Threading.Tasks;
-
 namespace YoutubeMusicBot.Interfaces
 {
     public interface ICallbackFactory
     {
-        CallbackAction GetActionFromData(string callbackData);
+        CallbackAction GetActionFromData(byte[] callbackData);
 
-        string CreateDataForCancellation();
+        byte[] CreateDataForCancellation();
     }
 }

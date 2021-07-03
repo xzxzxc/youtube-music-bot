@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using YoutubeMusicBot.Models;
@@ -28,10 +29,12 @@ namespace YoutubeMusicBot.Extensions
                 throw new ArgumentNullException(nameof(callbackQuery));
             if (callbackQuery.Message == null)
                 throw new ArgumentException("Message must be not empty.", nameof(callbackQuery));
+            if (callbackQuery.Data == null)
+                throw new ArgumentException("Data must be not empty.", nameof(callbackQuery));
 
             return new(
                 callbackQuery.Message.Chat.ToContext(),
-                callbackQuery.Data);
+                Encoding.Unicode.GetBytes(callbackQuery.Data));
         }
     }
 }

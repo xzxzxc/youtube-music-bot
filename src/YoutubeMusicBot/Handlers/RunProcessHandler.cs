@@ -54,7 +54,6 @@ namespace YoutubeMusicBot.Handlers
                 processInfo.ArgumentList.Add(argument);
 
             using var process = new Process { StartInfo = processInfo, };
-
             process.Start();
 
             var onCancelTaskSource = new TaskCompletionSource();
@@ -67,26 +66,15 @@ namespace YoutubeMusicBot.Handlers
                 && ((readOutputTask == null && !process.StandardOutput.EndOfStream)
                     || (readErrorTask == null && !process.StandardError.EndOfStream)))
             {
-                readOutputTask ??= process.StandardOutput.ReadLineAsync();
                 readErrorTask ??= process.StandardError.ReadLineAsync();
+                readOutputTask ??= process.StandardOutput.ReadLineAsync();
 
                 var resTask = await Task.WhenAny(
-                    readOutputTask,
                     readErrorTask,
+                    readOutputTask,
                     onCancelTaskSource.Task);
 
-                if (resTask == readOutputTask)
-                {
-                    var line = readOutputTask.Result;
-                    if (!string.IsNullOrEmpty(line))
-                    {
-                        _logger.LogInformation("Got {Output}", line);
-                        await request.ProcessOutput(line, cancellationToken);
-                    }
-
-                    readOutputTask = null;
-                }
-                else if (resTask == readErrorTask)
+                if (resTask == readErrorTask)
                 {
                     var line = readOutputTask.Result;
                     if (!string.IsNullOrEmpty(line))
@@ -98,14 +86,27 @@ namespace YoutubeMusicBot.Handlers
 
                     readErrorTask = null;
                 }
+                else if (resTask == readOutputTask)
+                {
+                    var line = readOutputTask.Result;
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        _logger.LogInformation("Got {Output}", line);
+                        await request.ProcessOutput(line, cancellationToken);
+                    }
+
+                    readOutputTask = null;
+                }
                 else
                 {
+                    process.Kill();
+
+                    // throws TaskCancelledException
                     await resTask;
                 }
             }
 
             await process.WaitForExitAsync(cancellationToken);
-            process.Close();
 
             return Unit.Value;
         }
@@ -114,7 +115,22 @@ namespace YoutubeMusicBot.Handlers
             string ProcessName,
             string WorkingDirectory,
             ProcessDelegate ProcessOutput,
-            ProcessDelegate? ProcessError = null,
-            params string[] Arguments) : IRequest;
+            ProcessDelegate? ProcessError,
+            params string[] Arguments) : IRequest
+        {
+            public Request(
+                string ProcessName,
+                string WorkingDirectory,
+                ProcessDelegate ProcessOutput,
+                params string[] Arguments)
+                : this(
+                    ProcessName,
+                    WorkingDirectory,
+                    ProcessOutput,
+                    null,
+                    Arguments)
+            {
+            }
+        }
     }
 }

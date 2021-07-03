@@ -24,6 +24,37 @@ namespace YoutubeMusicBot.Wrappers
             _telegramBotClient = telegramBotClient;
         }
 
+        public async Task<MessageContext> SendMessageAsync(
+            string text,
+            CancellationToken cancellationToken = default) =>
+            await Ivoke(
+                () => _telegramBotClient.SendTextMessageAsync(
+                    _context.Chat.Id,
+                    text,
+                    cancellationToken: cancellationToken));
+
+        public async Task<MessageContext> SendMessageAsync(
+            string text,
+            InlineButton inlineButton,
+            CancellationToken cancellationToken = default) =>
+            await Ivoke(
+                () => _telegramBotClient.SendTextMessageAsync(
+                    _context.Chat.Id,
+                    text,
+                    replyMarkup: inlineButton.ToMarkup(),
+                    cancellationToken: cancellationToken));
+
+        public async Task<MessageContext> SendMessageAsync(
+            string text,
+            InlineButtonCollection inlineButtons,
+            CancellationToken cancellationToken = default) =>
+            await Ivoke(
+                () => _telegramBotClient.SendTextMessageAsync(
+                    _context.Chat.Id,
+                    text,
+                    replyMarkup: inlineButtons.ToMarkup(),
+                    cancellationToken: cancellationToken));
+
         public async Task<MessageContext> SendAudioAsync(
             FileInfo audio,
             CancellationToken cancellationToken = default)
@@ -38,17 +69,6 @@ namespace YoutubeMusicBot.Wrappers
                     inputMedia,
                     cancellationToken: cancellationToken));
         }
-
-        public async Task<MessageContext> SendMessageAsync(
-            string text,
-            InlineButton? inlineButton = null,
-            CancellationToken cancellationToken = default) =>
-            await Ivoke(
-                () => _telegramBotClient.SendTextMessageAsync(
-                    _context.Chat.Id,
-                    text,
-                    replyMarkup: inlineButton?.ToMarkup(),
-                    cancellationToken: cancellationToken));
 
         public async Task<MessageContext> UpdateMessageAsync(
             int messageId,
