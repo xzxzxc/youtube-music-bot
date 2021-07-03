@@ -1,4 +1,4 @@
-﻿namespace YoutubeMusicBot.Interfaces
+namespace YoutubeMusicBot.Interfaces
 {
 	internal interface ICacheFolder
 	{

@@ -1,4 +1,4 @@
-﻿namespace YoutubeMusicBot.Models
+namespace YoutubeMusicBot.Models
 {
     public record MessageContext(
         int Id,

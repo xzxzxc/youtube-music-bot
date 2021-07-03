@@ -1,4 +1,4 @@
-﻿using Autofac;
+using Autofac;
 using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Extensions

@@ -1,4 +1,4 @@
-﻿namespace YoutubeMusicBot.Interfaces
+namespace YoutubeMusicBot.Interfaces
 {
     public interface ICancellationRegistration
     {

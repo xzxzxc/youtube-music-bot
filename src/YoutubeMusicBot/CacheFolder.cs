@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;

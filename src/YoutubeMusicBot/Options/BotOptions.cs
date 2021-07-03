@@ -1,4 +1,4 @@
-﻿namespace YoutubeMusicBot.Options
+namespace YoutubeMusicBot.Options
 {
 	public class BotOptions
 	{

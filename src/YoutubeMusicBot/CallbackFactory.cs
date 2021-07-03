@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using YoutubeMusicBot.Interfaces;
 
 namespace YoutubeMusicBot

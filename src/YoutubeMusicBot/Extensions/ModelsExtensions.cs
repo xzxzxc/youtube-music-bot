@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using YoutubeMusicBot.Models;
