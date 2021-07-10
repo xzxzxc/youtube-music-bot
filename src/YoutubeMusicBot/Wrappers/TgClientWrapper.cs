@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,13 +37,20 @@ namespace YoutubeMusicBot.Wrappers
         public async Task<MessageContext> SendMessageAsync(
             string text,
             InlineButton inlineButton,
-            CancellationToken cancellationToken = default) =>
-            await Ivoke(
-                () => _telegramBotClient.SendTextMessageAsync(
-                    _context.Chat.Id,
-                    text,
-                    replyMarkup: inlineButton.ToMarkup(),
-                    cancellationToken: cancellationToken));
+            CancellationToken cancellationToken = default)
+        {
+            var inlineKeyboardMarkup = inlineButton.ToMarkup();
+
+            return await Ivoke(
+                () =>
+                {
+                    return _telegramBotClient.SendTextMessageAsync(
+                        _context.Chat.Id,
+                        text,
+                        replyMarkup: inlineKeyboardMarkup,
+                        cancellationToken: cancellationToken);
+                });
+        }
 
         public async Task<MessageContext> SendMessageAsync(
             string text,

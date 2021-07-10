@@ -3,9 +3,9 @@ namespace YoutubeMusicBot.Interfaces
     public interface ICancellationRegistration
     {
         /// <summary>
-        /// Find provider by <see cref="callbackData"/>.
+        /// Find provider by <see cref="id"/>.
         /// </summary>
-        ICancellationProvider GetProvider(byte[] id);
+        ICancellationProvider GetProvider(string id);
 
 
         /// <summary>

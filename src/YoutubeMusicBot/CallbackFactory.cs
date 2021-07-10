@@ -5,11 +5,10 @@ namespace YoutubeMusicBot
 {
     internal class CallbackFactory : ICallbackFactory
     {
-        private const int MaxDataBytesCount = 64;
-        private const byte CancellationPrefix = 1;
-        private static Random _random = new();
+        private const char CancellationPrefix = 'c';
+        private static readonly Random _random = new();
 
-        public CallbackAction GetActionFromData(byte[] callbackData) =>
+        public CallbackAction GetActionFromData(string callbackData) =>
             callbackData[0] switch
             {
                 CancellationPrefix => CallbackAction.Cancel,
@@ -20,14 +19,7 @@ namespace YoutubeMusicBot
                         "Callback data couldn't be parsed"),
             };
 
-        public byte[] CreateDataForCancellation()
-        {
-            var bytes = new byte[MaxDataBytesCount];
-            bytes[0] = CancellationPrefix;
-            var bytesSpan = new Span<byte>(bytes, 1, MaxDataBytesCount - 1);
-            _random.NextBytes(bytesSpan);
-
-            return bytes;
-        }
+        public string CreateDataForCancellation() =>
+            $"{CancellationPrefix}{_random.Next()}";
     }
 }

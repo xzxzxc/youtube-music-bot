@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace YoutubeMusicBot.Models
 {
-    public record InlineButton(string Text, byte[]? CallbackData);
+    public record InlineButton(string Text, string? CallbackData);
 
     public record InlineButtonCollection(IEnumerable<IEnumerable<InlineButton>> InlineButtons)
         : IEnumerable<InlineButton>

@@ -2,8 +2,8 @@ namespace YoutubeMusicBot.Interfaces
 {
     public interface ICallbackFactory
     {
-        CallbackAction GetActionFromData(byte[] callbackData);
+        CallbackAction GetActionFromData(string callbackData);
 
-        byte[] CreateDataForCancellation();
+        string CreateDataForCancellation();
     }
 }

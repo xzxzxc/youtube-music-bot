@@ -90,14 +90,14 @@ namespace YoutubeMusicBot.Handlers
                             request.File.Name));
                     var buttonCollection = new List<InlineButton>
                     {
-                        new($"Split into {equalPartsCount} equal parts.", Array.Empty<byte>())
+                        new($"Split into {equalPartsCount} equal parts.", string.Empty)
                     };
                     if (silenceDetectedPartsCount.HasValue)
                     {
                         buttonCollection.Add(
                             new InlineButton(
                                 $"Split into {silenceDetectedPartsCount} parts using silence detection.",
-                                Array.Empty<byte>()));
+                                string.Empty));
                     }
 
                     await _tgClientWrapper.SendMessageAsync(

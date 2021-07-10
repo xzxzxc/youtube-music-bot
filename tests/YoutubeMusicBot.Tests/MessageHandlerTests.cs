@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -272,7 +273,8 @@ namespace YoutubeMusicBot.Tests
             inlineButton.Should().NotBeNull();
             var callbackData = inlineButton!.CallbackData;
             callbackData.Should().NotBeNullOrEmpty();
-            callbackData!.Should().HaveCountLessOrEqualTo(TelegramMaxCallbackDataSize);
+            Encoding.Unicode.GetBytes(callbackData!).Should()
+                .HaveCountLessOrEqualTo(TelegramMaxCallbackDataSize);
         }
 
         [Test]
