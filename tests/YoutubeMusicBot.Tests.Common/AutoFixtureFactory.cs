@@ -1,7 +1,8 @@
 using System.Linq;
 using AutoFixture;
+using AutoFixture.AutoMoq;
 
-namespace YoutubeMusicBot.Tests
+namespace YoutubeMusicBot.Tests.Common
 {
     public class AutoFixtureFactory
     {
@@ -12,6 +13,7 @@ namespace YoutubeMusicBot.Tests
                 .ToList()
                 .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            fixture.Customize(new AutoMoqCustomization());
 
             return fixture;
         }

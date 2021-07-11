@@ -12,10 +12,12 @@ using NUnit.Framework;
 using YoutubeMusicBot.Extensions;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
-using YoutubeMusicBot.Tests.Extensions;
+using YoutubeMusicBot.Services;
+using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.Tests.Common.Extensions;
 using YoutubeMusicBot.Wrappers;
 
-namespace YoutubeMusicBot.Tests
+namespace YoutubeMusicBot.IntegrationTests
 {
     [Parallelizable]
     public class TgClientWrapperTests : IDisposable
@@ -42,15 +44,15 @@ namespace YoutubeMusicBot.Tests
         {
             var fixture = AutoFixtureFactory.Create();
             var chat = fixture
-                .Build<ChatContext>()
+                .Build<ChatModel>()
                 .With(c => c.Id, chatId)
                 .Create();
             var message = fixture
-                .Build<MessageContext>()
+                .Build<MessageModel>()
                 .With(m => m.Chat, chat)
                 .Create();
-            await using var scope = _host.Services.GetRequiredService<ILifetimeScope>()
-                .BeginMessageLifetimeScope(message);
+            await using var scope = _host.Services.GetRequiredService<ILifetimeScope>().BeginLifetimeScope(
+                c => c.RegisterInstance(new MessageContext(message)));
 
             var wrapper = scope.Resolve<TgClientWrapper>();
 
@@ -70,15 +72,15 @@ namespace YoutubeMusicBot.Tests
         {
             var fixture = AutoFixtureFactory.Create();
             var chat = fixture
-                .Build<ChatContext>()
+                .Build<ChatModel>()
                 .With(c => c.Id, chatId)
                 .Create();
             var message = fixture
-                .Build<MessageContext>()
+                .Build<MessageModel>()
                 .With(m => m.Chat, chat)
                 .Create();
-            await using var scope = _host.Services.GetRequiredService<ILifetimeScope>()
-                .BeginMessageLifetimeScope(message);
+            await using var scope = _host.Services.GetRequiredService<ILifetimeScope>().BeginLifetimeScope(
+                c => c.RegisterInstance(new MessageContext(message)));
 
             var callbackFactory = scope.Resolve<CallbackFactory>();
             var wrapper = scope.Resolve<TgClientWrapper>();

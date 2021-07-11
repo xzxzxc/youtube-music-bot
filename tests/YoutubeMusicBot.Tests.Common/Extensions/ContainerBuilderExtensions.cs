@@ -1,13 +1,9 @@
-using System;
-using System.Linq;
-using System.Reflection;
 using Autofac;
 using Autofac.Extras.Moq;
-using MediatR.Pipeline;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace YoutubeMusicBot.Tests.Extensions
+namespace YoutubeMusicBot.Tests.Common.Extensions
 {
 	public static class ContainerBuilderExtensions
 	{

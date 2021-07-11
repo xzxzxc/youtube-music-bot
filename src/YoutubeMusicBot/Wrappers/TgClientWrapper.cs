@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,58 +11,31 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Wrappers
 {
-    internal class TgClientWrapper : ITgClientWrapper
+    public class TgClientWrapper : ITgClientWrapper
     {
-        private readonly MessageContext _context;
         private readonly ITelegramBotClient _telegramBotClient;
+        private readonly long _chatId;
 
         public TgClientWrapper(
             MessageContext context,
             ITelegramBotClient telegramBotClient)
         {
-            _context = context;
             _telegramBotClient = telegramBotClient;
+            _chatId = context.UserMessage.Chat.Id;
         }
 
-        public async Task<MessageContext> SendMessageAsync(
+        public async Task<MessageModel> SendMessageAsync(
             string text,
+            InlineButtonCollection? inlineButtons = null,
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.SendTextMessageAsync(
-                    _context.Chat.Id,
+                    _chatId,
                     text,
+                    replyMarkup: inlineButtons?.ToMarkup(),
                     cancellationToken: cancellationToken));
 
-        public async Task<MessageContext> SendMessageAsync(
-            string text,
-            InlineButton inlineButton,
-            CancellationToken cancellationToken = default)
-        {
-            var inlineKeyboardMarkup = inlineButton.ToMarkup();
-
-            return await Ivoke(
-                () =>
-                {
-                    return _telegramBotClient.SendTextMessageAsync(
-                        _context.Chat.Id,
-                        text,
-                        replyMarkup: inlineKeyboardMarkup,
-                        cancellationToken: cancellationToken);
-                });
-        }
-
-        public async Task<MessageContext> SendMessageAsync(
-            string text,
-            InlineButtonCollection inlineButtons,
-            CancellationToken cancellationToken = default) =>
-            await Ivoke(
-                () => _telegramBotClient.SendTextMessageAsync(
-                    _context.Chat.Id,
-                    text,
-                    replyMarkup: inlineButtons.ToMarkup(),
-                    cancellationToken: cancellationToken));
-
-        public async Task<MessageContext> SendAudioAsync(
+        public async Task<MessageModel> SendAudioAsync(
             FileInfo audio,
             CancellationToken cancellationToken = default)
         {
@@ -73,19 +45,19 @@ namespace YoutubeMusicBot.Wrappers
                 audio.Name);
             return await Ivoke(
                 () => _telegramBotClient.SendAudioAsync(
-                    _context.Chat.Id,
+                    _chatId,
                     inputMedia,
                     cancellationToken: cancellationToken));
         }
 
-        public async Task<MessageContext> UpdateMessageAsync(
+        public async Task<MessageModel> UpdateMessageAsync(
             int messageId,
             string text,
             InlineButton? inlineButton = null,
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.EditMessageTextAsync(
-                    _context.Chat.Id,
+                    _chatId,
                     messageId,
                     text,
                     replyMarkup: inlineButton?.ToMarkup(),
@@ -96,15 +68,15 @@ namespace YoutubeMusicBot.Wrappers
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.DeleteMessageAsync(
-                    _context.Chat.Id,
+                    _chatId,
                     messageId,
-                    cancellationToken: cancellationToken));
+                    cancellationToken));
 
-        private async Task<MessageContext> Ivoke(Func<Task<Message>> action)
+        private async Task<MessageModel> Ivoke(Func<Task<Message>> action)
         {
             try
             {
-                return (await action()).ToContext();
+                return (await action()).ToModel();
             }
             catch (ApiRequestException ex)
                 when (ex.Parameters?.RetryAfter != null)

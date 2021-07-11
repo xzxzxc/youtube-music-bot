@@ -345,7 +345,3 @@ healthchecksdb
 
 # deb packages
 *.deb
-
-# secrets
-/tests/YoutubeMusicBot.Tests/Secrets.cs
-/src/YoutubeMusicBot/appsettings.Secrets.json

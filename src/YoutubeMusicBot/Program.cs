@@ -16,6 +16,7 @@ using Telegram.Bot;
 using YoutubeMusicBot.Handlers;
 using YoutubeMusicBot.Mediatr;
 using YoutubeMusicBot.Options;
+using YoutubeMusicBot.Services;
 using YoutubeMusicBot.Wrappers;
 
 namespace YoutubeMusicBot
@@ -43,18 +44,11 @@ namespace YoutubeMusicBot
             HostBuilderContext _,
             ContainerBuilder containerBuilder)
         {
+            containerBuilder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
+
             containerBuilder.RegisterType<CancellationRegistration>()
                 .AsImplementedInterfaces()
                 .SingleInstance();
-
-            containerBuilder.RegisterType<TgClientWrapper>()
-                .AsImplementedInterfaces();
-
-            containerBuilder.RegisterType<YoutubeDlWrapper>()
-                .AsImplementedInterfaces();
-
-            containerBuilder.RegisterType<Mp3SplitWrapper>()
-                .AsImplementedInterfaces();
 
             containerBuilder.RegisterType<CacheFolder>()
                 .AsImplementedInterfaces();
@@ -67,8 +61,6 @@ namespace YoutubeMusicBot
 
             containerBuilder.RegisterType<CallbackFactory>()
                 .AsImplementedInterfaces();
-
-            containerBuilder.RegisterType<MessageHandler.Internal>();
 
             containerBuilder.Register(
                     ctx =>
@@ -101,7 +93,6 @@ namespace YoutubeMusicBot
                 });
 
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             serviceCollection.AddHostedService<BotHostedService>();
             serviceCollection.AddOptions<DownloadOptions>()
                 .BindConfiguration("Download");

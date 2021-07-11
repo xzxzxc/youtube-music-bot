@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace YoutubeMusicBot.Interfaces
 {
     public interface ICancellationRegistration
@@ -12,6 +14,7 @@ namespace YoutubeMusicBot.Interfaces
         /// Create and register provider that could be used to cancel command.
         /// <remarks>Created provider need to be unregistered using Dispose method.</remarks>
         /// </summary>
-        ICancellationProvider RegisterNewProvider();
+        /// <param name="initialToken"></param>
+        ICancellationProvider RegisterNewProvider(CancellationToken initialToken);
     }
 }

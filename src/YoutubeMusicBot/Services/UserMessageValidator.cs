@@ -3,13 +3,13 @@ using System.Linq;
 using FluentValidation;
 using YoutubeMusicBot.Models;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Services
 {
-    public class MessageContextValidator : AbstractValidator<MessageContext>
+    public class UserMessageValidator : AbstractValidator<MessageModel>
     {
         private static readonly string[] AllowedSchemes = { "http", "https", "ftp" };
 
-        public MessageContextValidator()
+        public UserMessageValidator()
         {
             RuleFor(r => r.Text)
                 .NotEmpty()

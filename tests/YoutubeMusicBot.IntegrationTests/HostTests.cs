@@ -6,9 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
 using YoutubeMusicBot.Options;
-using YoutubeMusicBot.Tests.Extensions;
+using YoutubeMusicBot.Tests.Common.Extensions;
 
-namespace YoutubeMusicBot.Tests
+namespace YoutubeMusicBot.IntegrationTests
 {
 	public class HostTests
 	{

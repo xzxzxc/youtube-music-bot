@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B89DC0F8-ACC
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8E2CAF60-B729-4468-800B-9B5BCB37A68B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoutubeMusicBot.Tests", "tests\YoutubeMusicBot.Tests\YoutubeMusicBot.Tests.csproj", "{4EDA1C49-1019-4090-B40F-A0626338D1E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YoutubeMusicBot.UnitTests", "tests\YoutubeMusicBot.UnitTests\YoutubeMusicBot.UnitTests.csproj", "{4EDA1C49-1019-4090-B40F-A0626338D1E0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FDD077D7-FE46-4A06-850F-D8929E4F4932}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,6 +20,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeMusicBot.IntegrationTests", "tests\YoutubeMusicBot.IntegrationTests\YoutubeMusicBot.IntegrationTests.csproj", "{5335ACCF-B4EE-4D5D-9EBE-C1CA18963DC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YoutubeMusicBot.Tests.Common", "tests\YoutubeMusicBot.Tests.Common\YoutubeMusicBot.Tests.Common.csproj", "{92864346-7FB7-488C-8657-BEEAB7DFC146}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +39,14 @@ Global
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5335ACCF-B4EE-4D5D-9EBE-C1CA18963DC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5335ACCF-B4EE-4D5D-9EBE-C1CA18963DC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5335ACCF-B4EE-4D5D-9EBE-C1CA18963DC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5335ACCF-B4EE-4D5D-9EBE-C1CA18963DC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92864346-7FB7-488C-8657-BEEAB7DFC146}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92864346-7FB7-488C-8657-BEEAB7DFC146}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92864346-7FB7-488C-8657-BEEAB7DFC146}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92864346-7FB7-488C-8657-BEEAB7DFC146}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,6 +54,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{A6B3A3DD-7704-48E2-8658-7DC155FAC3E1} = {B89DC0F8-ACC3-4EB4-8CD5-CA71DC836EB6}
 		{4EDA1C49-1019-4090-B40F-A0626338D1E0} = {8E2CAF60-B729-4468-800B-9B5BCB37A68B}
+		{5335ACCF-B4EE-4D5D-9EBE-C1CA18963DC3} = {8E2CAF60-B729-4468-800B-9B5BCB37A68B}
+		{92864346-7FB7-488C-8657-BEEAB7DFC146} = {8E2CAF60-B729-4468-800B-9B5BCB37A68B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0AD41B7B-E102-4019-8F2E-D14490AD9F6A}

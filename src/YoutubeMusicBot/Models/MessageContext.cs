@@ -1,12 +1,9 @@
 namespace YoutubeMusicBot.Models
 {
     public record MessageContext(
-        int Id,
-        ChatContext Chat,
-        string Text,
-        InlineButton? InlineButton)
+        MessageModel UserMessage)
     {
-        public MessageContext? MessageToUpdate { get; set; }
+        public MessageModel? MessageToUpdate { get; set; }
 
         public string? Title { get; set; }
     }

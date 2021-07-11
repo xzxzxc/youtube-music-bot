@@ -4,7 +4,7 @@ using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Services
 {
 	internal class CacheFolder : ICacheFolder
 	{
@@ -14,7 +14,7 @@ namespace YoutubeMusicBot
 		{
 			var chatFolderPath = Value = Path.Join(
 				downloadOptions.CurrentValue.CacheFilesFolderPath,
-				$"{messageContext.Chat.Id}");
+				$"{messageContext.UserMessage.Chat.Id}");
 
 			Directory.CreateDirectory(chatFolderPath);
 		}

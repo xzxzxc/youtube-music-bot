@@ -1,3 +1,5 @@
+using YoutubeMusicBot.Enums;
+
 namespace YoutubeMusicBot.Interfaces
 {
     public interface ICallbackFactory

@@ -11,50 +11,55 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-    internal class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
+    public class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
     {
-        private readonly ILifetimeScope _lifetimeScope;
+        private readonly IMessageScopeFactory _scopeFactory;
 
-        public MessageHandler(ILifetimeScope lifetimeScope)
+        public MessageHandler(IMessageScopeFactory scopeFactory)
         {
-            _lifetimeScope = lifetimeScope;
+            _scopeFactory = scopeFactory;
         }
 
-        public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(
+            Request request,
+            CancellationToken cancellationToken = default)
         {
-            await using var messageScope = _lifetimeScope.BeginMessageLifetimeScope(
+            await using var messageScope = _scopeFactory.Create(
                 request.Value);
             var internalHandler = messageScope.Resolve<Internal>();
-            await internalHandler.HandleAsync(request.Value, cancellationToken);
+            await internalHandler.HandleAsync(cancellationToken);
 
             return Unit.Value;
         }
 
         public class Internal : IAsyncDisposable
         {
+            private readonly MessageContext _messageContext;
             private readonly ITgClientWrapper _tgClientWrapper;
-            private readonly IValidator<MessageContext> _validator;
+            private readonly IValidator<MessageModel> _validator;
             private readonly ICancellationRegistration _cancellationRegistration;
             private readonly IYoutubeDlWrapper _youtubeDlWrapper;
-            private MessageContext? _messageToDeleteOnDispose = null;
+            private MessageModel? _messageToDeleteOnDispose = null;
 
             public Internal(
+                MessageContext messageContext,
                 ITgClientWrapper tgClientWrapper,
-                IValidator<MessageContext> validator,
+                IValidator<MessageModel> validator,
                 ICancellationRegistration cancellationRegistration,
                 IYoutubeDlWrapper youtubeDlWrapper)
             {
+                _messageContext = messageContext;
                 _tgClientWrapper = tgClientWrapper;
                 _validator = validator;
                 _cancellationRegistration = cancellationRegistration;
                 _youtubeDlWrapper = youtubeDlWrapper;
             }
 
-            public async Task HandleAsync(
-                MessageContext message,
-                CancellationToken cancellationToken = default)
+            public async Task HandleAsync(CancellationToken cancellationToken = default)
             {
-                var validationResult = await _validator.ValidateAsync(message, cancellationToken);
+                var validationResult = await _validator.ValidateAsync(
+                    _messageContext.UserMessage,
+                    cancellationToken);
 
                 if (!validationResult.IsValid)
                 {
@@ -64,20 +69,21 @@ namespace YoutubeMusicBot.Handlers
                     return;
                 }
 
-                using var cancellationProvider = _cancellationRegistration.RegisterNewProvider();
+                using var cancellationProvider = _cancellationRegistration.RegisterNewProvider(
+                    cancellationToken);
 
                 var inlineButton = new InlineButton("Cancel", cancellationProvider.CallbackData);
-                message.MessageToUpdate = _messageToDeleteOnDispose =
+                _messageContext.MessageToUpdate = _messageToDeleteOnDispose =
                     await _tgClientWrapper.SendMessageAsync(
                         "Loading started.",
                         inlineButton,
                         cancellationToken);
 
-                var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(
-                    cancellationToken,
-                    cancellationProvider.Token);
+                cancellationToken = cancellationProvider.Token;
 
-                await _youtubeDlWrapper.DownloadAsync(message.Text, cancellationSource.Token);
+                await _youtubeDlWrapper.DownloadAsync(
+                    _messageContext.UserMessage.Text,
+                    cancellationToken);
             }
 
             public async ValueTask DisposeAsync()
@@ -87,6 +93,6 @@ namespace YoutubeMusicBot.Handlers
             }
         }
 
-        public record Request(MessageContext Value) : IRequest;
+        public record Request(MessageModel Value) : IRequest;
     }
 }

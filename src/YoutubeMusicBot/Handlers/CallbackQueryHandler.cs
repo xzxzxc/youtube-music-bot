@@ -2,12 +2,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using YoutubeMusicBot.Enums;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Handlers
 {
-    internal class CallbackQueryHandler : IRequestHandler<CallbackQueryHandler.Request, Unit>
+    public class CallbackQueryHandler : IRequestHandler<CallbackQueryHandler.Request, Unit>
     {
         private readonly ICallbackFactory _callbackFactory;
         private readonly ICancellationRegistration _cancellationRegistration;
@@ -44,6 +45,6 @@ namespace YoutubeMusicBot.Handlers
             return Unit.Value;
         }
 
-        internal record Request(CallbackQueryContext CallbackQuery) : IRequest;
+        public record Request(CallbackQueryContext CallbackQuery) : IRequest;
     }
 }

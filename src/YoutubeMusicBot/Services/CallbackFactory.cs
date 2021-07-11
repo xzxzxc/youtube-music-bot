@@ -1,9 +1,10 @@
 using System;
+using YoutubeMusicBot.Enums;
 using YoutubeMusicBot.Interfaces;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Services
 {
-    internal class CallbackFactory : ICallbackFactory
+    public class CallbackFactory : ICallbackFactory
     {
         private const char CancellationPrefix = 'c';
         private static readonly Random _random = new();

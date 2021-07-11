@@ -3,7 +3,7 @@ using AutoFixture;
 using AutoFixture.Kernel;
 using Moq;
 
-namespace YoutubeMusicBot.Tests
+namespace YoutubeMusicBot.Tests.Common
 {
     public class AutoFixtureValueProvider : DefaultValueProvider
     {

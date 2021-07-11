@@ -5,9 +5,9 @@ using System.Text.RegularExpressions;
 using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Services
 {
-	internal class TrackListParser : ITrackListParser
+	public class TrackListParser : ITrackListParser
 	{
 		private static readonly Regex Regex = new(
 			@"^

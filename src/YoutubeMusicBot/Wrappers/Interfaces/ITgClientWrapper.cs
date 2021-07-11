@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,25 +7,16 @@ namespace YoutubeMusicBot.Wrappers.Interfaces
 {
     public interface ITgClientWrapper
     {
-        Task<MessageContext> SendMessageAsync(
+        Task<MessageModel> SendMessageAsync(
             string text,
+            InlineButtonCollection? inlineButtons = null,
             CancellationToken cancellationToken = default);
 
-        Task<MessageContext> SendMessageAsync(
-            string text,
-            InlineButton inlineButton,
-            CancellationToken cancellationToken = default);
-
-        Task<MessageContext> SendMessageAsync(
-            string text,
-            InlineButtonCollection inlineButtons,
-            CancellationToken cancellationToken = default);
-
-        Task<MessageContext> SendAudioAsync(
+        Task<MessageModel> SendAudioAsync(
             FileInfo audio,
             CancellationToken cancellationToken = default);
 
-        Task<MessageContext> UpdateMessageAsync(
+        Task<MessageModel> UpdateMessageAsync(
             int messageId,
             string text,
             InlineButton? inlineButton = null,

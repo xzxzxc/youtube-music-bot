@@ -8,7 +8,7 @@ using Serilog.Events;
 using Serilog.Sinks.InMemory;
 using YoutubeMusicBot.Handlers;
 
-namespace YoutubeMusicBot.Tests
+namespace YoutubeMusicBot.IntegrationTests
 {
 	public class RunProcessHandlerTests
 	{

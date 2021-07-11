@@ -1,6 +1,6 @@
 namespace YoutubeMusicBot.Models
 {
 	public record CallbackQueryContext(
-		ChatContext Chat,
+		ChatModel Chat,
 		string? CallbackData);
 }

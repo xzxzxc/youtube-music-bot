@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -10,12 +9,9 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Handlers;
 
-[assembly: InternalsVisibleTo("YoutubeMusicBot.Tests")]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-
 namespace YoutubeMusicBot
 {
-    internal class BotHostedService : BackgroundService
+    public class BotHostedService : BackgroundService
     {
         private readonly ITelegramBotClient _client;
         private readonly IMediator _mediator;

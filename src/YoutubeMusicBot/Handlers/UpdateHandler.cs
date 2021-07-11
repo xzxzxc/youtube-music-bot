@@ -8,7 +8,7 @@ using YoutubeMusicBot.Extensions;
 
 namespace YoutubeMusicBot.Handlers
 {
-    internal class UpdateHandler : IRequestHandler<UpdateHandler.Request, Unit>
+    public class UpdateHandler : IRequestHandler<UpdateHandler.Request, Unit>
     {
         private readonly IMediator _mediator;
 
@@ -17,18 +17,25 @@ namespace YoutubeMusicBot.Handlers
             _mediator = mediator;
         }
 
-        public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(
+            Request request,
+            CancellationToken cancellationToken = default)
         {
-            await _mediator.Send(
-                request.Update.Type switch
-                {
-                    UpdateType.Message =>
-                        new MessageHandler.Request(request.Update.Message.ToContext()),
-                    UpdateType.CallbackQuery =>
+            switch (request.Update.Type)
+            {
+                case UpdateType.Message:
+                    await _mediator.Send(
+                        new MessageHandler.Request(request.Update.Message.ToModel()),
+                        cancellationToken);
+                    break;
+                case UpdateType.CallbackQuery:
+                    await _mediator.Send(
                         new CallbackQueryHandler.Request(request.Update.CallbackQuery.ToContext()),
-                    _ => throw new ArgumentOutOfRangeException(),
-                },
-                cancellationToken);
+                        cancellationToken);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             return Unit.Value;
         }

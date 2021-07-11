@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using YoutubeMusicBot.Interfaces;
 
-namespace YoutubeMusicBot
+namespace YoutubeMusicBot.Services
 {
     internal class CancellationRegistration : ICancellationRegistration
     {
@@ -19,11 +19,11 @@ namespace YoutubeMusicBot
         public ICancellationProvider GetProvider(string id) =>
             _providers[id];
 
-        public ICancellationProvider RegisterNewProvider()
+        public ICancellationProvider RegisterNewProvider(CancellationToken initialToken)
         {
             var callbackData = _callbackFactory.CreateDataForCancellation();
 
-            var provider = new CancellationProvider(callbackData, this);
+            var provider = new CancellationProvider(callbackData, initialToken, this);
             _providers.AddOrUpdate(
                 callbackData,
                 _ => provider,
@@ -38,29 +38,33 @@ namespace YoutubeMusicBot
         private class CancellationProvider : ICancellationProvider
         {
             private readonly CancellationRegistration _cancellationRegistration;
-            private readonly CancellationTokenSource _source;
+            private readonly CancellationTokenSource _cancelSource;
+            private readonly CancellationTokenSource _aggregateSource;
 
             public CancellationProvider(
                 string callbackData,
+                CancellationToken initialToken,
                 CancellationRegistration cancellationRegistration)
             {
                 _cancellationRegistration = cancellationRegistration;
                 CallbackData = callbackData;
-                _source = new CancellationTokenSource();
+                _cancelSource = new CancellationTokenSource();
+                _aggregateSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    initialToken,
+                    _cancelSource.Token);
             }
 
 
             public string CallbackData { get; }
 
-            public CancellationToken Token => _source.Token;
+            public CancellationToken Token =>
+                _aggregateSource.Token;
 
             public void Cancel() =>
-                _source.Cancel();
+                _cancelSource.Cancel();
 
-            public void Dispose()
-            {
+            public void Dispose() =>
                 _cancellationRegistration.RemoveProvider(CallbackData);
-            }
         }
     }
 }
