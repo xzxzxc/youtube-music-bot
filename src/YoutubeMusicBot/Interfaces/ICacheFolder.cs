@@ -1,6 +1,6 @@
 namespace YoutubeMusicBot.Interfaces
 {
-	internal interface ICacheFolder
+	public interface ICacheFolder
 	{
 		string Value { get; }
 	}

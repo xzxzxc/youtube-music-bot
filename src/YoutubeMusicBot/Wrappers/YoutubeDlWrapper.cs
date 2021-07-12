@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,10 +11,13 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Wrappers
 {
-    internal class YoutubeDlWrapper : IYoutubeDlWrapper
+    public class YoutubeDlWrapper : IYoutubeDlWrapper
     {
+        private static string? ConfigFilePath;
         private readonly MessageContext _messageContext;
         private readonly ITgClientWrapper _tgClientWrapper;
+        private readonly IProcessRunner _processRunner;
+        private readonly ILinuxPathResolver _linuxPathResolver;
         private readonly IMediator _mediator;
         private readonly Regex _downloadingStarted;
         private readonly Regex _fileCompleted;
@@ -25,10 +27,14 @@ namespace YoutubeMusicBot.Wrappers
             MessageContext messageContext,
             ICacheFolder cacheFolder,
             ITgClientWrapper tgClientWrapper,
+            IProcessRunner processRunner,
+            ILinuxPathResolver linuxPathResolver,
             IMediator mediator)
         {
             _messageContext = messageContext;
             _tgClientWrapper = tgClientWrapper;
+            _processRunner = processRunner;
+            _linuxPathResolver = linuxPathResolver;
             _mediator = mediator;
 
             _cacheFolder = cacheFolder.Value;
@@ -42,53 +48,53 @@ namespace YoutubeMusicBot.Wrappers
 
         public async Task DownloadAsync(
             string url,
-            CancellationToken cancellationToken = default) =>
-            await _mediator.Send(
-                new RunProcessHandler.Request(
+            CancellationToken cancellationToken = default)
+        {
+            ConfigFilePath ??= await _linuxPathResolver.Resolve(
+                    Path.Join(
+                        AppDomain.CurrentDomain.BaseDirectory,
+                        "youtube-dl.conf"),
+                cancellationToken);
+            await foreach (var line in _processRunner.RunAsync(
+                new ProcessRunner.Request(
                     "youtube-dl",
                     _cacheFolder,
-                    ProcessOutput,
                     Arguments: new[]
                     {
-                        "--config-location", await _mediator.Send(
-                            new GetLinuxPathHandler.Request(
-                                Path.Join(
-                                    AppDomain.CurrentDomain.BaseDirectory,
-                                    "youtube-dl.conf")),
-                            cancellationToken),
+                        "--config-location",
+                        ConfigFilePath,
                         url,
                     }),
-                cancellationToken);
-
-        private async Task ProcessOutput(string line, CancellationToken cancellationToken)
-        {
-            var startedMatch = _downloadingStarted.Match(line);
-            if (startedMatch.Success)
+                cancellationToken))
             {
-                var title = _messageContext.Title = startedMatch.Groups["title"].Value;
-                var messageToUpdate = _messageContext.MessageToUpdate
-                    ?? throw new InvalidOperationException(
-                        $"{nameof(_messageContext.MessageToUpdate)} is not initialized!");
-                await _tgClientWrapper.UpdateMessageAsync(
-                    messageToUpdate.Id,
-                    $"Loading \"{title}\" started.",
-                    messageToUpdate.InlineButton,
-                    cancellationToken);
-                return;
-            }
+                var startedMatch = _downloadingStarted.Match(line);
+                if (startedMatch.Success)
+                {
+                    var title = _messageContext.Title = startedMatch.Groups["title"].Value;
+                    var messageToUpdate = _messageContext.MessageToUpdate
+                        ?? throw new InvalidOperationException(
+                            $"{nameof(_messageContext.MessageToUpdate)} is not initialized!");
+                    await _tgClientWrapper.UpdateMessageAsync(
+                        messageToUpdate.Id,
+                        $"Loading \"{title}\" started.",
+                        messageToUpdate.InlineButton,
+                        cancellationToken);
+                    continue;
+                }
 
-            var completedMatch = _fileCompleted.Match(line);
-            if (completedMatch.Success)
-            {
-                var fileName = completedMatch.Groups["file_name"].Value;
-                var file = new FileInfo(
-                    Path.Join(
-                        _cacheFolder,
-                        fileName));
-                await _mediator.Send(
-                    new NewTrackHandler.Request(file),
-                    cancellationToken);
-                return;
+                var completedMatch = _fileCompleted.Match(line);
+                if (completedMatch.Success)
+                {
+                    var fileName = completedMatch.Groups["file_name"].Value;
+                    var file = new FileInfo(
+                        Path.Join(
+                            _cacheFolder,
+                            fileName));
+                    await _mediator.Send(
+                        new NewTrackHandler.Request(file),
+                        cancellationToken);
+                    continue;
+                }
             }
         }
     }

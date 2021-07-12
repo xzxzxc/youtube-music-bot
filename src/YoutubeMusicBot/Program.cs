@@ -56,9 +56,6 @@ namespace YoutubeMusicBot
             containerBuilder.RegisterType<TrackListParser>()
                 .AsImplementedInterfaces();
 
-            containerBuilder.RegisterType<RunProcessHandler>()
-                .AsImplementedInterfaces();
-
             containerBuilder.RegisterType<CallbackFactory>()
                 .AsImplementedInterfaces();
 

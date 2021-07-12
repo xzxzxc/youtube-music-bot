@@ -1,41 +1,40 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using YoutubeMusicBot.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-	public class GetLinuxPathHandler : IRequestHandler<GetLinuxPathHandler.Request, string>
-	{
-		private static readonly bool IsWindows = OperatingSystem.IsWindows();
+    public class LinuxPathResolver : ILinuxPathResolver
+    {
+        private readonly IProcessRunner _processRunner;
 
-		private readonly IMediator _mediator;
+        public LinuxPathResolver(IProcessRunner processRunner)
+        {
+            _processRunner = processRunner;
+        }
 
-		public GetLinuxPathHandler(
-			IMediator mediator)
-		{
-			_mediator = mediator;
-		}
+        public async Task<string> Resolve(
+            string currentOsPath,
+            CancellationToken cancellationToken)
+        {
+            if (OperatingSystem.IsLinux())
+                return currentOsPath;
 
-		public async Task<string> Handle(Request request,
-			CancellationToken cancellationToken)
-		{
-			if (!IsWindows)
-				return request.WindowsPath;
+            if (!OperatingSystem.IsWindows())
+                throw new InvalidOperationException("Current OS is not supported.");
 
-			string? result = null;
-			await _mediator.Send(
-				new RunProcessHandler.Request(
-					"wslpath",
-					".",
-					async (line, _) => result = line,
-					Arguments: request.WindowsPath));
+            var result = await _processRunner.RunAsync(
+                    new ProcessRunner.Request(
+                        ProcessName: "wslpath",
+                        WorkingDirectory: ".",
+                        Arguments: currentOsPath),
+                    cancellationToken)
+                .FirstAsync(cancellationToken);
 
-			return result
-				?? throw new InvalidOperationException(
-					"Got no response from wslpath");
-		}
-
-		public record Request(string WindowsPath) : IRequest<string>;
-	}
+            return result;
+        }
+    }
 }

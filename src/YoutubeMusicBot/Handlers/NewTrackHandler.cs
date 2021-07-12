@@ -6,13 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Options;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-    internal class NewTrackHandler :
+    public class NewTrackHandler :
         IRequestHandler<NewTrackHandler.Request, Unit>,
         IDisposable
     {
@@ -20,6 +21,7 @@ namespace YoutubeMusicBot.Handlers
         private readonly IOptionsMonitor<BotOptions> _botOptions;
         private readonly IOptionsMonitor<FeatureOptions> _featureOptions;
         private readonly IMediator _mediator;
+        private readonly IProcessRunner _processRunner;
         private readonly MessageContext _messageContext;
 
         private readonly Regex _silenceDetectionRegex = new(
@@ -33,12 +35,14 @@ namespace YoutubeMusicBot.Handlers
             IOptionsMonitor<BotOptions> botOptions,
             IOptionsMonitor<FeatureOptions> featureOptions,
             IMediator mediator,
+            IProcessRunner processRunner,
             MessageContext messageContext)
         {
             _tgClientWrapper = tgClientWrapper;
             _botOptions = botOptions;
             _featureOptions = featureOptions;
             _mediator = mediator;
+            _processRunner = processRunner;
             _messageContext = messageContext;
         }
 
@@ -73,21 +77,23 @@ namespace YoutubeMusicBot.Handlers
                     var equalPartsCount =
                         file.Length / _botOptions.CurrentValue.MaxFileBytesCount + 1;
                     int? silenceDetectedPartsCount = null;
-                    await _mediator.Send(
-                        new RunProcessHandler.Request(
-                            "mp3splt",
-                            request.File.DirectoryName
-                            ?? throw new InvalidOperationException(
-                                "File directory doesn't exists."),
-                            async (line, _) =>
-                            {
-                                var match = _silenceDetectionRegex.Match(line);
-                                if (match.Success)
-                                    silenceDetectedPartsCount = int.Parse(match.Groups[1].Value);
-                            },
+                    var fileDirectory = request.File.DirectoryName
+                        ?? throw new InvalidOperationException(
+                            "File directory doesn't exists.");
+                    await foreach (var line in _processRunner.RunAsync(
+                        new ProcessRunner.Request(
+                            ProcessName: "mp3splt",
+                            WorkingDirectory: fileDirectory,
                             "-s",
                             "-P",
-                            request.File.Name));
+                            request.File.Name),
+                        cancellationToken))
+                    {
+                        var match = _silenceDetectionRegex.Match(line);
+                        if (match.Success)
+                            silenceDetectedPartsCount = int.Parse(match.Groups[1].Value);
+                    }
+
                     var buttonCollection = new List<InlineButton>
                     {
                         new($"Split into {equalPartsCount} equal parts.", string.Empty)

@@ -1,37 +1,30 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AutoFixture.NUnit3;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Serilog;
-using Serilog.Events;
-using Serilog.Sinks.InMemory;
 using YoutubeMusicBot.Handlers;
+using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.IntegrationTests
 {
-	public class RunProcessHandlerTests
-	{
-		[Test]
-		[AutoData]
-		public async Task ShouldEcho(string message)
-		{
-			using var host = Program.CreateHostBuilder()
-				.UseSerilog(new LoggerConfiguration().WriteTo.InMemory().CreateLogger())
-				.Build();
-			var runProcessHandler = host.Services.GetRequiredService<RunProcessHandler>();
-			string outputLine = string.Empty;
+    public class ProcessRunnerTests
+    {
+        [Test]
+        [AutoData]
+        public async Task ShouldEcho(string message)
+        {
+            using var container = AutoMockContainerFactory.Create();
+            var runProcessHandler = container.Create<ProcessRunner>();
 
-			await runProcessHandler.Handle(
-				new RunProcessHandler.Request(
-					"echo",
-					WorkingDirectory: ".",
-					async (line, _) => outputLine = line,
-					Arguments: message));
+            var outputLine = await runProcessHandler.RunAsync(
+                    new ProcessRunner.Request(
+                        "echo",
+                        WorkingDirectory: ".",
+                        Arguments: message))
+                .FirstAsync();
 
-			InMemorySink.Instance.LogEvents.Should()
-				.NotContain(e => e.Level >= LogEventLevel.Error);
-			outputLine.Should().Be(message);
-		}
-	}
+            outputLine.Value.Should().Be(message);
+        }
+    }
 }

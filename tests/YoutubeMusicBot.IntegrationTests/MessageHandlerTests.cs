@@ -212,6 +212,7 @@ namespace YoutubeMusicBot.IntegrationTests
         }
 
         [Test]
+        [Timeout(10_000)] // 10 seconds
         [TestCase("https://youtu.be/lc3wg72Jzc8")]
         public async Task ShouldProposeSplitFileIfTooLarge(string url)
         {

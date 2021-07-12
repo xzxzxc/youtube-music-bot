@@ -1,29 +1,30 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using YoutubeMusicBot.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-    public delegate Task ProcessDelegate(string line, CancellationToken cancellationToken);
-
-    public class RunProcessHandler : IRequestHandler<RunProcessHandler.Request>
+    public class ProcessRunner : IProcessRunner
     {
         private static readonly bool IsWindows = OperatingSystem.IsWindows();
 
-        private readonly ILogger<RunProcessHandler> _logger;
+        private readonly ILogger<ProcessRunner> _logger;
 
-        public RunProcessHandler(ILogger<RunProcessHandler> logger)
+        public ProcessRunner(ILogger<ProcessRunner> logger)
         {
             _logger = logger;
         }
 
-        public async Task<Unit> Handle(
+        public async IAsyncEnumerable<Line> RunAsync(
             Request request,
-            CancellationToken cancellationToken = default)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             using var _ = _logger.BeginScope(
                 "{Process} {Arguments}",
@@ -79,9 +80,8 @@ namespace YoutubeMusicBot.Handlers
                     var line = readOutputTask.Result;
                     if (!string.IsNullOrEmpty(line))
                     {
-                        _logger.LogError("Got {Error}", line);
-                        if (request.ProcessError != null)
-                            await request.ProcessError(line, cancellationToken);
+                        _logger.LogError("Got {Error}", line); // TODO: do it by flag
+                        yield return new(line, IsError: true);
                     }
 
                     readErrorTask = null;
@@ -92,7 +92,7 @@ namespace YoutubeMusicBot.Handlers
                     if (!string.IsNullOrEmpty(line))
                     {
                         _logger.LogInformation("Got {Output}", line);
-                        await request.ProcessOutput(line, cancellationToken);
+                        yield return new(line);
                     }
 
                     readOutputTask = null;
@@ -107,30 +107,17 @@ namespace YoutubeMusicBot.Handlers
             }
 
             await process.WaitForExitAsync(cancellationToken);
+        }
 
-            return Unit.Value;
+        public record Line(string Value, bool IsError = false)
+        {
+            public static implicit operator string(Line line) =>
+                line.Value;
         }
 
         public record Request(
             string ProcessName,
             string WorkingDirectory,
-            ProcessDelegate ProcessOutput,
-            ProcessDelegate? ProcessError,
-            params string[] Arguments) : IRequest
-        {
-            public Request(
-                string ProcessName,
-                string WorkingDirectory,
-                ProcessDelegate ProcessOutput,
-                params string[] Arguments)
-                : this(
-                    ProcessName,
-                    WorkingDirectory,
-                    ProcessOutput,
-                    null,
-                    Arguments)
-            {
-            }
-        }
+            params string[] Arguments);
     }
 }

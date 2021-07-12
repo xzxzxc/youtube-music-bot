@@ -12,67 +12,65 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Wrappers
 {
-	internal class Mp3SplitWrapper : IMp3SplitWrapper
-	{
-		private readonly string _cacheFolder;
-		private readonly IMediator _mediator;
-		private readonly Regex _regex;
+    internal class Mp3SplitWrapper : IMp3SplitWrapper
+    {
+        private readonly IProcessRunner _processRunner;
+        private readonly IMediator _mediator;
+        private readonly string _cacheFolder;
+        private readonly Regex _regex;
 
-		public Mp3SplitWrapper(
-			ICacheFolder cacheFolder,
-			IMediator mediator)
-		{
-			_cacheFolder = cacheFolder.Value;
-			_mediator = mediator;
-			_regex = new Regex(
-				@"^   File ""(?<file_name>.+)"" created$",
-				RegexOptions.Compiled | RegexOptions.Multiline);
-		}
+        public Mp3SplitWrapper(
+            ICacheFolder cacheFolder,
+            IProcessRunner processRunner,
+            IMediator mediator)
+        {
+            _processRunner = processRunner;
+            _mediator = mediator;
+            _cacheFolder = cacheFolder.Value;
+            _regex = new Regex(
+                @"^   File ""(?<file_name>.+)"" created$",
+                RegexOptions.Compiled | RegexOptions.Multiline);
+        }
 
-		public async Task SplitAsync(
-			FileInfo file,
-			IReadOnlyCollection<TrackModel> tracks,
-			CancellationToken cancellationToken = default)
-		{
-			await _mediator.Send(
-				new RunProcessHandler.Request(
-					"mp3splt",
-					_cacheFolder,
-					ProcessOutput,
-					Arguments: new[]
-						{
-							"-q",
-							"-g",
-							$"%[@o,@b=#t,@t={tracks.First().Title}]"
-							+ string.Concat(
-								tracks
-									.Skip(1)
-									.Select(t => $"[@t={t.Title}]")),
-							file.Name,
-						}
-						.Concat(
-							tracks.Select(
-								track =>
-									$"{track.Start.Minutes}.{track.Start.Seconds}"))
-						// mean that we want split including last track
-						.Append("EOF")
-						.ToArray()),
-				cancellationToken);
-		}
+        public async Task SplitAsync(
+            FileInfo file,
+            IReadOnlyCollection<TrackModel> tracks,
+            CancellationToken cancellationToken = default)
+        {
+            await foreach (var line in _processRunner.RunAsync(
+                new ProcessRunner.Request(
+                    "mp3splt",
+                    _cacheFolder,
+                    Arguments: new[]
+                        {
+                            "-q", "-g", $"%[@o,@b=#t,@t={tracks.First().Title}]"
+                            + string.Concat(
+                                tracks
+                                    .Skip(1)
+                                    .Select(t => $"[@t={t.Title}]")),
+                            file.Name,
+                        }
+                        .Concat(
+                            tracks.Select(
+                                track =>
+                                    $"{track.Start.Minutes}.{track.Start.Seconds}"))
+                        // mean that we want split including last track
+                        .Append("EOF")
+                        .ToArray()),
+                cancellationToken))
+            {
+                var match = _regex.Match(line);
+                if (!match.Success)
+                    continue;
 
-		private async Task ProcessOutput(string line, CancellationToken cancellationToken)
-		{
-			var match = _regex.Match(line);
-			if (match.Success)
-			{
-				var file = new FileInfo(
-					Path.Join(
-						_cacheFolder,
-						match.Groups["file_name"].Value));
-				await _mediator.Send(
-					new NewTrackHandler.Request(file, TrySplit: false),
+                var newFile = new FileInfo(
+                    Path.Join(
+                        _cacheFolder,
+                        match.Groups["file_name"].Value));
+                await _mediator.Send(
+                    new NewTrackHandler.Request(newFile, TrySplit: false),
                     cancellationToken);
-			}
-		}
-	}
+            }
+        }
+    }
 }

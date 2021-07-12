@@ -176,15 +176,9 @@ namespace YoutubeMusicBot.UnitTests
                 .Verify(w => w.DeleteMessageAsync(replyMessage.Id, It.IsAny<CancellationToken>()));
         }
 
-        private AutoMock CreateAutoMockContainer(Action<ContainerBuilder>? beforeBuild = null)
-        {
-            var mockRepository = new MockRepository(MockBehavior.Loose)
-            {
-                DefaultValueProvider = new AutoFixtureValueProvider(_fixture),
-            };
-            return AutoMock.GetFromRepository(
-                mockRepository,
-                builder =>
+        private AutoMock CreateAutoMockContainer(Action<ContainerBuilder>? beforeBuild = null) =>
+            AutoMockContainerFactory.Create(
+                (mockRepository, builder) =>
                 {
                     builder.RegisterModule(new CommonModule());
                     builder.RegisterModule(new MessageHandlerModule());
@@ -192,6 +186,5 @@ namespace YoutubeMusicBot.UnitTests
                     builder.RegisterMock(mockRepository.Create<IYoutubeDlWrapper>());
                     beforeBuild?.Invoke(builder);
                 });
-        }
     }
 }
