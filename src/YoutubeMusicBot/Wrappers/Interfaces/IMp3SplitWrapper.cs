@@ -1,16 +1,16 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Wrappers.Interfaces
 {
-	internal interface IMp3SplitWrapper
-	{
-		Task SplitAsync(
-			FileInfo file,
-			IReadOnlyCollection<TrackModel> tracks,
-			CancellationToken cancellationToken = default);
-	}
+    public interface IMp3SplitWrapper
+    {
+        Task SplitAsync(
+            IFileInfo file,
+            IReadOnlyCollection<TrackModel> tracks,
+            CancellationToken cancellationToken = default);
+    }
 }

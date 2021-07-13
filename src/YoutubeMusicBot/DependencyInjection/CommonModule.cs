@@ -17,6 +17,10 @@ namespace YoutubeMusicBot.DependencyInjection
             builder.RegisterType<LinuxPathResolver>()
                 .AsImplementedInterfaces();
 
+            builder.RegisterType<YoutubeDlConfigPath>()
+                .AsImplementedInterfaces()
+                .SingleInstance();
+
             base.Load(builder);
         }
     }

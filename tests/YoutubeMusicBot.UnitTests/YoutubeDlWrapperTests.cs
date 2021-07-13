@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
 using AutoFixture;
+using FluentAssertions;
 using MediatR;
 using Moq;
 using NUnit.Framework;
@@ -26,7 +27,46 @@ namespace YoutubeMusicBot.UnitTests
             _fixture = AutoFixtureFactory.Create();
         }
 
-        // TODO: add test for correct arguments
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldCallYoutubeDlWithCorrectArguments(
+            string cacheFolder,
+            string configFilePath,
+            string url)
+        {
+            ProcessRunner.Request? request = null;
+            var processRunnerMock = new Mock<IProcessRunner>();
+            processRunnerMock.Setup(
+                    r => r.RunAsync(
+                        It.IsAny<ProcessRunner.Request>(),
+                        It.IsAny<CancellationToken>()))
+                .Callback<ProcessRunner.Request, CancellationToken>((r, _) => request = r)
+                .Returns(AsyncEnumerable.Empty<ProcessRunner.Line>())
+                .Verifiable();
+            using var container = CreateAutoMockContainer(
+                b =>
+                {
+                    b.RegisterMock(processRunnerMock);
+                    b.RegisterInstance(Mock.Of<ICacheFolder>(f => f.Value == cacheFolder));
+                    b.RegisterInstance(
+                        Mock.Of<IYoutubeDlConfigPath>(
+                            r => r.GetValueAsync(It.IsAny<CancellationToken>()).Result == configFilePath));
+                });
+            var wrapper = container.Create<YoutubeDlWrapper>();
+
+            await wrapper.DownloadAsync(url);
+
+            request.Should().NotBeNull(
+                $"{nameof(IProcessRunner.RunAsync)} wasn't called."
+                + $" Preformed invocations {processRunnerMock.Invocations}.");
+            request!.ProcessName.Should().Be("youtube-dl");
+            request.WorkingDirectory.Should().Be(cacheFolder);
+            request.Arguments.Should()
+                .SatisfyRespectively(
+                    a1 => a1.Should().Be("--config-location"),
+                    a2 => a2.Should().Be(configFilePath),
+                    a3 => a3.Should().Be(url));
+        }
 
         [Test]
         [CustomInlineAutoData(
@@ -43,13 +83,8 @@ test line")]
             MessageContext messageContext)
         {
             // TODO: add integration test for real output
-            var mediatorMock = new Mock<IMediator>();
             using var container = CreateAutoMockContainer(
-                b =>
-                {
-                    b.RegisterMock(mediatorMock);
-                    b.RegisterInstance(CreateMockedProcessRunner(youtubeDlOutput));
-                },
+                b => b.RegisterInstance(CreateMockedProcessRunner(youtubeDlOutput)),
                 messageContext);
             var wrapper = container.Create<YoutubeDlWrapper>();
 
@@ -99,7 +134,7 @@ test line")]
                                 r.File.Name == fileName
                                 && r.File.DirectoryName != null
                                 && r.File.DirectoryName.EndsWith(cacheFolder)
-                                && r.TrySplit == true),
+                                && r.TrySplit),
                         It.IsAny<CancellationToken>()),
                     Times.Once);
         }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -33,7 +32,7 @@ namespace YoutubeMusicBot.Wrappers
         }
 
         public async Task SplitAsync(
-            FileInfo file,
+            IFileInfo file,
             IReadOnlyCollection<TrackModel> tracks,
             CancellationToken cancellationToken = default)
         {
@@ -63,10 +62,9 @@ namespace YoutubeMusicBot.Wrappers
                 if (!match.Success)
                     continue;
 
-                var newFile = new FileInfo(
-                    Path.Join(
+                var newFile = new FileInfoWrapper(
                         _cacheFolder,
-                        match.Groups["file_name"].Value));
+                        match.Groups["file_name"].Value);
                 await _mediator.Send(
                     new NewTrackHandler.Request(newFile, TrySplit: false),
                     cancellationToken);

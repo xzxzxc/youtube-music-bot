@@ -1,6 +1,8 @@
+using System.IO;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using Moq;
 
 namespace YoutubeMusicBot.Tests.Common
 {

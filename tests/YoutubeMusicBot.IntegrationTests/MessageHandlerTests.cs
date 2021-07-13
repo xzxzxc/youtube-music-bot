@@ -21,6 +21,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
 using YoutubeMusicBot.Handlers;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Options;
 using YoutubeMusicBot.Tests.Common;
@@ -186,8 +187,8 @@ namespace YoutubeMusicBot.IntegrationTests
                 .Create();
             var resultTagFiles = new List<TagFile>();
             _tgClientMock
-                .Setup(m => m.SendAudioAsync(It.IsAny<FileInfo>(), It.IsAny<CancellationToken>()))
-                .Callback<FileInfo, CancellationToken>(
+                .Setup(m => m.SendAudioAsync(It.IsAny<IFileInfo>(), It.IsAny<CancellationToken>()))
+                .Callback<IFileInfo, CancellationToken>(
                     (audio, _) =>
                         resultTagFiles.Add(
                             TagFile.Create(
@@ -212,7 +213,7 @@ namespace YoutubeMusicBot.IntegrationTests
         }
 
         [Test]
-        [Timeout(10_000)] // 10 seconds
+        [Timeout(30_000)] // 30 seconds
         [TestCase("https://youtu.be/lc3wg72Jzc8")]
         public async Task ShouldProposeSplitFileIfTooLarge(string url)
         {

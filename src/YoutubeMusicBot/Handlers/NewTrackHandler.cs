@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +27,7 @@ namespace YoutubeMusicBot.Handlers
             @"\(Selected (\d+) tracks\)",
             RegexOptions.Compiled);
 
-        private FileInfo? _file;
+        private IFileInfo? _file;
 
         public NewTrackHandler(
             ITgClientWrapper tgClientWrapper,
@@ -48,7 +47,7 @@ namespace YoutubeMusicBot.Handlers
 
         public async Task<Unit> Handle(
             Request request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (!request.File.Exists)
             {
@@ -91,7 +90,10 @@ namespace YoutubeMusicBot.Handlers
                     {
                         var match = _silenceDetectionRegex.Match(line);
                         if (match.Success)
+                        {
                             silenceDetectedPartsCount = int.Parse(match.Groups[1].Value);
+                            break;
+                        }
                     }
 
                     var buttonCollection = new List<InlineButton>
@@ -132,6 +134,6 @@ namespace YoutubeMusicBot.Handlers
             _file?.Delete();
         }
 
-        public record Request(FileInfo File, bool TrySplit = true) : IRequest;
+        public record Request(IFileInfo File, bool TrySplit = true) : IRequest;
     }
 }

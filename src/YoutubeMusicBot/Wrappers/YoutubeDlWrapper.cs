@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace YoutubeMusicBot.Wrappers
         private readonly MessageContext _messageContext;
         private readonly ITgClientWrapper _tgClientWrapper;
         private readonly IProcessRunner _processRunner;
-        private readonly ILinuxPathResolver _linuxPathResolver;
+        private readonly IYoutubeDlConfigPath _youtubeDlConfigPath;
         private readonly IMediator _mediator;
         private readonly Regex _downloadingStarted;
         private readonly Regex _fileCompleted;
@@ -28,13 +27,13 @@ namespace YoutubeMusicBot.Wrappers
             ICacheFolder cacheFolder,
             ITgClientWrapper tgClientWrapper,
             IProcessRunner processRunner,
-            ILinuxPathResolver linuxPathResolver,
+            IYoutubeDlConfigPath youtubeDlConfigPath,
             IMediator mediator)
         {
             _messageContext = messageContext;
             _tgClientWrapper = tgClientWrapper;
             _processRunner = processRunner;
-            _linuxPathResolver = linuxPathResolver;
+            _youtubeDlConfigPath = youtubeDlConfigPath;
             _mediator = mediator;
 
             _cacheFolder = cacheFolder.Value;
@@ -50,11 +49,6 @@ namespace YoutubeMusicBot.Wrappers
             string url,
             CancellationToken cancellationToken = default)
         {
-            ConfigFilePath ??= await _linuxPathResolver.Resolve(
-                    Path.Join(
-                        AppDomain.CurrentDomain.BaseDirectory,
-                        "youtube-dl.conf"),
-                cancellationToken);
             await foreach (var line in _processRunner.RunAsync(
                 new ProcessRunner.Request(
                     "youtube-dl",
@@ -62,7 +56,7 @@ namespace YoutubeMusicBot.Wrappers
                     Arguments: new[]
                     {
                         "--config-location",
-                        ConfigFilePath,
+                        await _youtubeDlConfigPath.GetValueAsync(cancellationToken),
                         url,
                     }),
                 cancellationToken))
@@ -86,10 +80,9 @@ namespace YoutubeMusicBot.Wrappers
                 if (completedMatch.Success)
                 {
                     var fileName = completedMatch.Groups["file_name"].Value;
-                    var file = new FileInfo(
-                        Path.Join(
+                    var file = new FileInfoWrapper(
                             _cacheFolder,
-                            fileName));
+                            fileName);
                     await _mediator.Send(
                         new NewTrackHandler.Request(file),
                         cancellationToken);

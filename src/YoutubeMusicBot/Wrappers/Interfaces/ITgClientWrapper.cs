@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 
 namespace YoutubeMusicBot.Wrappers.Interfaces
@@ -13,7 +14,7 @@ namespace YoutubeMusicBot.Wrappers.Interfaces
             CancellationToken cancellationToken = default);
 
         Task<MessageModel> SendAudioAsync(
-            FileInfo audio,
+            IFileInfo audio,
             CancellationToken cancellationToken = default);
 
         Task<MessageModel> UpdateMessageAsync(

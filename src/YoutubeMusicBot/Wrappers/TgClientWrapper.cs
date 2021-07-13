@@ -1,11 +1,11 @@
 using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Extensions;
+using YoutubeMusicBot.Interfaces;
 using YoutubeMusicBot.Models;
 using YoutubeMusicBot.Wrappers.Interfaces;
 
@@ -36,7 +36,7 @@ namespace YoutubeMusicBot.Wrappers
                     cancellationToken: cancellationToken));
 
         public async Task<MessageModel> SendAudioAsync(
-            FileInfo audio,
+            IFileInfo audio,
             CancellationToken cancellationToken = default)
         {
             await using var fileStream = audio.OpenRead();

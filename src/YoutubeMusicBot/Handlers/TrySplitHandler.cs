@@ -9,7 +9,7 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 
 namespace YoutubeMusicBot.Handlers
 {
-    internal class TrySplitHandler :
+    public class TrySplitHandler :
         IRequestHandler<TrySplitHandler.Request, bool>,
         IDisposable
     {
@@ -69,6 +69,6 @@ namespace YoutubeMusicBot.Handlers
             _descriptionFile?.Delete();
         }
 
-        internal record Request(FileInfo File) : IRequest<bool>;
+        public record Request(IFileInfo File) : IRequest<bool>;
     }
 }
