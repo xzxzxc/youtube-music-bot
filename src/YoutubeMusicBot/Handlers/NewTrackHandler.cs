@@ -21,6 +21,7 @@ namespace YoutubeMusicBot.Handlers
         private readonly IOptionsMonitor<FeatureOptions> _featureOptions;
         private readonly IMediator _mediator;
         private readonly IProcessRunner _processRunner;
+        private readonly IDescriptionService _descriptionService;
         private readonly MessageContext _messageContext;
 
         private readonly Regex _silenceDetectionRegex = new(
@@ -28,6 +29,7 @@ namespace YoutubeMusicBot.Handlers
             RegexOptions.Compiled);
 
         private IFileInfo? _file;
+        private IFileInfo? _descriptionFile;
 
         public NewTrackHandler(
             ITgClientWrapper tgClientWrapper,
@@ -35,6 +37,7 @@ namespace YoutubeMusicBot.Handlers
             IOptionsMonitor<FeatureOptions> featureOptions,
             IMediator mediator,
             IProcessRunner processRunner,
+            IDescriptionService descriptionService,
             MessageContext messageContext)
         {
             _tgClientWrapper = tgClientWrapper;
@@ -42,6 +45,7 @@ namespace YoutubeMusicBot.Handlers
             _featureOptions = featureOptions;
             _mediator = mediator;
             _processRunner = processRunner;
+            _descriptionService = descriptionService;
             _messageContext = messageContext;
         }
 
@@ -49,20 +53,21 @@ namespace YoutubeMusicBot.Handlers
             Request request,
             CancellationToken cancellationToken = default)
         {
-            if (!request.File.Exists)
+            var file = _file = request.File;
+            if (!file.Exists)
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(request),
-                    request.File.Name,
+                    file.Name,
                     "File doesn't exists!");
             }
 
-            var file = _file = request.File;
+            _descriptionFile = _descriptionService.GetFileOrNull(file);
 
             if (request.TrySplit)
             {
                 var split = await _mediator.Send(
-                    new TrySplitHandler.Request(request.File),
+                    new TrySplitHandler.Request(file),
                     cancellationToken);
 
                 if (split)
@@ -76,7 +81,7 @@ namespace YoutubeMusicBot.Handlers
                     var equalPartsCount =
                         file.Length / _botOptions.CurrentValue.MaxFileBytesCount + 1;
                     int? silenceDetectedPartsCount = null;
-                    var fileDirectory = request.File.DirectoryName
+                    var fileDirectory = file.DirectoryName
                         ?? throw new InvalidOperationException(
                             "File directory doesn't exists.");
                     await foreach (var line in _processRunner.RunAsync(
@@ -85,7 +90,7 @@ namespace YoutubeMusicBot.Handlers
                             WorkingDirectory: fileDirectory,
                             "-s",
                             "-P",
-                            request.File.Name),
+                            file.Name),
                         cancellationToken))
                     {
                         var match = _silenceDetectionRegex.Match(line);
@@ -131,7 +136,11 @@ namespace YoutubeMusicBot.Handlers
 
         public void Dispose()
         {
-            _file?.Delete();
+            if (_file?.Exists ?? false)
+                _file.Delete();
+
+            if (_descriptionFile?.Exists ?? false)
+                _descriptionFile.Delete();
         }
 
         public record Request(IFileInfo File, bool TrySplit = true) : IRequest;

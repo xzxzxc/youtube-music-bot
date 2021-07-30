@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using YoutubeMusicBot.Interfaces;
 
 namespace YoutubeMusicBot.Models
@@ -19,6 +21,9 @@ namespace YoutubeMusicBot.Models
         public string DirectoryName => _file.DirectoryName ?? string.Empty;
 
         public long Length => _file.Length;
+
+        public Task<string> GetTextAsync(CancellationToken cancellationToken = default) =>
+            File.ReadAllTextAsync(_file.FullName, cancellationToken);
 
         public void Delete() =>
             _file.Delete();

@@ -46,8 +46,7 @@ namespace YoutubeMusicBot.UnitTests
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldSendFileIfNotSplit(
-            MessageContext messageContext)
+        public async Task ShouldSendFileIfNotSplit(MessageContext messageContext)
         {
             var file = Mock.Of<IFileInfo>(f => f.Exists);
             var tgClientMock = new Mock<ITgClientWrapper>();
@@ -70,6 +69,45 @@ namespace YoutubeMusicBot.UnitTests
             await handler.Handle(new NewTrackHandler.Request(file));
 
             tgClientMock.Verify(c => c.SendAudioAsync(file, It.IsAny<CancellationToken>()));
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldDeleteTrackFileOnDispose(MessageContext messageContext)
+        {
+            var fileMock = new Mock<IFileInfo>();
+            fileMock.Setup(f => f.Exists).Returns(true);
+            using var container = AutoMockContainerFactory.Create(
+                b => b.RegisterInstance(messageContext));
+            var sut = container.Create<NewTrackHandler>();
+            await sut.Handle(new NewTrackHandler.Request(fileMock.Object));
+
+            sut.Dispose();
+
+            fileMock.Verify(f => f.Delete(), Times.Once);
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldDeleteDescriptionFileOnDispose(MessageContext messageContext)
+        {
+            var descriptionFileMock = new Mock<IFileInfo>();
+            descriptionFileMock.Setup(f => f.Exists).Returns(true);
+            var file = Mock.Of<IFileInfo>(f => f.Exists);
+            using var container = AutoMockContainerFactory.Create(
+                b =>
+                {
+                    b.RegisterInstance(messageContext);
+                    b.RegisterInstance(
+                        Mock.Of<IDescriptionService>(
+                            s => s.GetFileOrNull(file) == descriptionFileMock.Object));
+                });
+            var sut = container.Create<NewTrackHandler>();
+            await sut.Handle(new NewTrackHandler.Request(file));
+
+            sut.Dispose();
+
+            descriptionFileMock.Verify(f => f.Delete(), Times.Once);
         }
     }
 }

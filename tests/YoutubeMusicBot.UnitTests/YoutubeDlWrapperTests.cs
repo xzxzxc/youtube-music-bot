@@ -29,7 +29,7 @@ namespace YoutubeMusicBot.UnitTests
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCallYoutubeDlWithCorrectArguments(
+        public async Task ShouldRunCorrectShellCommand(
             string cacheFolder,
             string configFilePath,
             string url)

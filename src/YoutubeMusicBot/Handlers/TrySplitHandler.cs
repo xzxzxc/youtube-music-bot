@@ -10,43 +10,33 @@ using YoutubeMusicBot.Wrappers.Interfaces;
 namespace YoutubeMusicBot.Handlers
 {
     public class TrySplitHandler :
-        IRequestHandler<TrySplitHandler.Request, bool>,
-        IDisposable
+        IRequestHandler<TrySplitHandler.Request, bool>
     {
         private readonly IMp3SplitWrapper _mp3SplitWrapper;
         private readonly ITrackListParser _trackListParser;
-        private FileInfo? _descriptionFile;
+        private readonly IDescriptionService _descriptionService;
 
         public TrySplitHandler(
             IMp3SplitWrapper mp3SplitWrapper,
-            ITrackListParser trackListParser)
+            ITrackListParser trackListParser,
+            IDescriptionService descriptionService)
         {
             _mp3SplitWrapper = mp3SplitWrapper;
             _trackListParser = trackListParser;
+            _descriptionService = descriptionService;
         }
 
         public async Task<bool> Handle(
             Request request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             var file = request.File;
-            var directoryName = file.DirectoryName
-                ?? throw new ArgumentOutOfRangeException(
-                    nameof(request),
-                    request,
-                    "File has no dictionary ");
+            var descriptionFile = _descriptionService.GetFileOrNull(file);
 
-            var descriptionFileName = Path.ChangeExtension(file.Name, "description");
-            var descriptionFile = new FileInfo(Path.Join(directoryName, descriptionFileName));
-
-            if (!descriptionFile.Exists)
+            if (descriptionFile == null)
                 return false;
 
-            _descriptionFile = descriptionFile;
-
-            var description = await File.ReadAllTextAsync(
-                descriptionFile.FullName,
-                cancellationToken);
+            var description = await descriptionFile.GetTextAsync(cancellationToken);
 
             if (string.IsNullOrEmpty(description))
                 return false;
@@ -62,11 +52,6 @@ namespace YoutubeMusicBot.Handlers
                 cancellationToken);
 
             return true;
-        }
-
-        public void Dispose()
-        {
-            _descriptionFile?.Delete();
         }
 
         public record Request(IFileInfo File) : IRequest<bool>;

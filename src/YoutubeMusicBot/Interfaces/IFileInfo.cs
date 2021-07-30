@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace YoutubeMusicBot.Interfaces
 {
@@ -11,6 +13,9 @@ namespace YoutubeMusicBot.Interfaces
         string DirectoryName { get; }
 
         long Length { get; }
+
+        Task<string> GetTextAsync(
+            CancellationToken cancellationToken = default);
 
         void Delete();
 
