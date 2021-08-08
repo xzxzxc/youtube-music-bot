@@ -35,11 +35,6 @@ sudo apt install ffmpeg
 sudo apt update
 sudo apt install mp3splt
 ```
-- add nuget package source
-
-```
-dotnet nuget add source https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packaging/Telegram.Bot%40Local/nuget/v3/index.json
-```
 
 # Installation
 
@@ -48,7 +43,7 @@ dotnet nuget add source https://pkgs.dev.azure.com/tgbots/Telegram.Bot/_packagin
 git clone https://github.com/xzxzxc/youtube-music-bot.git ~/youtube-music-bot
 ```
 
-- create appsettings.Secret.json file in `~/youtube-music-bot/src/YoutubeMusicBot` folder with bot token.
+- create appsettings.Secret.json file in `~/youtube-music-bot/src/Console` folder with bot token.
  
 ```
 {
@@ -61,7 +56,7 @@ git clone https://github.com/xzxzxc/youtube-music-bot.git ~/youtube-music-bot
 # Run
 
 ```
-cd ~/youtube-music-bot/src/YoutubeMusicBot/
+cd ~/youtube-music-bot/src/Console/
 dotnet run --environment Production
 ```
 
@@ -69,14 +64,9 @@ dotnet run --environment Production
 
 - install [git_auto_updater](https://github.com/xzxzxc/git_auto_updater)
 
-```
-cd ~/youtube-music-bot/src/YoutubeMusicBot/
-dotnet run --environment Production
-```
-
 - run
 ```
-python git_auto_updater.py -p ~/youtube-music-bot/ -c "dotnet run --project ./src/YoutubeMusicBot/YoutubeMusicBot.csproj --configuration Release -- --environment Production" -g https://github.com/xzxzxc/youtube-music-bot
+python git_auto_updater.py -p ~/youtube-music-bot/ -c "dotnet watch run --project ./src/Console --configuration Release -- --environment Production" -g https://github.com/xzxzxc/youtube-music-bot
 ```
 
 > git v 2.2 or above is required

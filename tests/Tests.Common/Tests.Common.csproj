@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>YoutubeMusicBot.Tests.Common</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Autofac.Extras.Moq" Version="6.0.0" />
+        <PackageReference Include="AutoFixture" Version="4.17.0" />
+        <PackageReference Include="AutoFixture.AutoMoq" Version="4.17.0" />
+        <PackageReference Include="AutoFixture.NUnit3" Version="4.17.0" />
+        <PackageReference Include="FluentAssertions" Version="5.10.3" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+        <PackageReference Include="Moq" Version="4.16.1" />
+        <PackageReference Include="morelinq" Version="3.3.2" />
+        <PackageReference Include="NUnit" Version="3.13.2" />
+        <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+        <PackageReference Include="Serilog.Sinks.InMemory" Version="0.6.0" />
+        <PackageReference Include="TagLibSharp" Version="2.2.0" />
+    </ItemGroup>
+</Project>
