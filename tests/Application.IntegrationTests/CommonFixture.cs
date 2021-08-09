@@ -75,7 +75,7 @@ namespace Application.IntegrationTests
             _host.Dispose();
 
             if (CacheFolder.Exists)
-                CacheFolder.Delete();
+                CacheFolder.Delete(recursive: true);
         }
     }
 }
