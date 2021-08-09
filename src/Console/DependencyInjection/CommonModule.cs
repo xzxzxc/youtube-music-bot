@@ -24,6 +24,9 @@ namespace YoutubeMusicBot.Console.DependencyInjection
                 .AsImplementedInterfaces()
                 .SingleInstance();
 
+            builder.RegisterType<CacheFolder>()
+                .AsImplementedInterfaces();
+
             base.Load(builder);
         }
     }

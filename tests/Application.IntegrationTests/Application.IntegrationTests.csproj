@@ -23,4 +23,11 @@
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="..\..\youtube-dl.conf">
+        <Link>youtube-dl.conf</Link>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

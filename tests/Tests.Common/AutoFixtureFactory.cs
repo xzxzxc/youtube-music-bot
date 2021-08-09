@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using MediatR;
 using Moq;
 
 namespace YoutubeMusicBot.Tests.Common
@@ -16,6 +17,7 @@ namespace YoutubeMusicBot.Tests.Common
                 .ForEach(b => fixture.Behaviors.Remove(b));
             fixture.Behaviors.Add(new OmitOnRecursionBehavior());
             fixture.Customize(new AutoMoqCustomization());
+            fixture.Customize<Unit>(m => m.FromFactory(() => Unit.Value));
 
             return fixture;
         }

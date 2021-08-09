@@ -18,6 +18,7 @@ using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.UnitTests
 {
+    [Parallelizable]
     public class YoutubeDlWrapperTests
     {
         private readonly IFixture _fixture;
@@ -54,7 +55,7 @@ namespace YoutubeMusicBot.UnitTests
                 });
             var wrapper = container.Create<YoutubeDlWrapper>();
 
-            await wrapper.DownloadAsync(url);
+            await wrapper.DownloadAsync(url).ToListAsync();
 
             request.Should().NotBeNull(
                 $"{nameof(IProcessRunner.RunAsync)} wasn't called."
@@ -88,7 +89,7 @@ test line")]
                 messageContext);
             var wrapper = container.Create<YoutubeDlWrapper>();
 
-            await wrapper.DownloadAsync(_fixture.Create<string>());
+            await wrapper.DownloadAsync(_fixture.Create<string>()).ToListAsync();
 
             container.Mock<ITgClientWrapper>()
                 .Verify(
@@ -108,7 +109,7 @@ test line
 [info] Writing video description to: NA-Test title.description
 [completed] test.mp3
 test line")]
-        public async Task ShouldSendNewTrackRequest(
+        public async Task ShouldReturnFile(
             string fileName,
             string youtubeDlOutput,
             string url,
@@ -124,19 +125,12 @@ test line")]
                 });
             var wrapper = container.Create<YoutubeDlWrapper>();
 
-            await wrapper.DownloadAsync(_fixture.Create<string>());
+            var file = await wrapper.DownloadAsync(_fixture.Create<string>()).SingleAsync();
 
-            mediatorMock
-                .Verify(
-                    w => w.Send(
-                        It.Is<NewTrackHandler.Request>(
-                            r =>
-                                r.File.Name == fileName
-                                && r.File.DirectoryName != null
-                                && r.File.DirectoryName.EndsWith(cacheFolder)
-                                && r.TrySplit),
-                        It.IsAny<CancellationToken>()),
-                    Times.Once);
+            file.Should().NotBeNull();
+            file.Name.Should().Be(fileName);
+            file.DirectoryName.Should().NotBeNullOrEmpty();
+            file.DirectoryName.Should().EndWith(cacheFolder);
         }
 
         private IProcessRunner CreateMockedProcessRunner(string lines)

@@ -54,9 +54,6 @@ namespace YoutubeMusicBot.Console
                 .AsImplementedInterfaces()
                 .SingleInstance();
 
-            containerBuilder.RegisterType<CacheFolder>()
-                .AsImplementedInterfaces();
-
             containerBuilder.RegisterType<TrackListParser>()
                 .AsImplementedInterfaces();
 

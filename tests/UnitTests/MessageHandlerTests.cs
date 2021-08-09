@@ -1,23 +1,31 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Sequences;
 using NUnit.Framework;
+using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Console.DependencyInjection;
 using YoutubeMusicBot.Console.Handlers;
 using YoutubeMusicBot.Console.Interfaces;
 using YoutubeMusicBot.Console.Models;
 using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.UnitTests
 {
+    [Parallelizable]
     public class MessageHandlerTests
     {
         private readonly IFixture _fixture;
@@ -131,6 +139,33 @@ namespace YoutubeMusicBot.UnitTests
 
         [Test]
         [CustomAutoData]
+        public async Task ShouldSendNewTrackRequests(
+            IReadOnlyCollection<IFileInfo> fileInfos)
+        {
+            using var container = CreateAutoMockContainer();
+            container.Mock<IYoutubeDlWrapper>()
+                .Setup(d => d.DownloadAsync(_validMessage.Text, It.IsAny<CancellationToken>()))
+                .Returns(fileInfos.ToAsyncEnumerable());
+            var handler = container.Create<MessageHandler>();
+
+            await handler.Handle(new MessageHandler.Request(_validMessage));
+
+            foreach (var fileInfo in fileInfos)
+            {
+                container.Mock<IMediator>()
+                    .Verify(
+                        w => w.Send(
+                            It.Is<NewTrackHandler.Request>(
+                                r =>
+                                    r.File == fileInfo
+                                    && r.SkipSplit == false),
+                            It.IsAny<CancellationToken>()),
+                        Times.Once);
+            }
+        }
+
+        [Test]
+        [CustomAutoData]
         public async Task ShouldSetReplyMessageToContext(MessageModel replyMessage)
         {
             var messageContext = new MessageContext(_validMessage);
@@ -179,8 +214,17 @@ namespace YoutubeMusicBot.UnitTests
             AutoMockContainerFactory.Create(
                 (mockRepository, builder) =>
                 {
+                    var service = new ServiceCollection();
+                    service.AddDbContext<ApplicationDbContext>(
+                        o => o.UseInMemoryDatabase("application_test_db"));
+                    builder.Populate(service);
+                    builder.Register(s => s.Resolve<ApplicationDbContext>()).As<IDbContext>();
                     builder.RegisterModule(new CommonModule());
                     builder.RegisterModule(new MessageHandlerModule());
+
+                    // TODO: think about how to remove this shit
+                    // next line exists because of nested lifetime scope creation
+                    builder.RegisterMock(mockRepository.Create<IMediator>());
                     builder.RegisterMock(mockRepository.Create<ITgClientWrapper>());
                     builder.RegisterMock(mockRepository.Create<IYoutubeDlWrapper>());
                     beforeBuild?.Invoke(builder);

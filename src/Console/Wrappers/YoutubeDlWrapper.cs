@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,9 +47,9 @@ namespace YoutubeMusicBot.Console.Wrappers
                 RegexOptions.Compiled | RegexOptions.Multiline);
         }
 
-        public async Task DownloadAsync(
+        public async IAsyncEnumerable<IFileInfo> DownloadAsync(
             string url,
-            CancellationToken cancellationToken = default)
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             await foreach (var line in _processRunner.RunAsync(
                 new ProcessRunner.Request(
@@ -83,10 +85,7 @@ namespace YoutubeMusicBot.Console.Wrappers
                     var file = new FileInfoWrapper(
                             _cacheFolder,
                             fileName);
-                    await _mediator.Send(
-                        new NewTrackHandler.Request(file),
-                        cancellationToken);
-                    continue;
+                    yield return file;
                 }
             }
         }

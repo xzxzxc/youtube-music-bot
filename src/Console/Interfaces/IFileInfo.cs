@@ -10,6 +10,8 @@ namespace YoutubeMusicBot.Console.Interfaces
 
         string Name { get; }
 
+        string FullName { get; }
+
         string DirectoryName { get; }
 
         long Length { get; }

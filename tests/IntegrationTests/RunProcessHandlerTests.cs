@@ -8,6 +8,7 @@ using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.IntegrationTests
 {
+    [Parallelizable]
     public class ProcessRunnerTests
     {
         [Test]

@@ -8,18 +8,22 @@ using NUnit.Framework;
 using YoutubeMusicBot.Console.Handlers;
 using YoutubeMusicBot.Console.Interfaces;
 using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Console.Options;
 using YoutubeMusicBot.Console.Wrappers.Interfaces;
 using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.Tests.Common.Extensions;
 
 namespace YoutubeMusicBot.UnitTests
 {
+    [Parallelizable]
     public class NewTrackHandlerTests
     {
         [Test]
-        [CustomInlineAutoData(true)]
-        [CustomInlineAutoData(false)]
-        public async Task ShouldTrySplitFileIfRequested(
-            bool trySplit,
+        [CustomInlineAutoData(true, false)]
+        [CustomInlineAutoData(false, true)]
+        public async Task ShouldTrySplitFileIfNotSkipped(
+            bool skipSplit,
+            bool shouldSendSplitRequest,
             MessageContext messageContext)
         {
             var file = Mock.Of<IFileInfo>(f => f.Exists);
@@ -32,14 +36,14 @@ namespace YoutubeMusicBot.UnitTests
                 });
             var handler = container.Create<NewTrackHandler>();
 
-            await handler.Handle(new NewTrackHandler.Request(file, trySplit));
+            await handler.Handle(new NewTrackHandler.Request(file, skipSplit));
 
             mediatorMock.Verify(
                 m => m.Send(
                     It.Is<TrySplitHandler.Request>(
                         r => r.File == file),
                     It.IsAny<CancellationToken>()),
-                trySplit
+                shouldSendSplitRequest
                     ? Times.Once
                     : Times.Never);
         }
@@ -75,6 +79,8 @@ namespace YoutubeMusicBot.UnitTests
         [CustomAutoData]
         public async Task ShouldDeleteTrackFileOnDispose(MessageContext messageContext)
         {
+            // TODO: create folder fore each request and remove folder on message aggregate end, then remove this shit
+            // TODO: add check that message changes it's status to done on success track send
             var fileMock = new Mock<IFileInfo>();
             fileMock.Setup(f => f.Exists).Returns(true);
             using var container = AutoMockContainerFactory.Create(
@@ -91,6 +97,7 @@ namespace YoutubeMusicBot.UnitTests
         [CustomAutoData]
         public async Task ShouldDeleteDescriptionFileOnDispose(MessageContext messageContext)
         {
+            // TODO: create folder fore each request and remove folder on message aggregate end, then remove this shit
             var descriptionFileMock = new Mock<IFileInfo>();
             descriptionFileMock.Setup(f => f.Exists).Returns(true);
             var file = Mock.Of<IFileInfo>(f => f.Exists);
@@ -108,6 +115,33 @@ namespace YoutubeMusicBot.UnitTests
             sut.Dispose();
 
             descriptionFileMock.Verify(f => f.Delete(), Times.Once);
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldForceSplitIfFileIsTooLarge(
+            MessageContext messageContext,
+            int fileLength)
+        {
+            var file = Mock.Of<IFileInfo>(f => f.Exists && f.Length == fileLength);
+            var mediatorMock = new Mock<IMediator>();
+            using var container = AutoMockContainerFactory.Create(
+                b =>
+                {
+                    b.RegisterOptions(new BotOptions { MaxFileBytesCount = fileLength - 1, });
+                    b.RegisterMock(mediatorMock);
+                    b.RegisterInstance(messageContext);
+                });
+            var sut = container.Create<NewTrackHandler>();
+
+            await sut.Handle(new NewTrackHandler.Request(file, SkipSplit: false));
+
+            mediatorMock.Verify(
+                m => m.Send(
+                    It.Is<TrySplitHandler.Request>(
+                        r => r.File == file
+                         && r.ForceSplit == true),
+                    It.IsAny<CancellationToken>()));
         }
     }
 }

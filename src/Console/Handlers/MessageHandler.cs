@@ -42,6 +42,7 @@ namespace YoutubeMusicBot.Console.Handlers
 
         public class Internal : IAsyncDisposable
         {
+            private readonly IMediator _mediator;
             private readonly MessageContext _messageContext;
             private readonly ITgClientWrapper _tgClientWrapper;
             private readonly IValidator<MessageModel> _validator;
@@ -50,12 +51,14 @@ namespace YoutubeMusicBot.Console.Handlers
             private MessageModel? _messageToDeleteOnDispose = null;
 
             public Internal(
+                IMediator mediator,
                 MessageContext messageContext,
                 ITgClientWrapper tgClientWrapper,
                 IValidator<MessageModel> validator,
                 ICancellationRegistration cancellationRegistration,
                 IYoutubeDlWrapper youtubeDlWrapper)
             {
+                _mediator = mediator;
                 _messageContext = messageContext;
                 _tgClientWrapper = tgClientWrapper;
                 _validator = validator;
@@ -89,9 +92,14 @@ namespace YoutubeMusicBot.Console.Handlers
 
                 cancellationToken = cancellationProvider.Token;
 
-                await _youtubeDlWrapper.DownloadAsync(
+                await foreach (var file in _youtubeDlWrapper.DownloadAsync(
                     _messageContext.UserMessage.Text,
-                    cancellationToken);
+                    cancellationToken))
+                {
+                    await _mediator.Send(
+                        new NewTrackHandler.Request(file),
+                        cancellationToken);
+                }
             }
 
             public async ValueTask DisposeAsync()

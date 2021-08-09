@@ -18,6 +18,8 @@ namespace YoutubeMusicBot.Console.Models
 
         public string Name => _file.Name;
 
+        public string FullName => _file.FullName;
+
         public string DirectoryName => _file.DirectoryName ?? string.Empty;
 
         public long Length => _file.Length;

@@ -5,6 +5,7 @@ using YoutubeMusicBot.Console.Services;
 
 namespace YoutubeMusicBot.UnitTests
 {
+    [Parallelizable]
     public class CallbackFactoryTests
     {
         private const int TelegramMaxCallbackDataSize = 64;

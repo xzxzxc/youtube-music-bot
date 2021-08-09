@@ -9,6 +9,7 @@ using YoutubeMusicBot.Console.Handlers;
 
 namespace YoutubeMusicBot.UnitTests
 {
+    [Parallelizable]
     public class UpdateHandlerTests
     {
         [Test]

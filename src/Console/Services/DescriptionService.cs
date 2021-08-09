@@ -7,6 +7,7 @@ namespace YoutubeMusicBot.Console.Services
 {
     public class DescriptionService : IDescriptionService
     {
+        // TODO: return string when files would be deleted from aggregate
         public IFileInfo? GetFileOrNull(IFileInfo file)
         {
             var directoryName = file.DirectoryName

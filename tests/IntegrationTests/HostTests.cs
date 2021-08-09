@@ -11,6 +11,7 @@ using YoutubeMusicBot.Tests.Common.Extensions;
 
 namespace YoutubeMusicBot.IntegrationTests
 {
+    [Parallelizable]
 	public class HostTests
 	{
 		[Test]
