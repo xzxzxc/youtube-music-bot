@@ -5,6 +5,7 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using YoutubeMusicBot.Console.DependencyInjection;
 using YoutubeMusicBot.Console.Interfaces;
@@ -67,6 +68,7 @@ namespace YoutubeMusicBot.IntegrationTests
                     b.RegisterModules(new CommonModule());
                     b.RegisterInstance(AutoFixtureFactory.Create().Create<MessageContext>());
                     b.RegisterMockOf<ICacheFolder>(f => f.Value == CacheFolder.Name);
+                    b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
                 });
 
         private static async Task<IFileInfo> DownloadFile(string url, AutoMock container)

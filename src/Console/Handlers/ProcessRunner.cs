@@ -76,7 +76,7 @@ namespace YoutubeMusicBot.Console.Handlers
 
                 if (resTask == readErrorTask)
                 {
-                    var line = readOutputTask.Result;
+                    var line = readErrorTask.Result;
                     if (!string.IsNullOrEmpty(line))
                     {
                         _logger.LogError("Got {Error}", line); // TODO: do it by flag
