@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using YoutubeMusicBot.Application.Services;
+using YoutubeMusicBot.Infrastructure;
 
 namespace YoutubeMusicBot.Application.DependencyInjection
 {
@@ -18,6 +19,9 @@ namespace YoutubeMusicBot.Application.DependencyInjection
             builder.RegisterType<CancellationRegistration>()
                 .AsImplementedInterfaces()
                 .SingleInstance();
+
+            builder.RegisterType<TrackListParser>()
+                .AsImplementedInterfaces();
         }
     }
 }
