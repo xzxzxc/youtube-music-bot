@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Services;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Infrastructure;
 
 namespace YoutubeMusicBot.UnitTests
 {

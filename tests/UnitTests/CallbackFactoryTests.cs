@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using FluentAssertions;
 using NUnit.Framework;
-using YoutubeMusicBot.Console.Services;
+using YoutubeMusicBot.Application.Services;
 
 namespace YoutubeMusicBot.UnitTests
 {

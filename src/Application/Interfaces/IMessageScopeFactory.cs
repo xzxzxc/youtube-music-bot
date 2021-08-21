@@ -1,7 +1,7 @@
 ﻿using Autofac;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface IMessageScopeFactory
     {

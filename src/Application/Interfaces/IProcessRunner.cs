@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
-using YoutubeMusicBot.Console.Handlers;
 
-namespace YoutubeMusicBot.Console.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface IProcessRunner
     {

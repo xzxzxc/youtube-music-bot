@@ -7,10 +7,11 @@ using AutoFixture;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using YoutubeMusicBot.Console.DependencyInjection;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Wrappers;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Infrastructure.DependencyInjection;
+using YoutubeMusicBot.Infrastructure.Wrappers;
 using YoutubeMusicBot.Tests.Common;
 using YoutubeMusicBot.Tests.Common.Extensions;
 

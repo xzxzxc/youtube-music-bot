@@ -3,6 +3,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.Interfaces;
 
 namespace YoutubeMusicBot.Infrastructure.Database
 {

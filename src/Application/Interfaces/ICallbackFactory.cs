@@ -1,6 +1,6 @@
-using YoutubeMusicBot.Console.Enums;
+using YoutubeMusicBot.Domain.Enums;
 
-namespace YoutubeMusicBot.Console.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface ICallbackFactory
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace YoutubeMusicBot.Console.Models
+namespace YoutubeMusicBot.Application.Models
 {
     public record TrackModel(TimeSpan Start, string Title);
 }

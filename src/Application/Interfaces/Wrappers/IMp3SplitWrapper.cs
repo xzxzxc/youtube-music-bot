@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Wrappers.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces.Wrappers
 {
     public interface IMp3SplitWrapper
     {

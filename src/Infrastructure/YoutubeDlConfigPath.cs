@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using YoutubeMusicBot.Console.Interfaces;
+using YoutubeMusicBot.Application.Interfaces;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Infrastructure
 {
     public class YoutubeDlConfigPath : IYoutubeDlConfigPath
     {

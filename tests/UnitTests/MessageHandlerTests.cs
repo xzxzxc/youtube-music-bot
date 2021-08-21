@@ -15,12 +15,11 @@ using Moq;
 using Moq.Sequences;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Console.DependencyInjection;
-using YoutubeMusicBot.Console.Handlers;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Services;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application.DependencyInjection;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Tests.Common;
 

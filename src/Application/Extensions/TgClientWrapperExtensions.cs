@@ -1,9 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Extensions
+namespace YoutubeMusicBot.Application.Extensions
 {
     public static class TgClientWrapperExtensions
     {

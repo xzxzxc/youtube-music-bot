@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using YoutubeMusicBot.Console.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
 
-namespace YoutubeMusicBot.Console.Models
+namespace YoutubeMusicBot.Infrastructure.Wrappers
 {
     public class FileInfoWrapper : IFileInfo
     {

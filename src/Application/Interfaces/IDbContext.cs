@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using YoutubeMusicBot.Domain;
 
-namespace YoutubeMusicBot.Application
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface IDbContext
     {

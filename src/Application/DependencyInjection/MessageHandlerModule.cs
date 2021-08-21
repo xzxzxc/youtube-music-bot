@@ -2,9 +2,8 @@
 using Autofac.Extensions.DependencyInjection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using YoutubeMusicBot.Console.Handlers;
 
-namespace YoutubeMusicBot.Console.DependencyInjection
+namespace YoutubeMusicBot.Application.DependencyInjection
 {
     public class MessageHandlerModule : Module
     {

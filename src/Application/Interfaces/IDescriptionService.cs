@@ -1,4 +1,6 @@
-﻿namespace YoutubeMusicBot.Console.Interfaces
+﻿using YoutubeMusicBot.Application.Interfaces.Wrappers;
+
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface IDescriptionService
     {

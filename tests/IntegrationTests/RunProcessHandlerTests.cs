@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoFixture.NUnit3;
 using FluentAssertions;
 using NUnit.Framework;
-using YoutubeMusicBot.Console.Handlers;
+using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.IntegrationTests

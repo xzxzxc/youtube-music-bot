@@ -2,11 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
-using YoutubeMusicBot.Console.Enums;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Domain.Enums;
 
-namespace YoutubeMusicBot.Console.Handlers
+namespace YoutubeMusicBot.Application
 {
     public class CallbackQueryHandler : IRequestHandler<CallbackQueryHandler.Request, Unit>
     {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using YoutubeMusicBot.Console.Interfaces;
+using YoutubeMusicBot.Application.Interfaces;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Application.Services
 {
     internal class CancellationRegistration : ICancellationRegistration
     {

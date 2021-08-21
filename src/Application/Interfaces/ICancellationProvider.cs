@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace YoutubeMusicBot.Console.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface ICancellationProvider : IDisposable
     {

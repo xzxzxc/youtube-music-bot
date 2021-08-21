@@ -1,9 +1,10 @@
 ﻿using System;
 using System.IO;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Infrastructure.Wrappers;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Infrastructure
 {
     public class DescriptionService : IDescriptionService
     {

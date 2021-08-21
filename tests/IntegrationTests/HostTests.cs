@@ -5,8 +5,8 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
+using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Console.Options;
 using YoutubeMusicBot.Tests.Common.Extensions;
 
 namespace YoutubeMusicBot.IntegrationTests

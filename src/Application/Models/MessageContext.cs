@@ -1,4 +1,4 @@
-namespace YoutubeMusicBot.Console.Models
+namespace YoutubeMusicBot.Application.Models
 {
     public record MessageContext(
         MessageModel UserMessage)

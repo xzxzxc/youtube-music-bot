@@ -1,7 +1,7 @@
 ﻿using Autofac;
-using YoutubeMusicBot.Console.Wrappers;
+using YoutubeMusicBot.Infrastructure.Wrappers;
 
-namespace YoutubeMusicBot.Console.DependencyInjection
+namespace YoutubeMusicBot.Infrastructure.DependencyInjection
 {
     public class WrappersModule : Module
     {

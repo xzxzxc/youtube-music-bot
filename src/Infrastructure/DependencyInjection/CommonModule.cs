@@ -1,8 +1,7 @@
 ﻿using Autofac;
-using YoutubeMusicBot.Console.Handlers;
-using YoutubeMusicBot.Console.Services;
+using YoutubeMusicBot.Application;
 
-namespace YoutubeMusicBot.Console.DependencyInjection
+namespace YoutubeMusicBot.Infrastructure.DependencyInjection
 {
     public class CommonModule : Module
     {

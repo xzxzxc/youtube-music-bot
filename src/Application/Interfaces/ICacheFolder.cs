@@ -1,4 +1,4 @@
-namespace YoutubeMusicBot.Console.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces
 {
 	public interface ICacheFolder
 	{

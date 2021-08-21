@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using YoutubeMusicBot.Console.Extensions;
-using YoutubeMusicBot.Console.Handlers;
+using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Infrastructure.Extensions;
 
 namespace YoutubeMusicBot.Console
 {

@@ -1,9 +1,9 @@
 using System;
 using System.Linq;
 using FluentValidation;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Application.Validation
 {
     public class UserMessageValidator : AbstractValidator<MessageModel>
     {

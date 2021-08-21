@@ -1,8 +1,8 @@
 using System;
-using YoutubeMusicBot.Console.Enums;
-using YoutubeMusicBot.Console.Interfaces;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Domain.Enums;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Application.Services
 {
     public class CallbackFactory : ICallbackFactory
     {

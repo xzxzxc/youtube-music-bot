@@ -9,8 +9,8 @@ using NUnit.Framework;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Console.Handlers;
 using YoutubeMusicBot.Tests.Common;
 
 namespace Console.UnitTests

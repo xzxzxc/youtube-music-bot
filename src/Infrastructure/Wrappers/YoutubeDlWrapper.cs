@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using YoutubeMusicBot.Console.Handlers;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Wrappers
+namespace YoutubeMusicBot.Infrastructure.Wrappers
 {
     public class YoutubeDlWrapper : IYoutubeDlWrapper
     {

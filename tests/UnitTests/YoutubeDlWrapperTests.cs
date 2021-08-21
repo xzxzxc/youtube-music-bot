@@ -9,11 +9,11 @@ using FluentAssertions;
 using MediatR;
 using Moq;
 using NUnit.Framework;
-using YoutubeMusicBot.Console.Handlers;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Wrappers;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Infrastructure.Wrappers;
 using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.UnitTests

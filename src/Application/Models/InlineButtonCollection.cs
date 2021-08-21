@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace YoutubeMusicBot.Console.Models
+namespace YoutubeMusicBot.Application.Models
 {
     public record InlineButtonCollection(IEnumerable<IEnumerable<InlineButton>> InlineButtons)
         : IEnumerable<InlineButton>

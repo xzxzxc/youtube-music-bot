@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Domain;
 
 namespace YoutubeMusicBot.Infrastructure.Database

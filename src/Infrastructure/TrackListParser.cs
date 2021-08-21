@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Infrastructure
 {
 	public class TrackListParser : ITrackListParser
 	{

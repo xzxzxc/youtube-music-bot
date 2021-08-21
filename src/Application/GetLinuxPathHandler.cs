@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using YoutubeMusicBot.Console.Interfaces;
+using YoutubeMusicBot.Application.Interfaces;
 
-namespace YoutubeMusicBot.Console.Handlers
+namespace YoutubeMusicBot.Application
 {
     public class LinuxPathResolver : ILinuxPathResolver
     {

@@ -2,7 +2,7 @@
 using Autofac;
 using Autofac.Core.Registration;
 
-namespace YoutubeMusicBot.Console.Extensions
+namespace YoutubeMusicBot.Infrastructure.Extensions
 {
     public static class ContainerBuilderExtensions
     {

@@ -4,14 +4,13 @@ using System.Threading.Tasks;
 using Autofac;
 using FluentValidation;
 using MediatR;
-using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Console.Extensions;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application.Extensions;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Domain;
 
-namespace YoutubeMusicBot.Console.Handlers
+namespace YoutubeMusicBot.Application
 {
     public class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
     {

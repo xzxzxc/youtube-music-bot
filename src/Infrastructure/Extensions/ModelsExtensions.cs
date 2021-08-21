@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Console.Extensions
+namespace YoutubeMusicBot.Infrastructure.Extensions
 {
     public static class ModelsExtensions
     {

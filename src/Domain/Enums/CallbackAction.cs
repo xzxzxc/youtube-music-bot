@@ -1,4 +1,4 @@
-namespace YoutubeMusicBot.Console.Enums
+namespace YoutubeMusicBot.Domain.Enums
 {
     public enum CallbackAction
     {

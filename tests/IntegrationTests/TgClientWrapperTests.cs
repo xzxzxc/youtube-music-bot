@@ -9,12 +9,12 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
+using YoutubeMusicBot.Application.Extensions;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Options;
+using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Console.Extensions;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Options;
-using YoutubeMusicBot.Console.Services;
-using YoutubeMusicBot.Console.Wrappers;
+using YoutubeMusicBot.Infrastructure.Wrappers;
 using YoutubeMusicBot.Tests.Common;
 using YoutubeMusicBot.Tests.Common.Extensions;
 

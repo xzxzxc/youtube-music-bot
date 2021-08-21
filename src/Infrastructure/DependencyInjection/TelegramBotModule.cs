@@ -2,9 +2,9 @@
 using Autofac;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
-using YoutubeMusicBot.Console.Options;
+using YoutubeMusicBot.Application.Options;
 
-namespace YoutubeMusicBot.Console.DependencyInjection
+namespace YoutubeMusicBot.Infrastructure.DependencyInjection
 {
     public class TelegramBotModule : Module
     {

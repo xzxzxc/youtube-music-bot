@@ -1,11 +1,7 @@
-﻿using System.Linq;
-using Autofac;
-using MediatR;
-using MediatR.Extensions.Autofac.DependencyInjection;
-using YoutubeMusicBot.Console.Mediatr;
-using YoutubeMusicBot.Console.Services;
+﻿using Autofac;
+using YoutubeMusicBot.Application.Services;
 
-namespace YoutubeMusicBot.Console.Handlers.DependencyInjection
+namespace YoutubeMusicBot.Application.DependencyInjection
 {
     public class ServicesModule : Module
     {

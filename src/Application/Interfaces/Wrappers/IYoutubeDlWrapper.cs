@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using YoutubeMusicBot.Console.Interfaces;
 
-namespace YoutubeMusicBot.Console.Wrappers.Interfaces
+namespace YoutubeMusicBot.Application.Interfaces.Wrappers
 {
     public interface IYoutubeDlWrapper
     {

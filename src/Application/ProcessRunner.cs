@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using YoutubeMusicBot.Console.Interfaces;
+using YoutubeMusicBot.Application.Interfaces;
 
-namespace YoutubeMusicBot.Console.Handlers
+namespace YoutubeMusicBot.Application
 {
     public class ProcessRunner : IProcessRunner
     {

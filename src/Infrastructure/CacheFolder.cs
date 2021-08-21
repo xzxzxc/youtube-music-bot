@@ -1,10 +1,10 @@
 using System.IO;
 using Microsoft.Extensions.Options;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Options;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Options;
 
-namespace YoutubeMusicBot.Console.Services
+namespace YoutubeMusicBot.Infrastructure
 {
 	internal class CacheFolder : ICacheFolder
 	{

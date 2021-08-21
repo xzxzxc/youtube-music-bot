@@ -1,15 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Options;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Options;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Options;
 
-namespace YoutubeMusicBot.Console.Handlers
+namespace YoutubeMusicBot.Application
 {
     public class NewTrackHandler :
         IRequestHandler<NewTrackHandler.Request, bool>,

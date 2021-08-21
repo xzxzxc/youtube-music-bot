@@ -4,12 +4,11 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
-using YoutubeMusicBot.Console.Extensions;
-using YoutubeMusicBot.Console.Interfaces;
-using YoutubeMusicBot.Console.Models;
-using YoutubeMusicBot.Console.Wrappers.Interfaces;
+using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Infrastructure.Extensions;
 
-namespace YoutubeMusicBot.Console.Wrappers
+namespace YoutubeMusicBot.Infrastructure.Wrappers
 {
     public class TgClientWrapper : ITgClientWrapper
     {

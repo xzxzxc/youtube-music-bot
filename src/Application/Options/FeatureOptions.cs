@@ -1,4 +1,4 @@
-namespace YoutubeMusicBot.Console.Options
+namespace YoutubeMusicBot.Application.Options
 {
     public class FeatureOptions
     {
