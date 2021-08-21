@@ -1,21 +1,15 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using MediatR;
-using MediatR.Extensions.Autofac.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Serilog;
-using Telegram.Bot;
-using YoutubeMusicBot.Console.Mediatr;
+using YoutubeMusicBot.Console.Extensions;
 using YoutubeMusicBot.Console.Options;
-using YoutubeMusicBot.Console.Services;
 using YoutubeMusicBot.Infrastructure.Database;
 
 namespace YoutubeMusicBot.Console
@@ -44,59 +38,22 @@ namespace YoutubeMusicBot.Console
 
         public static void ConfigureContainer(
             HostBuilderContext _,
-            ContainerBuilder containerBuilder)
+            ContainerBuilder builder)
         {
-            containerBuilder.RegisterAssemblyModules(
-                Assembly.GetExecutingAssembly(),
-                typeof(DbContextModule).Assembly);
+            builder.RegisterApplicationModules();
+            builder.RegisterInfrastructureModules();
+            builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
 
-            containerBuilder.RegisterType<CancellationRegistration>()
-                .AsImplementedInterfaces()
-                .SingleInstance();
-
-            containerBuilder.RegisterType<TrackListParser>()
-                .AsImplementedInterfaces();
-
-            containerBuilder.RegisterType<CallbackFactory>()
-                .AsImplementedInterfaces();
-
-            containerBuilder.Register(
-                    ctx =>
-                    {
-                        var botOptions = ctx
-                            .Resolve<IOptionsMonitor<BotOptions>>()
-                            .CurrentValue;
-                        return new TelegramBotClient(
-                            botOptions.Token
-                            ?? throw new InvalidOperationException(
-                                "Bot token must be not empty!"));
-                    })
-                .As<ITelegramBotClient>()
-                .SingleInstance();
-
-            containerBuilder.RegisterMediatR(Assembly.GetExecutingAssembly());
-
-            containerBuilder.RegisterDecorator<IMediator>(
-                (context, parameters, instance) =>
-                {
-                    if (parameters
-                        .OfType<MediatorDisposableDecorator.DoNotDecorate>()
-                        .Any())
-                    {
-                        return instance;
-                    }
-
-                    return new MediatorDisposableDecorator(
-                        context.Resolve<ILifetimeScope>());
-                });
+            builder.RegisterType<BotUpdatesProcessor>();
 
             var serviceCollection = new ServiceCollection();
+
             serviceCollection.AddHostedService<BotHostedService>();
-            serviceCollection.AddOptions<DownloadOptions>()
-                .BindConfiguration("Download");
+
+            serviceCollection.AddOptions<DownloadOptions>().BindConfiguration("Download");
             serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
 
-            containerBuilder.Populate(serviceCollection);
+            builder.Populate(serviceCollection);
         }
 
         private static void ConfigureConfiguration(

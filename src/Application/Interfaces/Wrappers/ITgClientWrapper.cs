@@ -17,9 +17,7 @@ namespace YoutubeMusicBot.Console.Wrappers.Interfaces
             CancellationToken cancellationToken = default);
 
         Task<MessageModel> UpdateMessageAsync(
-            int messageId,
             string text,
-            InlineButton? inlineButton = null,
             CancellationToken cancellationToken = default);
 
         Task DeleteMessageAsync(

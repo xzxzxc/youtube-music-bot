@@ -9,6 +9,6 @@ namespace YoutubeMusicBot.Console.Interfaces
     {
         IAsyncEnumerable<ProcessRunner.Line> RunAsync(
             ProcessRunner.Request request,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default);
+            CancellationToken cancellationToken = default);
     }
 }

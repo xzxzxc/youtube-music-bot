@@ -14,15 +14,19 @@ namespace YoutubeMusicBot.Console.Wrappers
     public class TgClientWrapper : ITgClientWrapper
     {
         private readonly ITelegramBotClient _telegramBotClient;
-        private readonly long _chatId;
+        private readonly MessageContext _messageContext;
 
         public TgClientWrapper(
-            MessageContext context,
+            MessageContext messageContext,
             ITelegramBotClient telegramBotClient)
         {
             _telegramBotClient = telegramBotClient;
-            _chatId = context.UserMessage.Chat.Id;
+            _messageContext = messageContext;
         }
+
+        private long ChatId => _messageContext.UserMessage.Chat.Id;
+
+        private MessageModel? MessageToUpdate => _messageContext.MessageToUpdate;
 
         public async Task<MessageModel> SendMessageAsync(
             string text,
@@ -30,7 +34,7 @@ namespace YoutubeMusicBot.Console.Wrappers
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.SendTextMessageAsync(
-                    _chatId,
+                    ChatId,
                     text,
                     replyMarkup: inlineButtons?.ToMarkup(),
                     cancellationToken: cancellationToken));
@@ -45,22 +49,21 @@ namespace YoutubeMusicBot.Console.Wrappers
                 audio.Name);
             return await Ivoke(
                 () => _telegramBotClient.SendAudioAsync(
-                    _chatId,
+                    ChatId,
                     inputMedia,
                     cancellationToken: cancellationToken));
         }
 
         public async Task<MessageModel> UpdateMessageAsync(
-            int messageId,
             string text,
-            InlineButton? inlineButton = null,
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.EditMessageTextAsync(
-                    _chatId,
-                    messageId,
+                    ChatId,
+                    MessageToUpdate?.Id
+                    ?? throw new InvalidOperationException("There is no message to update"),
                     text,
-                    replyMarkup: inlineButton?.ToMarkup(),
+                    replyMarkup: MessageToUpdate.InlineButton?.ToMarkup(),
                     cancellationToken: cancellationToken));
 
         public async Task DeleteMessageAsync(
@@ -68,7 +71,7 @@ namespace YoutubeMusicBot.Console.Wrappers
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.DeleteMessageAsync(
-                    _chatId,
+                    ChatId,
                     messageId,
                     cancellationToken));
 

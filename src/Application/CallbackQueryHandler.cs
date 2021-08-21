@@ -23,7 +23,7 @@ namespace YoutubeMusicBot.Console.Handlers
 
         public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
         {
-            var callbackData = request.CallbackQuery.CallbackData
+            var callbackData = request.Value.CallbackData
                 ?? throw new ArgumentOutOfRangeException(
                     nameof(request),
                     request,
@@ -45,6 +45,6 @@ namespace YoutubeMusicBot.Console.Handlers
             return Unit.Value;
         }
 
-        public record Request(CallbackQueryContext CallbackQuery) : IRequest;
+        public record Request(CallbackQueryContext Value) : IRequest;
     }
 }

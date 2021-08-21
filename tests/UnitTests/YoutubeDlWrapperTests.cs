@@ -94,9 +94,7 @@ test line")]
             container.Mock<ITgClientWrapper>()
                 .Verify(
                     w => w.UpdateMessageAsync(
-                        messageContext.MessageToUpdate!.Id,
                         messageText,
-                        messageContext.MessageToUpdate.InlineButton,
                         It.IsAny<CancellationToken>()),
                     Times.Once);
         }

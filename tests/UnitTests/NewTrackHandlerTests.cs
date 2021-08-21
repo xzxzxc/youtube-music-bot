@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
+using FluentAssertions;
 using MediatR;
 using Moq;
 using NUnit.Framework;
@@ -70,9 +71,10 @@ namespace YoutubeMusicBot.UnitTests
                 });
             var handler = container.Create<NewTrackHandler>();
 
-            await handler.Handle(new NewTrackHandler.Request(file));
+           var res = await handler.Handle(new NewTrackHandler.Request(file));
 
             tgClientMock.Verify(c => c.SendAudioAsync(file, It.IsAny<CancellationToken>()));
+            res.Should().Be(true);
         }
 
         [Test]
@@ -140,8 +142,28 @@ namespace YoutubeMusicBot.UnitTests
                 m => m.Send(
                     It.Is<TrySplitHandler.Request>(
                         r => r.File == file
-                         && r.ForceSplit == true),
+                         && r.FileIsTooLarge == true),
                     It.IsAny<CancellationToken>()));
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldReturnFalseIfSkipSplitAndFileIsTooLarge(
+            MessageContext messageContext,
+            int fileLength)
+        {
+            var file = Mock.Of<IFileInfo>(f => f.Exists && f.Length == fileLength);
+            using var container = AutoMockContainerFactory.Create(
+                b =>
+                {
+                    b.RegisterOptions(new BotOptions { MaxFileBytesCount = fileLength - 1, });
+                    b.RegisterInstance(messageContext);
+                });
+            var sut = container.Create<NewTrackHandler>();
+
+            var res = await sut.Handle(new NewTrackHandler.Request(file, SkipSplit: true));
+
+            res.Should().BeFalse();
         }
     }
 }

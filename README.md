@@ -43,7 +43,7 @@ sudo apt install mp3splt
 git clone https://github.com/xzxzxc/youtube-music-bot.git ~/youtube-music-bot
 ```
 
-- create appsettings.Secret.json file in `~/youtube-music-bot/src/Console` folder with bot token.
+- create appsettings.Secrets.json file in `~/youtube-music-bot/src/Console` folder with bot token.
  
 ```
 {

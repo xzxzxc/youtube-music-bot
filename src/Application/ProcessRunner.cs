@@ -62,12 +62,19 @@ namespace YoutubeMusicBot.Console.Handlers
 
             Task<string?>? readOutputTask = null;
             Task<string?>? readErrorTask = null;
-            while (!cancellationToken.IsCancellationRequested
-                && ((readOutputTask == null && !process.StandardOutput.EndOfStream)
-                    || (readErrorTask == null && !process.StandardError.EndOfStream)))
+            while (true)
             {
-                readErrorTask ??= process.StandardError.ReadLineAsync();
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+
+                if ((readOutputTask?.Result == null && process.StandardOutput.EndOfStream)
+                    && (readErrorTask?.Result == null && process.StandardError.EndOfStream))
+                {
+                    break;
+                }
+
                 readOutputTask ??= process.StandardOutput.ReadLineAsync();
+                readErrorTask ??= process.StandardError.ReadLineAsync();
 
                 var resTask = await Task.WhenAny(
                     readErrorTask,

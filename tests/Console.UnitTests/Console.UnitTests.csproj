@@ -8,7 +8,6 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-        <PackageReference Include="Moq.Sequences" Version="2.2.1" />
         <PackageReference Include="NUnit" Version="3.13.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
         <PackageReference Include="coverlet.collector" Version="3.1.0">
@@ -19,15 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Console\Console.csproj" />
-      <ProjectReference Include="..\..\src\Infrastructure\Infrastructure.csproj" />
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="..\..\youtube-dl.conf">
-        <Link>youtube-dl.conf</Link>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
 </Project>

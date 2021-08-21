@@ -8,9 +8,6 @@ namespace YoutubeMusicBot.Console.DependencyInjection
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<MessageScopeFactory>()
-                .AsImplementedInterfaces();
-
             builder.RegisterType<ProcessRunner>()
                 .AsImplementedInterfaces();
 
@@ -25,6 +22,9 @@ namespace YoutubeMusicBot.Console.DependencyInjection
                 .SingleInstance();
 
             builder.RegisterType<CacheFolder>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<TrackListParser>()
                 .AsImplementedInterfaces();
 
             base.Load(builder);

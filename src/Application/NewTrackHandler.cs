@@ -12,7 +12,7 @@ using YoutubeMusicBot.Console.Wrappers.Interfaces;
 namespace YoutubeMusicBot.Console.Handlers
 {
     public class NewTrackHandler :
-        IRequestHandler<NewTrackHandler.Request, Unit>,
+        IRequestHandler<NewTrackHandler.Request, bool>,
         IDisposable
     {
         private readonly ITgClientWrapper _tgClientWrapper;
@@ -35,7 +35,7 @@ namespace YoutubeMusicBot.Console.Handlers
             _descriptionService = descriptionService;
         }
 
-        public async Task<Unit> Handle(
+        public async Task<bool> Handle(
             Request request,
             CancellationToken cancellationToken = default)
         {
@@ -50,21 +50,25 @@ namespace YoutubeMusicBot.Console.Handlers
 
             _descriptionFile = _descriptionService.GetFileOrNull(file);
 
+            var fileIsTooLarge = file.Length > _botOptions.CurrentValue.MaxFileBytesCount;
             if (!request.SkipSplit)
             {
                 var split = await _mediator.Send(
                     new TrySplitHandler.Request(
                         file,
-                        ForceSplit: file.Length > _botOptions.CurrentValue.MaxFileBytesCount),
+                        fileIsTooLarge),
                     cancellationToken);
 
-                if (split)
-                    return Unit.Value;
+                if (split) // if force split - this would be true in any way
+                    return true;
             }
+
+            if (fileIsTooLarge)
+                return false;
 
             await _tgClientWrapper.SendAudioAsync(file, cancellationToken);
 
-            return Unit.Value;
+            return true;
         }
 
         public void Dispose()
@@ -76,6 +80,7 @@ namespace YoutubeMusicBot.Console.Handlers
                 _descriptionFile.Delete();
         }
 
-        public record Request(IFileInfo File, bool SkipSplit = false) : IRequest;
+        public record Request(IFileInfo File, bool SkipSplit = false)
+            : IRequest<bool>;
     }
 }

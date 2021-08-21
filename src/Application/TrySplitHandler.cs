@@ -19,6 +19,7 @@ namespace YoutubeMusicBot.Console.Handlers
         private readonly ITrackListParser _trackListParser;
         private readonly IDescriptionService _descriptionService;
         private readonly IMediator _mediator;
+        private readonly ITgClientWrapper _tgClientWrapper;
         private readonly IOptionsMonitor<BotOptions> _botOptions;
 
         public TrySplitHandler(
@@ -26,12 +27,14 @@ namespace YoutubeMusicBot.Console.Handlers
             ITrackListParser trackListParser,
             IDescriptionService descriptionService,
             IMediator mediator,
+            ITgClientWrapper tgClientWrapper,
             IOptionsMonitor<BotOptions> botOptions)
         {
             _mp3SplitWrapper = mp3SplitWrapper;
             _trackListParser = trackListParser;
             _descriptionService = descriptionService;
             _mediator = mediator;
+            _tgClientWrapper = tgClientWrapper;
             _botOptions = botOptions;
         }
 
@@ -57,13 +60,22 @@ namespace YoutubeMusicBot.Console.Handlers
                 return true;
             }
 
-            if (!request.ForceSplit)
+            if (!request.FileIsTooLarge)
                 return false;
+
+            await _tgClientWrapper.UpdateMessageAsync(
+                "File is to large to be sent in telegram. "
+                + "Trying to get tracks using silence detection.",
+                cancellationToken);
 
             files = _mp3SplitWrapper.SplitBySilenceAsync(file, cancellationToken);
 
             if (await SendNewTrackRequests(files, cancellationToken))
                 return true;
+
+            await _tgClientWrapper.UpdateMessageAsync(
+                "Silence detection failed. Track would be sent as multiple files.",
+                cancellationToken);
 
             var equalPartsCount = (int)Math.Round(
                 file.Length / (decimal)_botOptions.CurrentValue.MaxFileBytesCount,
@@ -106,19 +118,23 @@ namespace YoutubeMusicBot.Console.Handlers
             IAsyncEnumerable<IFileInfo> files,
             CancellationToken cancellationToken)
         {
-            var res = false;
+            var result = false;
             await foreach (var file in files.WithCancellation(cancellationToken))
             {
-                await _mediator
+                var res = await _mediator
                     .Send(
                         new NewTrackHandler.Request(file, SkipSplit: true),
                         cancellationToken);
-                res = true;
+
+                if (!res)
+                    return false;
+
+                result = true;
             }
 
-            return res;
+            return result;
         }
 
-        public record Request(IFileInfo File, bool ForceSplit = false) : IRequest<bool>;
+        public record Request(IFileInfo File, bool FileIsTooLarge = false) : IRequest<bool>;
     }
 }

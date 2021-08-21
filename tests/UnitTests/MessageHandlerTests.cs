@@ -19,6 +19,7 @@ using YoutubeMusicBot.Console.DependencyInjection;
 using YoutubeMusicBot.Console.Handlers;
 using YoutubeMusicBot.Console.Interfaces;
 using YoutubeMusicBot.Console.Models;
+using YoutubeMusicBot.Console.Services;
 using YoutubeMusicBot.Console.Wrappers.Interfaces;
 using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Tests.Common;
@@ -219,10 +220,11 @@ namespace YoutubeMusicBot.UnitTests
                         o => o.UseInMemoryDatabase("application_test_db"));
                     builder.Populate(service);
                     builder.Register(s => s.Resolve<ApplicationDbContext>()).As<IDbContext>();
-                    builder.RegisterModule(new CommonModule());
                     builder.RegisterModule(new MessageHandlerModule());
 
                     // TODO: think about how to remove this shit
+                    builder.RegisterType<MessageScopeFactory>()
+                        .AsImplementedInterfaces();
                     // next line exists because of nested lifetime scope creation
                     builder.RegisterMock(mockRepository.Create<IMediator>());
                     builder.RegisterMock(mockRepository.Create<ITgClientWrapper>());

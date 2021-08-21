@@ -29,7 +29,7 @@ namespace YoutubeMusicBot.IntegrationTests
         }
 
         [Test]
-        [CustomInlineAutoData("https://youtu.be/lc3wg72Jzc8", 6)]
+        [CustomInlineAutoData("https://youtu.be/lfgWv3ypEIY", 13)]
         public async Task ShouldSplitBySilence(
             string url,
             int tracksCount)
