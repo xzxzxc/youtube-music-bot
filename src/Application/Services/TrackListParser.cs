@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Models;
 
-namespace YoutubeMusicBot.Infrastructure
+namespace YoutubeMusicBot.Application.Services
 {
 	public class TrackListParser : ITrackListParser
 	{

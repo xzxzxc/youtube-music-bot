@@ -3,7 +3,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Services;
 
-namespace YoutubeMusicBot.UnitTests
+namespace YoutubeMusicBot.UnitTests.Services
 {
     [Parallelizable]
     public class CallbackFactoryTests

@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using YoutubeMusicBot.Application.Services;
-using YoutubeMusicBot.Infrastructure;
 
 namespace YoutubeMusicBot.Application.DependencyInjection
 {

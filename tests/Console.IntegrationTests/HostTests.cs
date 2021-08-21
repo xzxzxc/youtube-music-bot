@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using IntegrationTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
@@ -9,7 +10,7 @@ using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Console;
 using YoutubeMusicBot.Tests.Common.Extensions;
 
-namespace YoutubeMusicBot.IntegrationTests
+namespace Console.IntegrationTest
 {
     [Parallelizable]
 	public class HostTests

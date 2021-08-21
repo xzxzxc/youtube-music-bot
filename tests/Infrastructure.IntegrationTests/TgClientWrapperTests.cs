@@ -6,6 +6,7 @@ using Autofac.Extras.Moq;
 using AutoFixture;
 using AutoFixture.NUnit3;
 using FluentAssertions;
+using IntegrationTests.Common;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Options;
@@ -15,7 +16,7 @@ using YoutubeMusicBot.Infrastructure.Wrappers;
 using YoutubeMusicBot.Tests.Common;
 using YoutubeMusicBot.Tests.Common.Extensions;
 
-namespace YoutubeMusicBot.IntegrationTests
+namespace Infrastructure.IntegrationTests
 {
     [Parallelizable]
     public class TgClientWrapperTests

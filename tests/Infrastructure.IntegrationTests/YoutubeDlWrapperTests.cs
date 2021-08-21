@@ -16,7 +16,7 @@ using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Infrastructure.Wrappers;
 using YoutubeMusicBot.Tests.Common;
 
-namespace YoutubeMusicBot.UnitTests
+namespace Infrastructure.IntegrationTests
 {
     [Parallelizable]
     public class YoutubeDlWrapperTests

@@ -6,7 +6,7 @@ using NUnit.Framework;
 using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Tests.Common;
 
-namespace YoutubeMusicBot.IntegrationTests
+namespace Infrastructure.IntegrationTests
 {
     [Parallelizable]
     public class ProcessRunnerTests

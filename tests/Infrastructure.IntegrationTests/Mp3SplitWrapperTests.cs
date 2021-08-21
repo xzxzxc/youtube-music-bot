@@ -15,7 +15,7 @@ using YoutubeMusicBot.Infrastructure.Wrappers;
 using YoutubeMusicBot.Tests.Common;
 using YoutubeMusicBot.Tests.Common.Extensions;
 
-namespace YoutubeMusicBot.IntegrationTests
+namespace Infrastructure.IntegrationTests
 {
     [Parallelizable]
     public class Mp3SplitWrapperTests

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Models;
-using YoutubeMusicBot.Infrastructure;
+using YoutubeMusicBot.Application.Services;
 
-namespace YoutubeMusicBot.UnitTests
+namespace YoutubeMusicBot.UnitTests.Services
 {
 	[Parallelizable]
 	public class TrackListParserTests
