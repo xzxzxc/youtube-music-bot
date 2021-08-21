@@ -23,7 +23,7 @@ namespace Infrastructure.IntegrationTests
     {
         [Test]
         [Timeout(120_000)] // 2 minutes
-        [InlineAutoData(Secrets.GroupChatId, 21)]
+        [InlineAutoData(Secrets.GroupChatIdForBot, 21)]
         public async Task ShouldHandleFloodControl(
             long chatId,
             int messagesCount)
@@ -44,7 +44,7 @@ namespace Infrastructure.IntegrationTests
 
         [Test]
         [Timeout(10_000)] // 10 seconds
-        [InlineAutoData(Secrets.GroupChatId)]
+        [InlineAutoData(Secrets.GroupChatIdForBot)]
         public async Task ShouldSendMessageWithCancelCallbackButton(
             long chatId,
             string messageText)

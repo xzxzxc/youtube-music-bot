@@ -11,7 +11,7 @@ using YoutubeMusicBot.Infrastructure.Extensions;
 
 namespace YoutubeMusicBot.Console
 {
-    public class BotUpdatesProcessor 
+    public class BotUpdatesProcessor
     {
         private readonly ITelegramBotClient _client;
         private readonly IMediator _mediator;
@@ -39,7 +39,7 @@ namespace YoutubeMusicBot.Console
             UpdateType.Message, UpdateType.CallbackQuery
         };
 
-        public async Task ProcessUpdatesAsync(CancellationToken cancellationToken)
+        public async Task ProcessUpdatesAsync(CancellationToken cancellationToken = default)
         {
             var timeout = Convert.ToInt32(Timeout.TotalSeconds);
             var updates = Array.Empty<Update>();
@@ -60,8 +60,10 @@ namespace YoutubeMusicBot.Console
                     MessageOffset = update.Id + 1;
                 }
             }
-            catch (Exception ex) when (
-                ex is not OperationCanceledException and not TaskCanceledException)
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception during get or process update");
             }
