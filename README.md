@@ -114,7 +114,7 @@ public static class Secrets
   public const long BotUserAccessHash = 0;
 }
 ```
- - Authenticate your test user in yor test telegram app. For this run:
+ - Authenticate your test user in your test telegram app. For this run:
 ```
 dotnet run --project tests\Console.IntegrationTests
 ```
