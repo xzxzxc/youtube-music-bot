@@ -53,6 +53,7 @@ namespace YoutubeMusicBot.Console
 
             serviceCollection.AddOptions<DownloadOptions>().BindConfiguration("Download");
             serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
+            serviceCollection.AddOptions<SplitOptions>().BindConfiguration("Split");
 
             builder.Populate(serviceCollection);
         }

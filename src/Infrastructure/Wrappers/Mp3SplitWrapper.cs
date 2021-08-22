@@ -4,21 +4,27 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Options;
 
 namespace YoutubeMusicBot.Infrastructure.Wrappers
 {
     public class Mp3SplitWrapper : IMp3SplitWrapper
     {
         private readonly IProcessRunner _processRunner;
+        private readonly IOptionsMonitor<SplitOptions> _splitOptions;
         private readonly Regex _splitRegex;
 
-        public Mp3SplitWrapper(IProcessRunner processRunner)
+        public Mp3SplitWrapper(
+            IProcessRunner processRunner,
+            IOptionsMonitor<SplitOptions> splitOptions)
         {
             _processRunner = processRunner;
+            _splitOptions = splitOptions;
             _splitRegex = new Regex(
                 @"^   File ""(?<file_name>.+)"" created$",
                 RegexOptions.Compiled | RegexOptions.Multiline);
@@ -63,6 +69,8 @@ namespace YoutubeMusicBot.Infrastructure.Wrappers
                     WorkingDirectory: file.DirectoryName,
                     "-s",
                     "-q",
+                    "-p",
+                    $"min={_splitOptions.CurrentValue.MinSilenceLength.TotalSeconds}",
                     file.Name),
                 cancellationToken);
 

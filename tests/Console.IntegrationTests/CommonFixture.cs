@@ -1,28 +1,21 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
-using Autofac.Extras.Moq;
-using AutoFixture;
 using FluentAssertions;
 using IntegrationTests.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Moq;
 using Moq.Sequences;
 using NUnit.Framework;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
-using Telegram.Bot;
 using TLSharp.Core;
-using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Console;
 using YoutubeMusicBot.Infrastructure.Database;
-using YoutubeMusicBot.Tests.Common;
 using YoutubeMusicBot.Tests.Common.Extensions;
 
 namespace Console.IntegrationTest
@@ -35,8 +28,6 @@ namespace Console.IntegrationTest
         public static DirectoryInfo CacheFolder => new("cache_folder");
 
         public static TelegramClient TgClient { get; private set; } = null!;
-
-        public static IHostApplicationLifetime HostLifetime { get; private set; } = null!;
 
         public static ILifetimeScope RootScope { get; private set; } = null!;
 
@@ -56,13 +47,11 @@ namespace Console.IntegrationTest
                 .ConfigureContainer<ContainerBuilder>(
                     (_, b) =>
                     {
-                        // b.RegisterMock(TgClientWrapperMock);
-                        // b.RegisterMock(TgClientMock);
                         b.RegisterOptions(new DownloadOptions
                         {
                             CacheFilesFolderPath = CacheFolder.FullName,
                         });
-                        b.RegisterOptions(new BotOptions()
+                        b.RegisterOptions(new BotOptions
                         {
                             Token = Secrets.BotToken,
                         });
@@ -100,6 +89,10 @@ namespace Console.IntegrationTest
         public static async Task OneTimeTearDown()
         {
             HostInstance.Dispose();
+            TgClient.Dispose();
+
+            if (CacheFolder.Exists)
+                CacheFolder.Delete(recursive: true);
         }
     }
 }
