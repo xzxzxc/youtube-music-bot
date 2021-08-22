@@ -18,22 +18,33 @@ sudo apt-get update; \
   sudo apt-get update && \
   sudo apt-get install -y dotnet-sdk-5.0
 ```
+
+- install python (needed for youtube-dl)
+```
+sudo apt update
+sudo apt install python
+python --version
+```
+
 - install [youtube-dl](https://github.com/ytdl-org/youtube-dl#installation).
 code for linux:
 ```
 sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
 sudo chmod a+rx /usr/local/bin/youtube-dl
+youtube-dl --version
 ```
 - install ffmpeg
 code for linux:
 ```
 sudo apt update
 sudo apt install ffmpeg
+ffmpeg -version
 ```
 - install mp3splt
 ```
 sudo apt update
 sudo apt install mp3splt
+mp3splt -version
 ```
 
 # Installation
@@ -43,7 +54,7 @@ sudo apt install mp3splt
 git clone https://github.com/xzxzxc/youtube-music-bot.git ~/youtube-music-bot
 ```
 
-- create appsettings.Secrets.json file in `~/youtube-music-bot/src/Console` folder with bot token.
+- create file named appsettings.Secrets.json in `~/youtube-music-bot/src/Console` folder with bot token.
  
 ```
 {
@@ -77,3 +88,34 @@ sudo add-apt-repository -y ppa:git-core/ppa
 sudo apt-get update
 sudo apt-get install git -y
 ```
+## Run tests
+
+Unit tests could be run without any additional steps.
+
+To run integration/acceptance tests:
+ - Create a [developer account](https://my.telegram.org/) in Telegram.
+ - Create file named `Secrets.cs` in `tests/IntegrationTests.Common` with next structure. _Do not fill `BotUserId` and `BotUserAccessHash` for the first time._
+```c#
+public static class Secrets
+{
+  // Token of your test bot (could be asked from @BotFather in telegram) 
+  public const string BotToken = "";
+  // Id of chat where test bot is added as admin (could be obtained in debug) 
+  public const long GroupChatIdForBot = 0;
+  // Telegram app api_id (could be found here https://my.telegram.org/apps)
+  public const int AppApiId = 0;
+  // Telegram app api_hash (could be found here https://my.telegram.org/apps)
+  public const string AppApiHash = "";
+  // Your test user phone number (user must be regestered in telegram)
+  public const string UserPhoneNumber = "";
+  // Your test bot user_id (could be obtaied if run Console.IntegrationTests as a program)
+  public const int BotUserId = 0;
+  // Your test bot user_access_hash (could be obtaied if run Console.IntegrationTests as a program)
+  public const long BotUserAccessHash = 0;
+}
+```
+ - Authenticate your test user in yor test telegram app. For this run:
+```
+dotnet run --project tests\Console.IntegrationTests
+```
+ - To obtain `BotUserId` and `BotUserAccessHash` you could use previous command. It asks you to show last user chats. Answer `y` and find your test user data by his name (you could use `| grep` for this). If you have no chat with bot - create it manually.

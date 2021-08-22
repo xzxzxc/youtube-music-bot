@@ -23,7 +23,7 @@ if (!client.IsUserAuthorized())
     await client.MakeAuthAsync(Secrets.UserPhoneNumber, hash, code);
 }
 
-System.Console.WriteLine("Show last user chats slice? (y/n)");
+System.Console.WriteLine("Show last user chats? (y/n)");
 var key = System.Console.ReadKey();
 
 if (key.KeyChar == 'y')
