@@ -94,7 +94,7 @@ Unit tests could be run without any additional steps.
 
 To run integration/acceptance tests:
  - Create a [developer account](https://my.telegram.org/) in Telegram.
- - Create file named `Secrets.cs` in `tests/IntegrationTests.Common` with next structure. _Do not fill `BotUserId` and `BotUserAccessHash` for the first time._
+ - Create file named `Secrets.cs` in `tests/IntegrationTests.Common` with the next structure. _Do not fill `BotUserId` and `BotUserAccessHash`  the first time._
 ```c#
 public static class Secrets
 {
@@ -118,4 +118,4 @@ public static class Secrets
 ```
 dotnet run --project tests\Console.IntegrationTests
 ```
- - To obtain `BotUserId` and `BotUserAccessHash` you could use previous command. It asks you to show last user chats. Answer `y` and find your test user data by his name (you could use `| grep` for this). If you have no chat with bot - create it manually.
+ - To obtain `BotUserId` and `BotUserAccessHash` you could use previous command. It asks you to show last user chats. Answer `y` and find your test user data by this user's name (you could use `| grep` for this). If you have no chat with bot - create it manually.

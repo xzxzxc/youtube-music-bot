@@ -1,30 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Console.IntegrationTest.Extensions;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using IntegrationTests.Common;
-using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
-using Serilog.Sinks.InMemory;
 using TeleSharp.TL;
 using TeleSharp.TL.Messages;
 using static Console.IntegrationTest.CommonFixture;
 
 namespace Console.IntegrationTest
 {
-    public class HostMessagesTests
+    public class HostMessagesTests : BaseTests
     {
-        private readonly Task _hostRunTask;
         private readonly TLInputPeerUser _botUser;
 
         public HostMessagesTests()
         {
-            _hostRunTask = HostInstance.RunAsync();
             _botUser = new TLInputPeerUser
             {
                 UserId = Secrets.BotUserId, AccessHash = Secrets.BotUserAccessHash
@@ -35,13 +30,6 @@ namespace Console.IntegrationTest
         public async Task OneTimeSetUp()
         {
             await DeleteBotChatHistory();
-        }
-
-        [SetUp]
-        public void SetUp()
-        {
-            if (!CacheFolder.Exists)
-                CacheFolder.Create();
         }
 
         [Test]
@@ -60,6 +48,7 @@ namespace Console.IntegrationTest
                 while (true)
                 {
                     await Task.Delay(1.Seconds());
+                    CheckNoErrorsLogged();
 
                     var messages = await TgClient.GetHistoryMessages(
                         _botUser,
@@ -72,7 +61,6 @@ namespace Console.IntegrationTest
                 }
             }
 
-            CheckNoErrorsLogged();
             CheckCacheDirectoryIsEmpty();
         }
 
@@ -117,6 +105,7 @@ namespace Console.IntegrationTest
             while (true)
             {
                 await Task.Delay(1.Seconds());
+                CheckNoErrorsLogged();
 
                 messages = await TgClient.GetHistoryMessages(_botUser, minId: lastMessageId);
 
@@ -155,7 +144,6 @@ namespace Console.IntegrationTest
             messages = await TgClient.GetHistoryMessages(_botUser, minId: lastMessageId);
             messages.Should().NotContain(m => m.FromId == _botUser.UserId);
 
-            CheckNoErrorsLogged();
             // TODO: fix this and rewrite tear down to delete full directory recursive
             // CheckCacheDirectoryIsEmpty();
         }
@@ -214,18 +202,9 @@ namespace Console.IntegrationTest
         }
 
         [TearDown]
-        public async Task TearDown()
+        public override async ValueTask TearDown()
         {
-            var filesFromPrevRun = CacheFolder.Exists
-                ? CacheFolder.EnumerateFiles(
-                    "*",
-                    SearchOption.AllDirectories)
-                : Enumerable.Empty<FileInfo>();
-            foreach (var fileInfo in filesFromPrevRun)
-                fileInfo.Delete();
-
-            InMemorySink.Instance.Dispose(); // this would clear all events
-
+            await base.TearDown();
             await DeleteBotChatHistory();
         }
 

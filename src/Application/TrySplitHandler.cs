@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Mediator;
+using YoutubeMusicBot.Application.Mediator.Implementation;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Options;
 
@@ -38,7 +39,7 @@ namespace YoutubeMusicBot.Application
             _botOptions = botOptions;
         }
 
-        public async Task<bool> Handle(
+        public async ValueTask<bool> Handle(
             Request request,
             CancellationToken cancellationToken = default)
         {
@@ -122,7 +123,7 @@ namespace YoutubeMusicBot.Application
             await foreach (var file in files.WithCancellation(cancellationToken))
             {
                 var res = await _mediator
-                    .Send(
+                    .Send<NewTrackHandler.Request, bool>(
                         new NewTrackHandler.Request(file, SkipSplit: true),
                         cancellationToken);
 

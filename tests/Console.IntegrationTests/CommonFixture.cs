@@ -4,18 +4,15 @@ using System.Threading.Tasks;
 using Autofac;
 using FluentAssertions;
 using IntegrationTests.Common;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Moq.Sequences;
 using NUnit.Framework;
-using Serilog;
-using Serilog.Events;
-using Serilog.Sinks.InMemory;
 using TLSharp.Core;
 using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Infrastructure.Database;
+using YoutubeMusicBot.Tests.Common;
 using YoutubeMusicBot.Tests.Common.Extensions;
 
 namespace Console.IntegrationTest
@@ -23,7 +20,8 @@ namespace Console.IntegrationTest
     [SetUpFixture]
     public class CommonFixture
     {
-        public static IHost HostInstance = null!;
+        private static IHost _hostInstance = null!;
+        public static Task HostRunTask = null!;
 
         public static DirectoryInfo CacheFolder => new("cache_folder");
 
@@ -43,7 +41,7 @@ namespace Console.IntegrationTest
                 throw new InvalidOperationException(
                     "Please login to telegram running this project as a program from folder with dll.");
 
-            HostInstance = Program.CreateHostBuilder()
+            _hostInstance = Program.CreateHostBuilder()
                 .ConfigureContainer<ContainerBuilder>(
                     (_, b) =>
                     {
@@ -55,27 +53,14 @@ namespace Console.IntegrationTest
                         {
                             Token = Secrets.BotToken,
                         });
+                        b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
                     })
-                .UseSerilog(new LoggerConfiguration().WriteTo.InMemory().CreateLogger())
                 .Build();
 
-            RootScope = HostInstance.Services.GetRequiredService<ILifetimeScope>();
-            await EnsureDatabaseAsync();
+            await Program.Initialize(_hostInstance);
+            RootScope = _hostInstance.Services.GetRequiredService<ILifetimeScope>();
 
-            if (!CacheFolder.Exists)
-                CacheFolder.Create();
-        }
-
-        private static async Task EnsureDatabaseAsync()
-        {
-            var identityDbContext = RootScope.Resolve<ApplicationDbContext>();
-            await identityDbContext.Database.MigrateAsync();
-        }
-
-        public static void CheckNoErrorsLogged()
-        {
-            InMemorySink.Instance.LogEvents.Should()
-                .NotContain(e => e.Level >= LogEventLevel.Error);
+            HostRunTask = _hostInstance.RunAsync();
         }
 
         public static void CheckCacheDirectoryIsEmpty()
@@ -85,10 +70,15 @@ namespace Console.IntegrationTest
                 .BeEmpty();
         }
 
+        public static void CheckNoErrorsLogged()
+        {
+            ThrowExceptionLogger.Errors.Should().BeEmpty();
+        }
+
         [OneTimeTearDown]
         public static async Task OneTimeTearDown()
         {
-            HostInstance.Dispose();
+            _hostInstance.Dispose();
             TgClient.Dispose();
 
             if (CacheFolder.Exists)

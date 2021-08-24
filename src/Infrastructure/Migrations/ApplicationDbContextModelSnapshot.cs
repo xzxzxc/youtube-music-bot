@@ -13,20 +13,59 @@ namespace YoutubeMusicBot.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.8");
+                .HasAnnotation("ProductVersion", "5.0.9");
 
-            modelBuilder.Entity("YoutubeMusicBot.Domain.Message", b =>
+            modelBuilder.Entity("YoutubeMusicBot.Domain.Base.EventBase<YoutubeMusicBot.Domain.Message>", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<long>("ExternalId")
+                    b.Property<long>("AggregateId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("event_type")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Messages");
+                    b.HasIndex("AggregateId");
+
+                    b.HasIndex("event_type");
+
+                    b.ToTable("EventBase<Message>");
+
+                    b.HasDiscriminator<int>("event_type");
+                });
+
+            modelBuilder.Entity("YoutubeMusicBot.Domain.MessageCreatedEvent", b =>
+                {
+                    b.HasBaseType("YoutubeMusicBot.Domain.Base.EventBase<YoutubeMusicBot.Domain.Message>");
+
+                    b.Property<long>("ChatId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ExternalId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+                });
+
+            modelBuilder.Entity("YoutubeMusicBot.Domain.MessageInvalidEvent", b =>
+                {
+                    b.HasBaseType("YoutubeMusicBot.Domain.Base.EventBase<YoutubeMusicBot.Domain.Message>");
+
+                    b.Property<string>("ValidationMessage")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+                });
+
+            modelBuilder.Entity("YoutubeMusicBot.Domain.MessageValidEvent", b =>
+                {
+                    b.HasBaseType("YoutubeMusicBot.Domain.Base.EventBase<YoutubeMusicBot.Domain.Message>");
+
+                    b.HasDiscriminator().HasValue(-1814728279);
                 });
 #pragma warning restore 612, 618
         }

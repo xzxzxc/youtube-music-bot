@@ -6,7 +6,6 @@ using Autofac;
 using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
-using MediatR;
 using Moq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
@@ -113,13 +112,11 @@ test line")]
             string url,
             string cacheFolder)
         {
-            var mediatorMock = new Mock<IMediator>();
             using var container = CreateAutoMockContainer(
                 b =>
                 {
                     b.RegisterInstance(Mock.Of<ICacheFolder>(f => f.Value == cacheFolder));
                     b.RegisterInstance(CreateMockedProcessRunner(youtubeDlOutput));
-                    b.RegisterMock(mediatorMock);
                 });
             var wrapper = container.Create<YoutubeDlWrapper>();
 

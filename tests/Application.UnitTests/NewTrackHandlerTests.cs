@@ -3,12 +3,12 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
 using FluentAssertions;
-using MediatR;
 using Moq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Tests.Common;
@@ -40,7 +40,7 @@ namespace YoutubeMusicBot.UnitTests
             await handler.Handle(new NewTrackHandler.Request(file, skipSplit));
 
             mediatorMock.Verify(
-                m => m.Send(
+                m => m.Send<TrySplitHandler.Request, bool>(
                     It.Is<TrySplitHandler.Request>(
                         r => r.File == file),
                     It.IsAny<CancellationToken>()),
@@ -57,7 +57,7 @@ namespace YoutubeMusicBot.UnitTests
             var tgClientMock = new Mock<ITgClientWrapper>();
             var mediatorMock = new Mock<IMediator>();
             mediatorMock.Setup(
-                    m => m.Send(
+                    m => m.Send<TrySplitHandler.Request, bool>(
                         It.Is<TrySplitHandler.Request>(
                             r => r.File == file),
                         It.IsAny<CancellationToken>()))
@@ -139,7 +139,7 @@ namespace YoutubeMusicBot.UnitTests
             await sut.Handle(new NewTrackHandler.Request(file, SkipSplit: false));
 
             mediatorMock.Verify(
-                m => m.Send(
+                m => m.Send<TrySplitHandler.Request, bool>(
                     It.Is<TrySplitHandler.Request>(
                         r => r.File == file
                          && r.FileIsTooLarge == true),

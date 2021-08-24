@@ -1,14 +1,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Domain.Enums;
 
 namespace YoutubeMusicBot.Application
 {
-    public class CallbackQueryHandler : IRequestHandler<CallbackQueryHandler.Request, Unit>
+    public class CallbackQueryHandler : IRequestHandler<CallbackQueryHandler.Request>
     {
         private readonly ICallbackFactory _callbackFactory;
         private readonly ICancellationRegistration _cancellationRegistration;
@@ -21,7 +21,7 @@ namespace YoutubeMusicBot.Application
             _cancellationRegistration = cancellationRegistration;
         }
 
-        public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
+        public async ValueTask Handle(Request request, CancellationToken cancellationToken)
         {
             var callbackData = request.Value.CallbackData
                 ?? throw new ArgumentOutOfRangeException(
@@ -41,8 +41,6 @@ namespace YoutubeMusicBot.Application
                         action,
                         "Unknown action value");
             }
-
-            return Unit.Value;
         }
 
         public record Request(CallbackQueryContext Value) : IRequest;

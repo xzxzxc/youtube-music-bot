@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
 namespace YoutubeMusicBot.Tests.Common
 {
+    public static class ThrowExceptionLogger
+    {
+        public static ConcurrentBag<Exception> Errors { get; } = new();
+    }
+
     public class ThrowExceptionLogger<T> : ILogger<T>,
         IDisposable
     {
@@ -11,11 +17,14 @@ namespace YoutubeMusicBot.Tests.Common
             EventId eventId,
             TState state,
             Exception? exception,
-            Func<TState, Exception, string> formatter)
+            Func<TState, Exception?, string> formatter)
         {
             if (logLevel >= LogLevel.Error)
-                throw exception
-                    ?? new Exception(formatter(state, new Exception()));
+            {
+                exception ??= new Exception(formatter(state, exception));
+                ThrowExceptionLogger.Errors.Add(exception);
+                throw exception;
+            }
         }
 
         public bool IsEnabled(LogLevel logLevel) =>

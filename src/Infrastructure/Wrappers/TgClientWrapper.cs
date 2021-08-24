@@ -10,7 +10,8 @@ using YoutubeMusicBot.Infrastructure.Extensions;
 
 namespace YoutubeMusicBot.Infrastructure.Wrappers
 {
-    public class TgClientWrapper : ITgClientWrapper
+    public class TgClientWrapper : ITgClientWrapper,
+        ITgClient
     {
         private readonly ITelegramBotClient _telegramBotClient;
         private readonly MessageContext _messageContext;
@@ -27,18 +28,57 @@ namespace YoutubeMusicBot.Infrastructure.Wrappers
 
         private MessageModel? MessageToUpdate => _messageContext.MessageToUpdate;
 
+        public Task<MessageModel> SendMessageAsync(
+            string text,
+            InlineButtonCollection? inlineButtons = null,
+            CancellationToken cancellationToken = default) =>
+            SendMessageAsync(
+                ChatId,
+                text,
+                inlineButtons,
+                cancellationToken);
+
+        public Task<MessageModel> SendAudioAsync(
+            IFileInfo audio,
+            CancellationToken cancellationToken = default) =>
+            SendAudioAsync(
+                ChatId,
+                audio,
+                cancellationToken);
+
+        public Task<MessageModel> UpdateMessageAsync(
+            string text,
+            CancellationToken cancellationToken = default) =>
+            UpdateMessageAsync(
+                ChatId,
+                MessageToUpdate?.Id
+                ?? throw new InvalidOperationException("There is no message to update"),
+                text,
+                MessageToUpdate.InlineButton?.ToCollection(),
+                cancellationToken);
+
+        public Task DeleteMessageAsync(
+            int messageId,
+            CancellationToken cancellationToken = default) =>
+            DeleteMessageAsync(
+                ChatId,
+                messageId,
+                cancellationToken);
+
         public async Task<MessageModel> SendMessageAsync(
+            long chatId,
             string text,
             InlineButtonCollection? inlineButtons = null,
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.SendTextMessageAsync(
-                    ChatId,
+                    chatId,
                     text,
                     replyMarkup: inlineButtons?.ToMarkup(),
                     cancellationToken: cancellationToken));
 
         public async Task<MessageModel> SendAudioAsync(
+            long chatId,
             IFileInfo audio,
             CancellationToken cancellationToken = default)
         {
@@ -48,29 +88,32 @@ namespace YoutubeMusicBot.Infrastructure.Wrappers
                 audio.Name);
             return await Ivoke(
                 () => _telegramBotClient.SendAudioAsync(
-                    ChatId,
+                    chatId,
                     inputMedia,
                     cancellationToken: cancellationToken));
         }
 
         public async Task<MessageModel> UpdateMessageAsync(
+            long chatId,
+            int messageId,
             string text,
+            InlineButtonCollection? inlineButtons = null,
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.EditMessageTextAsync(
-                    ChatId,
-                    MessageToUpdate?.Id
-                    ?? throw new InvalidOperationException("There is no message to update"),
+                    chatId,
+                    messageId,
                     text,
-                    replyMarkup: MessageToUpdate.InlineButton?.ToMarkup(),
+                    replyMarkup: inlineButtons?.ToMarkup(),
                     cancellationToken: cancellationToken));
 
         public async Task DeleteMessageAsync(
+            long chatId,
             int messageId,
             CancellationToken cancellationToken = default) =>
             await Ivoke(
                 () => _telegramBotClient.DeleteMessageAsync(
-                    ChatId,
+                    chatId,
                     messageId,
                     cancellationToken));
 

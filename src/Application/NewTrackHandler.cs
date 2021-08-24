@@ -1,10 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Mediator;
+using YoutubeMusicBot.Application.Mediator.Implementation;
 using YoutubeMusicBot.Application.Options;
 
 namespace YoutubeMusicBot.Application
@@ -33,7 +34,7 @@ namespace YoutubeMusicBot.Application
             _descriptionService = descriptionService;
         }
 
-        public async Task<bool> Handle(
+        public async ValueTask<bool> Handle(
             Request request,
             CancellationToken cancellationToken = default)
         {
@@ -51,7 +52,7 @@ namespace YoutubeMusicBot.Application
             var fileIsTooLarge = file.Length > _botOptions.CurrentValue.MaxFileBytesCount;
             if (!request.SkipSplit)
             {
-                var split = await _mediator.Send(
+                var split = await _mediator.Send<TrySplitHandler.Request, bool>(
                     new TrySplitHandler.Request(
                         file,
                         fileIsTooLarge),

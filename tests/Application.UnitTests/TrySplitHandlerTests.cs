@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
 using FluentAssertions;
-using MediatR;
 using Moq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Tests.Common;
@@ -54,7 +54,9 @@ namespace YoutubeMusicBot.UnitTests
             res.Should().BeTrue();
             container.Mock<IMediator>()
                 .Verify(
-                    m => m.Send(Capture.In(newTrackRequests), It.IsAny<CancellationToken>()));
+                    m => m.Send<NewTrackHandler.Request, bool>(
+                        Capture.In(newTrackRequests),
+                        It.IsAny<CancellationToken>()));
             newTrackRequests.Select(t => t.File).Should().BeEquivalentTo(files);
             newTrackRequests.Should().NotContain(r => r.SkipSplit == false);
         }
@@ -80,7 +82,9 @@ namespace YoutubeMusicBot.UnitTests
             res.Should().BeTrue();
             container.Mock<IMediator>()
                 .Verify(
-                    m => m.Send(Capture.In(newTrackRequests), It.IsAny<CancellationToken>()));
+                    m => m.Send<NewTrackHandler.Request, bool>(
+                        Capture.In(newTrackRequests),
+                        It.IsAny<CancellationToken>()));
             newTrackRequests.Select(t => t.File).Should().BeEquivalentTo(files);
             newTrackRequests.Should().NotContain(r => r.SkipSplit == false);
             container.Mock<ITgClientWrapper>()
@@ -129,7 +133,9 @@ namespace YoutubeMusicBot.UnitTests
             res.Should().BeTrue();
             container.Mock<IMediator>()
                 .Verify(
-                    m => m.Send(Capture.In(newTrackRequests), It.IsAny<CancellationToken>()));
+                    m => m.Send<NewTrackHandler.Request, bool>(
+                        Capture.In(newTrackRequests),
+                        It.IsAny<CancellationToken>()));
             newTrackRequests.Select(t => t.File).Should().BeEquivalentTo(files);
             newTrackRequests.Should().NotContain(r => r.SkipSplit == false);
             VerifySilenceDetectionFailedMessageSent(container);
@@ -168,7 +174,7 @@ namespace YoutubeMusicBot.UnitTests
                 .Returns(equalPartsFiles.ToAsyncEnumerable());
             container.Mock<IMediator>()
                 .Setup(
-                    m => m.Send(
+                    m => m.Send<NewTrackHandler.Request, bool>(
                         It.Is<NewTrackHandler.Request>(r => silenceFiles[1] == r.File),
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
@@ -180,7 +186,9 @@ namespace YoutubeMusicBot.UnitTests
 
             container.Mock<IMediator>()
                 .Verify(
-                    m => m.Send(Capture.In(newTrackRequests), It.IsAny<CancellationToken>()));
+                    m => m.Send<NewTrackHandler.Request, bool>(
+                        Capture.In(newTrackRequests),
+                        It.IsAny<CancellationToken>()));
             newTrackRequests.Select(t => t.File).Should().Contain(equalPartsFiles);
             newTrackRequests.Should().NotContain(r => r.SkipSplit == false);
             VerifySilenceDetectionFailedMessageSent(container);
@@ -203,7 +211,7 @@ namespace YoutubeMusicBot.UnitTests
                     var mediatorMock = new Mock<IMediator>();
                     mediatorMock
                         .Setup(
-                            m => m.Send(
+                            m => m.Send<NewTrackHandler.Request, bool>(
                                 It.IsAny<NewTrackHandler.Request>(),
                                 It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);

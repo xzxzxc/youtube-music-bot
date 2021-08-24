@@ -8,7 +8,6 @@ using Autofac.Extensions.DependencyInjection;
 using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -16,10 +15,13 @@ using Moq.Sequences;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.DependencyInjection;
+using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Services;
+using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Tests.Common;
 
@@ -40,6 +42,23 @@ namespace YoutubeMusicBot.UnitTests
                 .Build<MessageModel>()
                 .With(m => m.Text, "https://youtu.be/wuROIJ0tRPU")
                 .Create();
+        }
+
+        [Test]
+        public async Task ShouldCreateMessageAggregate()
+        {
+            using var container = CreateAutoMockContainer();
+            var sut = container.Create<MessageHandler>();
+
+            await sut.Handle(new MessageHandler.Request(_validMessage));
+
+            Message? message = null;
+            var match = new CaptureMatch<Message>(m => message = m);
+            container.Mock<IRepository<Message>>().Verify(
+                r => r.SaveAsync(Capture.With(match), It.IsAny<CancellationToken>()),
+                Times.Once);
+            message.Should().NotBeNull();
+            message!.ExternalId.Should().Be(_validMessage.Id);
         }
 
         [Test]
@@ -154,7 +173,7 @@ namespace YoutubeMusicBot.UnitTests
             {
                 container.Mock<IMediator>()
                     .Verify(
-                        w => w.Send(
+                        w => w.Send<NewTrackHandler.Request, bool>(
                             It.Is<NewTrackHandler.Request>(
                                 r =>
                                     r.File == fileInfo

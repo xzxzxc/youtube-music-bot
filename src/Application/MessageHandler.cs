@@ -3,40 +3,40 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using FluentValidation;
-using MediatR;
+using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Domain;
 
 namespace YoutubeMusicBot.Application
 {
-    public class MessageHandler : IRequestHandler<MessageHandler.Request, Unit>
+    public class MessageHandler : IRequestHandler<MessageHandler.Request>
     {
         private readonly IMessageScopeFactory _scopeFactory;
-        private readonly IDbContext _dbContext;
+        private readonly IRepository<Message> _messageRepository;
 
-        public MessageHandler(IMessageScopeFactory scopeFactory, IDbContext dbContext)
+        public MessageHandler(
+            IMessageScopeFactory scopeFactory,
+            IRepository<Message> messageRepository)
         {
             _scopeFactory = scopeFactory;
-            _dbContext = dbContext;
+            _messageRepository = messageRepository;
         }
 
-        public async Task<Unit> Handle(
+        public async ValueTask Handle(
             Request request,
             CancellationToken cancellationToken = default)
         {
-            var message = new Message { ExternalId = request.Value.Id, };
-            _dbContext.Messages.Add(message);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            var message = new Message(request.Value.Id, request.Value.Text, request.Value.Chat.Id);
+            await _messageRepository.SaveAsync(message, cancellationToken);
 
             await using var messageScope = _scopeFactory.Create(
                 request.Value);
             var internalHandler = messageScope.Resolve<Internal>();
             await internalHandler.HandleAsync(cancellationToken);
-
-            return Unit.Value;
         }
 
         public class Internal : IAsyncDisposable
@@ -95,7 +95,7 @@ namespace YoutubeMusicBot.Application
                     _messageContext.UserMessage.Text,
                     cancellationToken))
                 {
-                    await _mediator.Send(
+                    await _mediator.Send<NewTrackHandler.Request, bool>(
                         new NewTrackHandler.Request(file),
                         cancellationToken);
                 }

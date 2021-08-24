@@ -3,13 +3,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using FluentAssertions;
-using MediatR;
 using Moq;
 using NUnit.Framework;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Console;
 using YoutubeMusicBot.Tests.Common;
 
@@ -48,9 +48,7 @@ namespace Console.UnitTests
                 .Verify(
                     m => m.Send(Capture.With(match), cancellationToken),
                     Times.Once);
-            sentRequest.Should()
-                .NotBeNull(
-                    $"Probably wrong call of {nameof(IMediator)}.{nameof(IMediator.Send)} method.");
+            sentRequest.Should().NotBeNull();
             sentRequest!.Value.Should().NotBeNull();
             sentRequest.Value.Id.Should().Be(messageUpdate.Message.MessageId);
             sentRequest.Value.Text.Should().Be(messageUpdate.Message.Text);
@@ -86,13 +84,9 @@ namespace Console.UnitTests
             var match = new CaptureMatch<CallbackQueryHandler.Request>(c => sentRequest = c);
             container.Mock<IMediator>()
                 .Verify(
-                    s => s.Send(
-                        Capture.With(match),
-                        It.IsAny<CancellationToken>()),
+                    s => s.Send(Capture.With(match), It.IsAny<CancellationToken>()),
                     Times.Once);
-            sentRequest.Should()
-                .NotBeNull(
-                    $"Probably wrong call of {nameof(IMediator)}.{nameof(IMediator.Send)} method.");
+            sentRequest.Should().NotBeNull();
             sentRequest!.Value.Should().NotBeNull();
             sentRequest!.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
             sentRequest!.Value.Chat.Should().NotBeNull();

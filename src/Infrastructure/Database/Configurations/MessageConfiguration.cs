@@ -1,13 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Infrastructure.Database.Configurations
 {
-    public class MessageConfiguarations : IEntityTypeConfiguration<Message>
+    public class MessageConfigurations : AggregateConfigurationBase<Message>
     {
-        public void Configure(EntityTypeBuilder<Message> builder)
+        public override void Configure(EntityTypeBuilder<EventBase<Message>> builder)
         {
+            base.Configure(builder);
+
+            builder.Ignore(c => c.Aggregate);
         }
     }
 }

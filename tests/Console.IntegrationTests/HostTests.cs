@@ -7,7 +7,7 @@ using static Console.IntegrationTest.CommonFixture;
 
 namespace Console.IntegrationTest
 {
-    public class HostTests
+    public class HostTests : BaseTests
     {
         [Test]
         [Timeout(2_000)] // 2 sec
@@ -15,11 +15,12 @@ namespace Console.IntegrationTest
         {
             var hostLifetime = RootScope.Resolve<IHostApplicationLifetime>();
 
-            var hostRunTask = HostInstance.RunAsync();
             await Task.Delay(1.Seconds());
             hostLifetime.StopApplication();
 
-            await hostRunTask;
+            await HostRunTask;
+
+            CheckNoErrorsLogged();
         }
     }
 }

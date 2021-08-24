@@ -8,10 +8,23 @@ namespace YoutubeMusicBot.Infrastructure.Database
 {
     public class DbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
-        public ApplicationDbContext CreateDbContext(string[] args)
+        private readonly string? _overridePath;
+        private readonly bool _enableSensitiveLogin;
+
+        public DbContextFactory() // ctor for console EF
+        {
+        }
+
+        public DbContextFactory(string? overridePath, bool enableSensitiveLogin)
+        {
+            _overridePath = overridePath;
+            _enableSensitiveLogin = enableSensitiveLogin;
+        }
+
+        public ApplicationDbContext CreateDbContext(params string[] args)
         {
             var dbPathFile = new FileInfo(Path.Join(
-                args.FirstOrDefault() ?? Environment.GetFolderPath(
+                args.FirstOrDefault() ?? _overridePath ?? Environment.GetFolderPath(
                     Environment.SpecialFolder.LocalApplicationData),
                 "messages.db"));
 
@@ -21,6 +34,9 @@ namespace YoutubeMusicBot.Infrastructure.Database
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseSqlite(
                 $"Data Source={dbPathFile.FullName}");
+
+            if (_enableSensitiveLogin)
+                optionsBuilder.EnableSensitiveDataLogging();
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

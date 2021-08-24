@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Infrastructure.Extensions;
 
 namespace YoutubeMusicBot.Console
@@ -41,14 +41,11 @@ namespace YoutubeMusicBot.Console
 
         public async Task ProcessUpdatesAsync(CancellationToken cancellationToken = default)
         {
-            var timeout = Convert.ToInt32(Timeout.TotalSeconds);
-            var updates = Array.Empty<Update>();
-
             try
             {
-                updates = await _client.GetUpdatesAsync(
+                var updates = await _client.GetUpdatesAsync(
                     MessageOffset,
-                    timeout: timeout,
+                    timeout: (int)Timeout.TotalSeconds,
                     allowedUpdates: AllowedUpdates,
                     cancellationToken: cancellationToken);
 

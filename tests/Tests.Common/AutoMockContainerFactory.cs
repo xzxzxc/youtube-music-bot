@@ -20,6 +20,7 @@ namespace YoutubeMusicBot.Tests.Common
                 DefaultValueProvider = new AutoFixtureValueProvider(
                     AutoFixtureFactory.Create()),
             };
+
             return AutoMock.GetFromRepository(
                 mockRepository,
                 builder => beforeBuild(mockRepository, builder));

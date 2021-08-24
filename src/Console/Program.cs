@@ -1,16 +1,16 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using YoutubeMusicBot.Application.Extensions;
+using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Options;
-using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Infrastructure.Extensions;
 
 namespace YoutubeMusicBot.Console
@@ -22,8 +22,7 @@ namespace YoutubeMusicBot.Console
             var host = CreateHostBuilder(args)
                 .Build();
 
-            await host.Services.GetRequiredService<ApplicationDbContext>()
-                .Database.MigrateAsync();
+            await Initialize(host);
 
             await host.RunAsync();
         }
@@ -56,6 +55,14 @@ namespace YoutubeMusicBot.Console
             serviceCollection.AddOptions<SplitOptions>().BindConfiguration("Split");
 
             builder.Populate(serviceCollection);
+        }
+
+        public static async Task Initialize(IHost host)
+        {
+            var initializables = host.Services.GetServices<IInitializable>();
+
+            foreach (var initializable in initializables.OrderBy(i => i.Order))
+                await initializable.Initialize();
         }
 
         private static void ConfigureConfiguration(
