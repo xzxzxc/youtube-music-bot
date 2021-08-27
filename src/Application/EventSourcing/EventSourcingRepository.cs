@@ -75,13 +75,15 @@ namespace YoutubeMusicBot.Application.EventSourcing
         {
             var maxEventId = await _dbContext.GetEventDbSet<TAggregate>()
                 .AsQueryable()
-                .MaxAsync(e => e.Id);
+                .MaxAsync(e => (long?)e.Id);
             var maxAggregateId = await _dbContext.GetEventDbSet<TAggregate>()
                 .AsQueryable()
-                .MaxAsync(e => e.AggregateId);
+                .MaxAsync(e => (long?)e.AggregateId);
 
-            EventBase<TAggregate>.Initialize(maxEventId);
-            AggregateBase<TAggregate>.Initialize(maxAggregateId);
+            if (maxEventId.HasValue)
+                EventBase<TAggregate>.Initialize(maxEventId.Value);
+            if (maxAggregateId.HasValue)
+                AggregateBase<TAggregate>.Initialize(maxAggregateId.Value);
         }
     }
 }

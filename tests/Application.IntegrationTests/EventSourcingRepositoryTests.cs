@@ -13,8 +13,23 @@ namespace Application.IntegrationTests
     public class EventSourcingRepositoryTests : BaseTest
     {
         [Test]
+        // test must be called first because of static id sequence indexer in AggregateBase
+        [Order(int.MinValue)]
+        public async Task ShouldInitializeWithoutDataInDb()
+        {
+            var sut = Container.Create<EventSourcingRepository<Message>>();
+
+            await sut.Initialize();
+
+            var message = FixtureInstance.Create<Message>();
+            // + 2 because of one strange additional ctor call from AutoFixture
+            message.Id.Should().Be(long.MinValue + 2);
+            message.GetUncommittedEvents().First().Id.Should().Be(long.MinValue + 1);
+        }
+
+        [Test]
         [CustomAutoData]
-        public async Task ShouldInitializeAggregate(
+        public async Task ShouldInitializeWithDataInDb(
             long aggregateId)
         {
             var events = FixtureInstance.Build<MessageCreatedEvent>()

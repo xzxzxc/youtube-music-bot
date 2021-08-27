@@ -14,8 +14,6 @@ namespace YoutubeMusicBot.Infrastructure.Database
         {
         }
 
-        // public DbSet<Message> Messages { get; set; } = null!;
-
         public DbSet<T> GetDbSet<T>()
             where T : class =>
             Set<T>();
