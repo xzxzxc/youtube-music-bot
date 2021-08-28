@@ -6,8 +6,7 @@ using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Application.Mediator.Implementation
 {
-    public class ExceptionLogDecorator :
-        IMediator
+    public class ExceptionLogDecorator : IMediator
     {
         private readonly IMediator _mediator;
         private readonly ILogger _logger;
@@ -52,7 +51,7 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
             }
         }
 
-        public async Task Emit<TAggregate>(
+        public async ValueTask Emit<TAggregate>(
             EventBase<TAggregate> @event,
             CancellationToken cancellationToken = default)
             where TAggregate : AggregateBase<TAggregate>
@@ -68,11 +67,11 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
             }
         }
 
-        public async Task Cancel(string eventCancellationId)
+        public void Cancel(string eventCancellationId)
         {
             try
             {
-                await _mediator.Cancel(eventCancellationId);
+                _mediator.Cancel(eventCancellationId);
             }
             catch (Exception ex) when (ex is not (OperationCanceledException or DecoratedException))
             {

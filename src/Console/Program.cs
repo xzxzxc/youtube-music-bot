@@ -50,7 +50,7 @@ namespace YoutubeMusicBot.Console
 
             serviceCollection.AddHostedService<BotHostedService>();
 
-            serviceCollection.AddOptions<DownloadOptions>().BindConfiguration("Download");
+            serviceCollection.AddOptions<FileSystemOptions>().BindConfiguration("Download");
             serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
             serviceCollection.AddOptions<SplitOptions>().BindConfiguration("Split");
 

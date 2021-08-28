@@ -20,10 +20,12 @@ using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.Tests.Common.Extensions;
 
 namespace YoutubeMusicBot.UnitTests
 {
@@ -47,7 +49,7 @@ namespace YoutubeMusicBot.UnitTests
         [Test]
         public async Task ShouldCreateMessageAggregate()
         {
-            using var container = CreateAutoMockContainer();
+            using var container = CreateAutoMockContainer(esArchitectureEnabled: true);
             var sut = container.Create<MessageHandler>();
 
             await sut.Handle(new MessageHandler.Request(_validMessage));
@@ -229,7 +231,9 @@ namespace YoutubeMusicBot.UnitTests
                 .Verify(w => w.DeleteMessageAsync(replyMessage.Id, It.IsAny<CancellationToken>()));
         }
 
-        private AutoMock CreateAutoMockContainer(Action<ContainerBuilder>? beforeBuild = null) =>
+        private AutoMock CreateAutoMockContainer(
+            Action<ContainerBuilder>? beforeBuild = null,
+            bool esArchitectureEnabled = false) =>
             AutoMockContainerFactory.Create(
                 (mockRepository, builder) =>
                 {
@@ -239,6 +243,8 @@ namespace YoutubeMusicBot.UnitTests
                     builder.Populate(service);
                     builder.Register(s => s.Resolve<ApplicationDbContext>()).As<IDbContext>();
                     builder.RegisterModule(new MessageHandlerModule());
+                    builder.RegisterOptions(
+                        new FeatureOptions { EsArchitectureEnabled = esArchitectureEnabled, });
 
                     // TODO: think about how to remove this shit
                     builder.RegisterType<MessageScopeFactory>()

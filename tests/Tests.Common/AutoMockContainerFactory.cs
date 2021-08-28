@@ -15,11 +15,7 @@ namespace YoutubeMusicBot.Tests.Common
 
         public static AutoMock Create(Action<MockRepository, ContainerBuilder> beforeBuild)
         {
-            var mockRepository = new MockRepository(MockBehavior.Loose)
-            {
-                DefaultValueProvider = new AutoFixtureValueProvider(
-                    AutoFixtureFactory.Create()),
-            };
+            var mockRepository = MockRepositoryFactory.Create();
 
             return AutoMock.GetFromRepository(
                 mockRepository,

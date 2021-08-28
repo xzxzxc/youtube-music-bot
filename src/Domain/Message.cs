@@ -1,4 +1,5 @@
-﻿using YoutubeMusicBot.Domain.Base;
+﻿using System.Collections.Generic;
+using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Domain
 {
@@ -21,6 +22,8 @@ namespace YoutubeMusicBot.Domain
 
         public bool? IsValid { get; private set; }
 
+        public ICollection<File> Files { get; } = new List<File>();
+
         public void Valid()
         {
             RaiseEvent(new MessageValidEvent());
@@ -29,6 +32,16 @@ namespace YoutubeMusicBot.Domain
         public void Invalid(string validationMessage)
         {
             RaiseEvent(new MessageInvalidEvent(validationMessage));
+        }
+
+        public void LoadingProcessMessageSent(int messageId)
+        {
+            RaiseEvent(new LoadingProcessMessageSentEvent(messageId));
+        }
+
+        public void FileLoaded(string fileFullPath)
+        {
+            RaiseEvent(new NewMusicFileEvent(fileFullPath));
         }
 
         public void Apply(MessageCreatedEvent @event)
@@ -48,5 +61,16 @@ namespace YoutubeMusicBot.Domain
         {
             IsValid = false;
         }
+
+        public void Apply(NewMusicFileEvent @event)
+        {
+            Files.Add(new File(@event.FullPath));
+        }
+
+        public void Apply(LoadingProcessMessageSentEvent @event)
+        {
+        }
     }
+
+    public record File(string FullPath);
 }

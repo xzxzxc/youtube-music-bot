@@ -23,14 +23,16 @@ namespace Application.IntegrationTests
 
             var message = FixtureInstance.Create<Message>();
             // + 2 because of one strange additional ctor call from AutoFixture
-            message.Id.Should().Be(long.MinValue + 2);
-            message.GetUncommittedEvents().First().Id.Should().Be(long.MinValue + 1);
+            message.Id.Should().BeInRange(long.MinValue + 1, long.MinValue + 2);
+            message.GetUncommittedEvents()
+                .First()
+                .Id.Should()
+                .BeInRange(long.MinValue + 1, long.MinValue + 2);
         }
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldInitializeWithDataInDb(
-            long aggregateId)
+        public async Task ShouldInitializeWithDataInDb(long aggregateId)
         {
             var events = FixtureInstance.Build<MessageCreatedEvent>()
                 .With(c => c.AggregateId, aggregateId)
@@ -47,8 +49,7 @@ namespace Application.IntegrationTests
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldPersistsAggregateState(
-            long aggregateId)
+        public async Task ShouldPersistsAggregateState(long aggregateId)
         {
             var message = FixtureInstance.Create<Message>();
             message.Valid();

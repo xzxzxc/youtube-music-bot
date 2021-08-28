@@ -3,12 +3,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using FluentValidation;
+using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Domain;
 
 namespace YoutubeMusicBot.Application
@@ -17,21 +19,31 @@ namespace YoutubeMusicBot.Application
     {
         private readonly IMessageScopeFactory _scopeFactory;
         private readonly IRepository<Message> _messageRepository;
+        private readonly IOptionsMonitor<FeatureOptions> _featureOptions;
 
         public MessageHandler(
             IMessageScopeFactory scopeFactory,
-            IRepository<Message> messageRepository)
+            IRepository<Message> messageRepository,
+            IOptionsMonitor<FeatureOptions> featureOptions)
         {
             _scopeFactory = scopeFactory;
             _messageRepository = messageRepository;
+            _featureOptions = featureOptions;
         }
 
         public async ValueTask Handle(
             Request request,
             CancellationToken cancellationToken = default)
         {
-            var message = new Message(request.Value.Id, request.Value.Text, request.Value.Chat.Id);
-            await _messageRepository.SaveAsync(message, cancellationToken);
+            if (_featureOptions.CurrentValue.EsArchitectureEnabled)
+            {
+                var message = new Message(
+                    request.Value.Id,
+                    request.Value.Text,
+                    request.Value.Chat.Id);
+                await _messageRepository.SaveAsync(message, cancellationToken);
+                return;
+            }
 
             await using var messageScope = _scopeFactory.Create(
                 request.Value);

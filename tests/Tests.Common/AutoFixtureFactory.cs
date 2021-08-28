@@ -4,7 +4,7 @@ using AutoFixture.AutoMoq;
 
 namespace YoutubeMusicBot.Tests.Common
 {
-    public class AutoFixtureFactory
+    public static class AutoFixtureFactory
     {
         public static IFixture Create()
         {

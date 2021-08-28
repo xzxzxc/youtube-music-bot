@@ -37,7 +37,7 @@ namespace Console.IntegrationTest
         [TestCaseSource(nameof(TestCases))]
         public async Task ShouldUploadAudioOnEcho(
             string url,
-            IReadOnlyCollection<ExpectedFile> expectedFiles)
+            IReadOnlyCollection<ExpectedTrack> expectedFiles)
         {
             await TgClient.SendMessageAsync(_botUser, url);
 
@@ -66,7 +66,7 @@ namespace Console.IntegrationTest
 
         private static bool CheckMessageCameIn(
             IEnumerable<TLMessage> messages,
-            ExpectedFile expectedFile)
+            ExpectedTrack expectedTrack)
         {
             foreach (var message in messages)
             {
@@ -81,9 +81,9 @@ namespace Console.IntegrationTest
                 if (audioAttribute == null)
                     continue;
 
-                audioAttribute.Title.Should().Be(expectedFile.Title);
-                audioAttribute.Performer.Should().Be(expectedFile.Author);
-                audioAttribute.Duration.Should().Be((int)expectedFile.Duration.TotalSeconds);
+                audioAttribute.Title.Should().Be(expectedTrack.Title);
+                audioAttribute.Performer.Should().Be(expectedTrack.Author);
+                audioAttribute.Duration.Should().Be((int)expectedTrack.Duration.TotalSeconds);
 
                 return true;
             }
@@ -153,7 +153,7 @@ namespace Console.IntegrationTest
             yield return new TestCaseData(
                 "https://youtu.be/wuROIJ0tRPU",
                 ImmutableArray.Create(
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Бронепоїзд (feat. Довгий Пес)",
                         "Гоня & Довгий Пес",
                         TimeSpan.Parse("00:02:06")))) { TestName = "Simple track", };
@@ -161,11 +161,11 @@ namespace Console.IntegrationTest
             yield return new TestCaseData(
                 "https://soundcloud.com/potvorno/sets/kyiv",
                 ImmutableArray.Create(
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Київ",
                         secondAuthor,
                         TimeSpan.Parse("00:01:55")),
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Заспіваю ще",
                         secondAuthor,
                         TimeSpan.Parse("00:03:40")))) { TestName = "SoundCloud playlist", };
@@ -173,32 +173,39 @@ namespace Console.IntegrationTest
             yield return new TestCaseData(
                 "https://www.youtube.com/watch?v=ZtuXNrGeQ9s",
                 ImmutableArray.Create(
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Drake - What's Next",
                         thirdAuthor,
                         TimeSpan.Parse("00:03:00")),
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Drake - Wants and Needs (ft. Lil Baby)",
                         thirdAuthor,
                         TimeSpan.Parse("00:03:13")),
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Drake - Lemon Pepper Freestyle (ft. Rick Ross)",
                         thirdAuthor,
                         TimeSpan.Parse("00:06:21")))) { TestName = "Track list in description", };
             yield return new TestCaseData(
                 "https://youtu.be/1PYGkzyz_YM",
                 ImmutableArray.Create(
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Глава 94 \"Gavno\"",
                         "Stepan Glava",
                         TimeSpan.Parse("00:03:30")))) { TestName = "Double quotes in file name", };
             yield return new TestCaseData(
                 "https://youtu.be/kqrcUKehT_Y",
                 ImmutableArray.Create(
-                    new ExpectedFile(
+                    new ExpectedTrack(
                         "Зав'язав / Stage 13",
                         "Глава 94",
                         TimeSpan.Parse("00:03:40")))) { TestName = "Single quotes in file name", };
+            yield return new TestCaseData(
+                "https://www.youtube.com/watch?v=rJ_rcbUB32Y&list=OLAK5uy_ksq4lX25NiCtiwvwPlG5cK1SvCfkp-Hrc",
+                ImmutableArray.Create(
+                    new ExpectedTrack(
+                        "Україна Кокаїна",
+                        "Remafo",
+                        TimeSpan.Parse("00:02:32")))) { TestName = "Youtube playlist", };
         }
 
         [TearDown]
@@ -217,6 +224,6 @@ namespace Console.IntegrationTest
                 });
         }
 
-        public record ExpectedFile(string Title, string Author, TimeSpan Duration);
+        public record ExpectedTrack(string Title, string Author, TimeSpan Duration);
     }
 }

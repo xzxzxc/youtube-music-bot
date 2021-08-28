@@ -10,10 +10,10 @@ namespace YoutubeMusicBot.Infrastructure
 	{
 		public CacheFolder(
 			MessageContext messageContext,
-			IOptionsMonitor<DownloadOptions> downloadOptions)
+			IOptionsMonitor<FileSystemOptions> downloadOptions)
 		{
 			var chatFolderPath = Value = Path.Join(
-				downloadOptions.CurrentValue.CacheFilesFolderPath,
+				downloadOptions.CurrentValue.TempFolderPath,
 				$"{messageContext.UserMessage.Chat.Id}");
 
 			Directory.CreateDirectory(chatFolderPath);

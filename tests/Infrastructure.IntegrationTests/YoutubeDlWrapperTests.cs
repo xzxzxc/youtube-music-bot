@@ -49,8 +49,7 @@ namespace Infrastructure.IntegrationTests
                     b.RegisterMock(processRunnerMock);
                     b.RegisterInstance(Mock.Of<ICacheFolder>(f => f.Value == cacheFolder));
                     b.RegisterInstance(
-                        Mock.Of<IYoutubeDlConfigPath>(
-                            r => r.GetValueAsync(It.IsAny<CancellationToken>()).Result == configFilePath));
+                        Mock.Of<IYoutubeDlConfigPath>(r => r.Value == configFilePath));
                 });
             var wrapper = container.Create<YoutubeDlWrapper>();
 

@@ -1,32 +1,32 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using YoutubeMusicBot.Application.Extensions;
+using YoutubeMusicBot.Application.Helpers;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Mediator;
-using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Domain;
 
 namespace YoutubeMusicBot.Application
 {
     public class ValidMessageHandler : IEventHandler<MessageValidEvent, Message>
     {
-        private readonly ITgClient _tgClientWrapper;
+        private readonly ITgClient _tgClient;
 
-        public ValidMessageHandler(ITgClient tgClientWrapper)
+        public ValidMessageHandler(
+            ITgClient tgClient)
         {
-            _tgClientWrapper = tgClientWrapper;
+            _tgClient = tgClient;
         }
 
         public async ValueTask Handle(
-            MessageValidEvent notification,
+            MessageValidEvent @event,
             CancellationToken cancellationToken = default)
         {
-            await _tgClientWrapper.SendMessageAsync(
-                notification.Aggregate.ChatId,
+            var message = await _tgClient.SendMessageAsync(
+                @event.Aggregate.ChatId,
                 "Loading started.",
-                new(new InlineButton("Cancel", notification.GetCancellationId())),
+                InlineButtonFactory.CreateCancel(@event),
                 cancellationToken);
-
+            @event.Aggregate.LoadingProcessMessageSent(message.Id);
         }
     }
 }

@@ -3,10 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Mediator;
-using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Application.EventSourcing
@@ -18,16 +16,13 @@ namespace YoutubeMusicBot.Application.EventSourcing
     {
         private readonly IDbContext _dbContext;
         private readonly IMediator _mediator;
-        private readonly IOptionsMonitor<FeatureOptions> _featureOptions;
 
         public EventSourcingRepository(
             IDbContext dbContext,
-            IMediator mediator,
-            IOptionsMonitor<FeatureOptions> featureOptions)
+            IMediator mediator)
         {
             _dbContext = dbContext;
             _mediator = mediator;
-            _featureOptions = featureOptions;
         }
 
         public async Task<TAggregate> GetByIdAsync(
@@ -58,17 +53,16 @@ namespace YoutubeMusicBot.Application.EventSourcing
             CancellationToken cancellationToken = default)
         {
             var eventDbSet = _dbContext.GetEventDbSet<TAggregate>();
-            foreach (var @event in aggregate.GetUncommittedEvents())
-            {
-                eventDbSet.Add(@event);
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                if (_featureOptions.CurrentValue.EsArchitectureEnabled)
-                {
-                    await _mediator.Emit(@event, cancellationToken);
-                }
-            }
 
+            var uncommittedEvents = aggregate.GetUncommittedEvents().ToArray();
             aggregate.ClearUncommittedEvents();
+
+            eventDbSet.AddRange(uncommittedEvents);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            var emitTasks = uncommittedEvents
+                .Select(e => _mediator.Emit(e, cancellationToken).AsTask());
+            await Task.WhenAll(emitTasks);
         }
 
         public async ValueTask Initialize()

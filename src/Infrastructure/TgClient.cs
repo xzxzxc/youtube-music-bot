@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -8,63 +8,17 @@ using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Infrastructure.Extensions;
 
-namespace YoutubeMusicBot.Infrastructure.Wrappers
+namespace YoutubeMusicBot.Infrastructure
 {
-    public class TgClientWrapper : ITgClientWrapper
+    public class TgClient : ITgClient
     {
         private readonly ITelegramBotClient _telegramBotClient;
-        private readonly MessageContext _messageContext;
 
-        public TgClientWrapper(
-            MessageContext messageContext,
+        public TgClient(
             ITelegramBotClient telegramBotClient)
         {
             _telegramBotClient = telegramBotClient;
-            _messageContext = messageContext;
         }
-
-        private MessageContext MessageContext => _messageContext;
-
-        private long ChatId => MessageContext.UserMessage.Chat.Id;
-
-        private MessageModel? MessageToUpdate => MessageContext.MessageToUpdate;
-
-        public Task<MessageModel> SendMessageAsync(
-            string text,
-            InlineButtonCollection? inlineButtons = null,
-            CancellationToken cancellationToken = default) =>
-            SendMessageAsync(
-                ChatId,
-                text,
-                inlineButtons,
-                cancellationToken);
-
-        public Task<MessageModel> SendAudioAsync(
-            IFileInfo audio,
-            CancellationToken cancellationToken = default) =>
-            SendAudioAsync(
-                ChatId,
-                audio,
-                cancellationToken);
-
-        public Task<MessageModel> UpdateMessageAsync(
-            string text,
-            CancellationToken cancellationToken = default) =>
-            UpdateMessageAsync(
-                ChatId,
-                MessageToUpdate?.Id
-                ?? throw new InvalidOperationException("There is no message to update"),
-                text,
-                MessageToUpdate.InlineButton?.ToCollection(),
-                cancellationToken);
-
-        public Task DeleteMessageAsync(
-            int messageId,
-            CancellationToken cancellationToken = default) =>
-            DeleteMessageAsync(
-                ChatId,
-                messageId,
-                cancellationToken);
 
         public async Task<MessageModel> SendMessageAsync(
             long chatId,

@@ -6,6 +6,7 @@ using FluentValidation.Results;
 using Moq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Tests.Common;
 
@@ -15,7 +16,7 @@ namespace YoutubeMusicBot.UnitTests
     {
         [Test]
         [CustomAutoData]
-        public async Task ShouldSetMessageValidOnValidUrl(MessageCreatedEvent @event)
+        public async Task ShouldRaiseMessageValidOnValidUrl(MessageCreatedEvent @event)
         {
             @event.Aggregate.ClearUncommittedEvents();
             var container = AutoMockContainerFactory.Create();
@@ -32,11 +33,15 @@ namespace YoutubeMusicBot.UnitTests
                 .Which.Should()
                 .BeOfType<MessageValidEvent>();
             @event.Aggregate.IsValid.Should().BeTrue();
+            container.Mock<IRepository<Message>>()
+                .Verify(
+                    r => r.SaveAsync(@event.Aggregate, It.IsAny<CancellationToken>()),
+                    Times.Once);
         }
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldSetMessageInvalidOnInvalidUrl(
+        public async Task ShouldRaiseMessageInvalidOnInvalidUrl(
             MessageCreatedEvent @event,
             string validationMessage)
         {
@@ -47,7 +52,12 @@ namespace YoutubeMusicBot.UnitTests
                 .Setup(v => v.ValidateAsync(@event.Aggregate, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(
                     new ValidationResult(
-                        new[] { new ValidationFailure(nameof(@event.Aggregate.Text), validationMessage) }));
+                        new[]
+                        {
+                            new ValidationFailure(
+                                nameof(@event.Aggregate.Text),
+                                validationMessage)
+                        }));
 
             await sut.Handle(@event);
 
@@ -59,6 +69,10 @@ namespace YoutubeMusicBot.UnitTests
                 .Which.ValidationMessage.Should()
                 .Be(validationMessage);
             @event.Aggregate.IsValid.Should().BeFalse();
+            container.Mock<IRepository<Message>>()
+                .Verify(
+                    r => r.SaveAsync(@event.Aggregate, It.IsAny<CancellationToken>()),
+                    Times.Once);
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Infrastructure.IntegrationTests
                 });
             var sut = container.Create<ExceptionLogDecorator>();
 
-            Func<Task> action = () => sut.Emit(@event);
+            Func<Task> action = () => sut.Emit(@event).AsTask();
 
             (await action.Should().ThrowAsync<Exception>()).Which.InnerException.Should()
                 .BeSameAs(exception);

@@ -23,6 +23,12 @@ namespace YoutubeMusicBot.Infrastructure.DependencyInjection
             builder.RegisterType<CacheFolder>()
                 .AsImplementedInterfaces();
 
+            builder.RegisterType<TgClient>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<FileSystem>()
+                .AsImplementedInterfaces();
+
             base.Load(builder);
         }
     }

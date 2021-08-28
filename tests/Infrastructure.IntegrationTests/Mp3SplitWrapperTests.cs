@@ -8,6 +8,7 @@ using Autofac.Extras.Moq;
 using AutoFixture;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using Infrastructure.IntegrationTests.Helpers;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Interfaces;
@@ -39,7 +40,7 @@ namespace Infrastructure.IntegrationTests
             string url,
             int tracksCount)
         {
-            var container = CreateContainer();
+            using var container = await CreateContainer();
             var file = await DownloadFile(url, container);
             var sut = container.Create<Mp3SplitWrapper>();
 
@@ -56,7 +57,7 @@ namespace Infrastructure.IntegrationTests
             int tracksCount,
             TimeSpan minSilenceLength)
         {
-            var container = CreateContainer(
+            using var container = await CreateContainer(
                 b => b.RegisterOptions(new SplitOptions { MinSilenceLength = minSilenceLength, }));
             var file = await DownloadFile(url, container);
             var sut = container.Create<Mp3SplitWrapper>();
@@ -73,7 +74,7 @@ namespace Infrastructure.IntegrationTests
             string url,
             int tracksCount)
         {
-            var container = CreateContainer();
+            using var container = await CreateContainer();
             var file = await DownloadFile(url, container);
             var sut = container.Create<Mp3SplitWrapper>();
 
@@ -90,7 +91,7 @@ namespace Infrastructure.IntegrationTests
             int tracksCount,
             MessageContext context)
         {
-            var container = CreateContainer();
+            using var container = await CreateContainer();
             var file = await DownloadFile(url, container);
             var sut = container.Create<Mp3SplitWrapper>();
 
@@ -100,8 +101,8 @@ namespace Infrastructure.IntegrationTests
             tracks.Should().HaveCount(tracksCount);
         }
 
-        private static AutoMock CreateContainer(Action<ContainerBuilder>? beforeBuild = null) =>
-            AutoMockContainerFactory.Create(
+        private static ValueTask<AutoMock> CreateContainer(Action<ContainerBuilder>? beforeBuild = null) =>
+            AutoMockInfrastructureContainerFactory.Create(
                 builder =>
                 {
                     builder.RegisterModules(new CommonModule());

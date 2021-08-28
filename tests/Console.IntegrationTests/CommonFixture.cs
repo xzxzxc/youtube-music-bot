@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using FluentAssertions;
@@ -45,14 +46,11 @@ namespace Console.IntegrationTest
                 .ConfigureContainer<ContainerBuilder>(
                     (_, b) =>
                     {
-                        b.RegisterOptions(new DownloadOptions
-                        {
-                            CacheFilesFolderPath = CacheFolder.FullName,
-                        });
-                        b.RegisterOptions(new BotOptions
-                        {
-                            Token = Secrets.BotToken,
-                        });
+                        b.RegisterOptions(
+                            new FileSystemOptions { TempFolderPath = CacheFolder.FullName, });
+                        b.RegisterOptions(
+                            new FeatureOptions { EsArchitectureEnabled = false, });
+                        b.RegisterOptions(new BotOptions { Token = Secrets.BotToken, });
                         b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
                     })
                 .Build();
@@ -72,6 +70,11 @@ namespace Console.IntegrationTest
 
         public static void CheckNoErrorsLogged()
         {
+            var innerExceptions = ThrowExceptionLogger.Errors
+                .Select(e => e.InnerException)
+                .Where(e => e != null);
+
+            innerExceptions.Should().BeEmpty();
             ThrowExceptionLogger.Errors.Should().BeEmpty();
         }
 
