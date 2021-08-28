@@ -22,6 +22,8 @@ namespace Console.IntegrationTest
     public class CommonFixture
     {
         private static IHost _hostInstance = null!;
+        public static readonly BotOptions BotOptions = new() { Token = Secrets.BotToken, };
+        public static readonly SplitOptions SplitOptions = new();
         public static Task HostRunTask = null!;
 
         public static DirectoryInfo CacheFolder => new("cache_folder");
@@ -49,8 +51,9 @@ namespace Console.IntegrationTest
                         b.RegisterOptions(
                             new FileSystemOptions { TempFolderPath = CacheFolder.FullName, });
                         b.RegisterOptions(
-                            new FeatureOptions { EsArchitectureEnabled = false, });
-                        b.RegisterOptions(new BotOptions { Token = Secrets.BotToken, });
+                            new FeatureOptions { EsArchitectureEnabled = true, });
+                        b.RegisterOptions(BotOptions);
+                        b.RegisterOptions(SplitOptions);
                         b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
                     })
                 .Build();

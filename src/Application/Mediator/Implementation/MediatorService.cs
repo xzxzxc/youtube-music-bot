@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using YoutubeMusicBot.Application.Extensions;
+using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Application.Mediator.Implementation
@@ -12,11 +13,13 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
     public class MediatorService : IMediator
     {
         private readonly ILifetimeScope _scope;
+        private readonly ICallbackDataFactory _callbackDataFactory;
         private readonly ConcurrentDictionary<string, Action> _cancellationActions = new();
 
-        public MediatorService(ILifetimeScope scope)
+        public MediatorService(ILifetimeScope scope, ICallbackDataFactory callbackDataFactory)
         {
             _scope = scope;
+            _callbackDataFactory = callbackDataFactory;
         }
 
         public async ValueTask Send<TRequest>(
@@ -45,7 +48,7 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
             where TAggregate : AggregateBase<TAggregate>
         {
             using var cancellationHolder = new CancellationHolder(
-                @event.GetCancellationId(),
+                _callbackDataFactory.CreateForCancel(@event),
                 cancellationToken,
                 _cancellationActions);
             var handlerType = typeof(IEventHandler<,>).MakeGenericType(

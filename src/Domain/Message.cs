@@ -24,7 +24,9 @@ namespace YoutubeMusicBot.Domain
 
         public int? ProcessMessageId { get; private set; }
 
-        public ICollection<File> Files { get; } = new List<File>();
+        public ICollection<File> CreatedMusicFiles { get; } = new List<File>();
+
+        public ICollection<File> MusicFilesToBeSent { get; } = new List<File>();
 
         public void Valid()
         {
@@ -41,9 +43,19 @@ namespace YoutubeMusicBot.Domain
             RaiseEvent(new LoadingProcessMessageSentEvent(messageId));
         }
 
-        public void NewMusicFile(string fileFullPath)
+        public void MusicFileCreated(string fullPath, string? descriptionFilePath)
         {
-            RaiseEvent(new NewMusicFileEvent(fileFullPath));
+            RaiseEvent(new MusicFileCreatedEvent(fullPath, descriptionFilePath));
+        }
+
+        public void FileToBeSentCreated(string path, string title)
+        {
+            RaiseEvent(new FileToBeSentCreatedEvent(path, title));
+        }
+
+        public void Finished()
+        {
+            RaiseEvent(new MessageFinishedEvent());
         }
 
         public void Apply(MessageCreatedEvent @event)
@@ -69,11 +81,19 @@ namespace YoutubeMusicBot.Domain
             ProcessMessageId = @event.MessageId;
         }
 
-        public void Apply(NewMusicFileEvent @event)
+        public void Apply(MusicFileCreatedEvent @event)
         {
-            Files.Add(new File(@event.FullPath));
+            CreatedMusicFiles.Add(new File(@event.MusicFilePath, @event.DescriptionFilePath));
+        }
+
+        public void Apply(FileToBeSentCreatedEvent @event)
+        {
+            MusicFilesToBeSent.Add(new File(@event.FilePath));
+        }
+
+        public void Apply(MessageFinishedEvent @event)
+        {
+            // TODO:
         }
     }
-
-    public record File(string FullPath);
 }

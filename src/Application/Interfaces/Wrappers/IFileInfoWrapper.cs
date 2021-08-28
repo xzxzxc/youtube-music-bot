@@ -10,6 +10,8 @@ namespace YoutubeMusicBot.Application.Interfaces.Wrappers
 
         string Name { get; }
 
+        string Extension { get; }
+
         string FullName { get; }
 
         string DirectoryName { get; }

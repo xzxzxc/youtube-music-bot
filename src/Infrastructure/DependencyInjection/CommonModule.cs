@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using YoutubeMusicBot.Application;
+using YoutubeMusicBot.Infrastructure.Wrappers;
 
 namespace YoutubeMusicBot.Infrastructure.DependencyInjection
 {
@@ -27,6 +28,12 @@ namespace YoutubeMusicBot.Infrastructure.DependencyInjection
                 .AsImplementedInterfaces();
 
             builder.RegisterType<FileSystem>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<YoutubeDownloader>()
+                .AsImplementedInterfaces();
+
+            builder.RegisterType<MusicSplitter>()
                 .AsImplementedInterfaces();
 
             base.Load(builder);

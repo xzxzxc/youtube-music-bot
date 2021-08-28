@@ -55,7 +55,7 @@ namespace Application.IntegrationTests
             message.Valid();
             var sut = Container.Create<EventSourcingRepository<Message>>();
 
-            await sut.SaveAsync(message);
+            await sut.SaveAndEmitEventsAsync(message);
 
             var messageFromRepo = await sut.GetByIdAsync(message.Id);
             messageFromRepo.Should().BeEquivalentTo(message);

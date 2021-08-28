@@ -7,14 +7,13 @@ namespace YoutubeMusicBot.UnitTests.Extensions
 {
     public static class InlineButtonCollectionExtensions
     {
-        public static void VerifyCancelButton<TAggregate>(
+        public static void VerifyCancelButton(
             this InlineButtonCollection buttons,
-            EventBase<TAggregate> @event)
-            where TAggregate : AggregateBase<TAggregate>
+            string callbackData)
         {
             var button = buttons.Should().ContainSingle().Which;
             button.Text.Should().Be("Cancel");
-            button.CallbackData.Should().Be(@event.GetCancellationId());
+            button.CallbackData.Should().Be(callbackData);
         }
     }
 }

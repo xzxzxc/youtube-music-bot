@@ -20,4 +20,21 @@ namespace YoutubeMusicBot.Application.Interfaces.Wrappers
             int partsCount,
             CancellationToken cancellationToken);
     }
+
+    public interface IMusicSplitter
+    {
+        IAsyncEnumerable<string> SplitAsync(
+            string filePath,
+            IReadOnlyList<TrackModel> tracks,
+            CancellationToken cancellationToken);
+
+        IAsyncEnumerable<string> SplitBySilenceAsync(
+            string filePath,
+            CancellationToken cancellationToken);
+
+        IAsyncEnumerable<string> SplitInEqualPartsAsync(
+            string filePath,
+            int partsCount,
+            CancellationToken cancellationToken);
+    }
 }

@@ -16,12 +16,12 @@ namespace YoutubeMusicBot.Application
         }
 
         public async ValueTask Handle(
-            MessageInvalidEvent notification,
+            MessageInvalidEvent @event,
             CancellationToken cancellationToken = default)
         {
             await _tgClient.SendMessageAsync(
-                notification.Aggregate.ChatId,
-                notification.ValidationMessage,
+                @event.Aggregate.ChatId,
+                @event.ValidationMessage,
                 cancellationToken: cancellationToken);
         }
     }

@@ -62,7 +62,7 @@ namespace YoutubeMusicBot.Console
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception during get or process update");
+                _logger.LogError(ex, "Exception during get update");
             }
         }
 
@@ -88,9 +88,9 @@ namespace YoutubeMusicBot.Console
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            catch
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                // exception is handled in mediatr
+                _logger.LogError(ex, "Exception during process update");
             }
         }
     }

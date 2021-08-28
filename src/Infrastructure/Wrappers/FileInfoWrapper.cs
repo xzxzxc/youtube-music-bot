@@ -5,7 +5,7 @@ using YoutubeMusicBot.Application.Interfaces.Wrappers;
 
 namespace YoutubeMusicBot.Infrastructure.Wrappers
 {
-    public class FileInfoWrapper : IFileInfo
+    public record FileInfoWrapper : IFileInfo
     {
         private readonly FileInfo _file;
 
@@ -17,6 +17,8 @@ namespace YoutubeMusicBot.Infrastructure.Wrappers
         public bool Exists => _file.Exists;
 
         public string Name => _file.Name;
+
+        public string Extension => _file.Extension;
 
         public string FullName => _file.FullName;
 

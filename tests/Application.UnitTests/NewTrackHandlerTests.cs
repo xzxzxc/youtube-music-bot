@@ -81,8 +81,7 @@ namespace YoutubeMusicBot.UnitTests
         [CustomAutoData]
         public async Task ShouldDeleteTrackFileOnDispose(MessageContext messageContext)
         {
-            // TODO: create folder fore each request and remove folder on message aggregate end, then remove this shit
-            // TODO: add check that message changes it's status to done on success track send
+            // TODO: create folder for each request and remove folder on message aggregate end, then remove this shit
             var fileMock = new Mock<IFileInfo>();
             fileMock.Setup(f => f.Exists).Returns(true);
             using var container = AutoMockContainerFactory.Create(
@@ -130,7 +129,7 @@ namespace YoutubeMusicBot.UnitTests
             using var container = AutoMockContainerFactory.Create(
                 b =>
                 {
-                    b.RegisterOptions(new BotOptions { MaxFileBytesCount = fileLength - 1, });
+                    b.RegisterOptions(new BotOptions { FileBytesLimit = fileLength - 1, });
                     b.RegisterMock(mediatorMock);
                     b.RegisterInstance(messageContext);
                 });
@@ -156,7 +155,7 @@ namespace YoutubeMusicBot.UnitTests
             using var container = AutoMockContainerFactory.Create(
                 b =>
                 {
-                    b.RegisterOptions(new BotOptions { MaxFileBytesCount = fileLength - 1, });
+                    b.RegisterOptions(new BotOptions { FileBytesLimit = fileLength - 1, });
                     b.RegisterInstance(messageContext);
                 });
             var sut = container.Create<NewTrackHandler>();

@@ -2,5 +2,5 @@
 
 namespace YoutubeMusicBot.Domain
 {
-    public record NewMusicFileEvent(string FullPath) : EventBase<Message>;
+    public record MessageFinishedEvent : EventBase<Message>;
 }

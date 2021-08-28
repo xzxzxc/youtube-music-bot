@@ -79,7 +79,7 @@ namespace YoutubeMusicBot.Application
                 cancellationToken);
 
             var equalPartsCount = (int)Math.Round(
-                file.Length / (decimal)_botOptions.CurrentValue.MaxFileBytesCount,
+                file.Length / (decimal)_botOptions.CurrentValue.FileBytesLimit,
                 MidpointRounding.ToPositiveInfinity);
 
             files = _mp3SplitWrapper.SplitInEqualPartsAsync(

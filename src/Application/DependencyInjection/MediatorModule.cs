@@ -20,9 +20,9 @@ namespace YoutubeMusicBot.Application.DependencyInjection
         {
             base.Load(builder);
 
-            builder.RegisterType<MediatorService>().AsImplementedInterfaces();
-
-            builder.RegisterDecorator<ExceptionLogDecorator, IMediator>();
+            builder.RegisterType<MediatorService>()
+                .AsImplementedInterfaces()
+                .SingleInstance();
 
             builder.RegisterAssemblyTypes(AssembliesToScan)
                 .AsClosedTypesOf(typeof(IEventHandler<,>));

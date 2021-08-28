@@ -57,7 +57,7 @@ namespace YoutubeMusicBot.UnitTests
             Message? message = null;
             var match = new CaptureMatch<Message>(m => message = m);
             container.Mock<IRepository<Message>>().Verify(
-                r => r.SaveAsync(Capture.With(match), It.IsAny<CancellationToken>()),
+                r => r.SaveAndEmitEventsAsync(Capture.With(match), It.IsAny<CancellationToken>()),
                 Times.Once);
             message.Should().NotBeNull();
             message!.ExternalId.Should().Be(_validMessage.Id);

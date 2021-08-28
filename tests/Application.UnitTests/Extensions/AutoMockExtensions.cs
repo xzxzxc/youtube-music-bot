@@ -15,7 +15,7 @@ namespace YoutubeMusicBot.UnitTests.Extensions
             Times? times = null) =>
             container.Mock<IRepository<Message>>()
                 .Verify(
-                    r => r.SaveAsync(message, It.IsAny<CancellationToken>()),
+                    r => r.SaveAndEmitEventsAsync(message, It.IsAny<CancellationToken>()),
                     times ?? Times.Once());
     }
 }

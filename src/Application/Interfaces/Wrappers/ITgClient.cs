@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using YoutubeMusicBot.Application.Models;
 
@@ -14,7 +15,8 @@ namespace YoutubeMusicBot.Application.Interfaces.Wrappers
 
         Task<MessageModel> SendAudioAsync(
             long chatId,
-            IFileInfo audio,
+            Stream fileReadStream,
+            string title,
             CancellationToken cancellationToken = default);
 
         Task<MessageModel> UpdateMessageAsync(

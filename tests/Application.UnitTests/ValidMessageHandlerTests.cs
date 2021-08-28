@@ -25,10 +25,14 @@ namespace YoutubeMusicBot.UnitTests
         [CustomAutoData]
         public async Task ShouldSendLoadingStartedWithCancellation(
             MessageValidEvent @event,
+            string callbackData,
             MessageModel loadingProcessMessage)
         {
             @event.Aggregate.ClearUncommittedEvents();
             using var container = AutoMockContainerFactory.Create();
+            container.Mock<ICallbackDataFactory>()
+                .Setup(c => c.CreateForCancel(@event))
+                .Returns(callbackData);
             var sut = container.Create<ValidMessageHandler>();
             var lazyCapture = new LazyCapture<InlineButtonCollection>();
             container.Mock<ITgClient>()
@@ -43,7 +47,7 @@ namespace YoutubeMusicBot.UnitTests
 
             await sut.Handle(@event);
 
-            lazyCapture.Value.VerifyCancelButton(@event);
+            lazyCapture.Value.VerifyCancelButton(callbackData);
             var uncommittedEvents = @event.Aggregate.GetUncommittedEvents();
             uncommittedEvents.Should()
                 .ContainSingle()
@@ -53,7 +57,5 @@ namespace YoutubeMusicBot.UnitTests
                 .Be(loadingProcessMessage.Id);
             container.VerifyMessageSaved(@event.Aggregate);
         }
-
-
     }
 }

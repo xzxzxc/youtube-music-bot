@@ -114,7 +114,7 @@ namespace YoutubeMusicBot.UnitTests
             var container = CreateAutoMock(
                 b =>
                 {
-                    b.RegisterOptions(new BotOptions { MaxFileBytesCount = maxFileSize, });
+                    b.RegisterOptions(new BotOptions { FileBytesLimit = maxFileSize, });
                 });
             container.Mock<IMp3SplitWrapper>()
                 .Setup(w => w.SplitBySilenceAsync(request.File, It.IsAny<CancellationToken>()))
@@ -160,7 +160,7 @@ namespace YoutubeMusicBot.UnitTests
             var container = CreateAutoMock(
                 b =>
                 {
-                    b.RegisterOptions(new BotOptions { MaxFileBytesCount = maxFileSize, });
+                    b.RegisterOptions(new BotOptions { FileBytesLimit = maxFileSize, });
                 });
             container.Mock<IMp3SplitWrapper>()
                 .Setup(w => w.SplitBySilenceAsync(request.File, It.IsAny<CancellationToken>()))

@@ -41,7 +41,7 @@ namespace YoutubeMusicBot.Application
                     request.Value.Id,
                     request.Value.Text,
                     request.Value.Chat.Id);
-                await _messageRepository.SaveAsync(message, cancellationToken);
+                await _messageRepository.SaveAndEmitEventsAsync(message, cancellationToken);
                 return;
             }
 

@@ -6,22 +6,24 @@ using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.YoutubeDownloader;
 using YoutubeMusicBot.Application.Models.YoutubeDownloader;
-using YoutubeMusicBot.Infrastructure.Wrappers;
 
 namespace YoutubeMusicBot.Infrastructure
 {
     public class YoutubeDownloader : IYoutubeDownloader
     {
         private readonly IProcessRunner _processRunner;
+        private readonly IFileSystem _fileSystem;
         private readonly string _youtubeDlConfigPath;
         private readonly Regex _fileCompleted;
         private readonly Regex _downloadingStarted;
 
         public YoutubeDownloader(
             IProcessRunner processRunner,
+            IFileSystem fileSystem,
             IYoutubeDlConfigPath youtubeDlConfigPath)
         {
             _processRunner = processRunner;
+            _fileSystem = fileSystem;
             _youtubeDlConfigPath = youtubeDlConfigPath.Value;
             _fileCompleted = new Regex(
                 @"^\[completed\] (?<file_name>.+)$",
@@ -40,12 +42,7 @@ namespace YoutubeMusicBot.Infrastructure
                 new ProcessRunner.Request(
                     "youtube-dl",
                     pathToDownloadTo,
-                    Arguments: new[]
-                    {
-                        "--config-location",
-                        _youtubeDlConfigPath,
-                        url,
-                    }),
+                    Arguments: new[] { "--config-location", _youtubeDlConfigPath, url, }),
                 cancellationToken))
             {
                 var startedMatch = _downloadingStarted.Match(line);
@@ -60,10 +57,14 @@ namespace YoutubeMusicBot.Infrastructure
                 if (completedMatch.Success)
                 {
                     var fileName = completedMatch.Groups["file_name"].Value;
-                    var file = new FileInfoWrapper(
+                    var filePath = _fileSystem.JoinPath(pathToDownloadTo, fileName);
+                    var descriptionFileName = _fileSystem.ChangeExtension(fileName, "description");
+                    var descriptionFilePath = _fileSystem.JoinPath(
                         pathToDownloadTo,
-                        fileName);
-                    yield return new FileLoadedResult(file);
+                        descriptionFileName);
+                    if (!_fileSystem.IsFileExists(descriptionFilePath))
+                        descriptionFilePath = null;
+                    yield return new FileLoadedResult(filePath, descriptionFilePath);
                     continue;
                 }
             }

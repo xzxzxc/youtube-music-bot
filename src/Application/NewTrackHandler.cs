@@ -49,7 +49,7 @@ namespace YoutubeMusicBot.Application
 
             _descriptionFile = _descriptionService.GetFileOrNull(file);
 
-            var fileIsTooLarge = file.Length > _botOptions.CurrentValue.MaxFileBytesCount;
+            var fileIsTooLarge = file.Length > _botOptions.CurrentValue.FileBytesLimit;
             if (!request.SkipSplit)
             {
                 var split = await _mediator.Send<TrySplitHandler.Request, bool>(

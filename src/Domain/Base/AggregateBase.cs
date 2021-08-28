@@ -13,7 +13,7 @@ namespace YoutubeMusicBot.Domain.Base
         public static void Initialize(long minId) =>
             _currentSequenceId = minId;
 
-        private readonly ConcurrentBag<EventBase<TAggregate>> _uncommittedEvents = new();
+        private readonly List<EventBase<TAggregate>> _uncommittedEvents = new();
         private long? _id;
 
         public long Id

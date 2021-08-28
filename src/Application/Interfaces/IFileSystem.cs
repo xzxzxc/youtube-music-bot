@@ -1,7 +1,29 @@
-﻿namespace YoutubeMusicBot.Application.Interfaces
+﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace YoutubeMusicBot.Application.Interfaces
 {
     public interface IFileSystem
     {
-        string CreateTempFolder<T>(T folderId);
+        string GetOrCreateTempFolder<T>(T folderId);
+
+        void RemoveTempFolderAndContent<T>(T folderId);
+
+        Task<string> GetFileTextAsync(string filePath, CancellationToken cancellationToken);
+
+        long GetFileBytesCount(string filePath);
+
+        Stream OpenReadStream(string filePath);
+
+        string GetFileName(string filePath);
+
+        string GetFileDirectoryPath(string filePath);
+
+        string JoinPath(params string[] pathParts);
+
+        string ChangeExtension(string fileName, string extension);
+
+        bool IsFileExists(string filePath);
     }
 }

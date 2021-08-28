@@ -33,17 +33,18 @@ namespace Console.IntegrationTest
         }
 
         [Test]
+        [Order(0)]
         [Timeout(120_000)] // 2 minutes
-        [TestCaseSource(nameof(TestCases))]
+        [TestCaseSource(nameof(SimpleTestCases))]
         public async Task ShouldUploadAudioOnEcho(
             string url,
-            IReadOnlyCollection<ExpectedTrack> expectedFiles)
+            IReadOnlyCollection<ExpectedTrack> expectedTracks)
         {
             await TgClient.SendMessageAsync(_botUser, url);
 
             int? lastMessageId = default;
 
-            foreach (var expectedFile in expectedFiles)
+            foreach (var expectedFile in expectedTracks)
             {
                 while (true)
                 {
@@ -53,46 +54,58 @@ namespace Console.IntegrationTest
                     var messages = await TgClient.GetHistoryMessages(
                         _botUser,
                         minId: lastMessageId);
-                    lastMessageId = messages.FirstOrDefault()?.Id ?? lastMessageId;
+                    var message = messages.LastOrDefault();
+                    if (message == null)
+                        continue;
 
-                    var res = CheckMessageCameIn(messages, expectedFile);
-                    if (res)
-                        break;
+                    lastMessageId = message.Id;
+
+                    var lastMessageMedia = message.Media as TLMessageMediaDocument;
+                    if (lastMessageMedia == null)
+                        continue;
+
+                    var document = (TLDocument)lastMessageMedia.Document;
+                    var audioAttribute = document.Attributes
+                        .OfType<TLDocumentAttributeAudio>()
+                        .FirstOrDefault();
+                    if (audioAttribute == null)
+                        continue;
+
+                    audioAttribute.Title.Should().Be(expectedFile.Title);
+                    audioAttribute.Performer.Should().Be(expectedFile.Author);
+                    audioAttribute.Duration.Should().Be((int)expectedFile.Duration.TotalSeconds);
+
+                    break;
                 }
             }
 
+            // give some time for all evens to be finished
+            await Task.Delay(2.Seconds());
             CheckCacheDirectoryIsEmpty();
+            var afterAnswerMessages = await TgClient.GetHistoryMessages(_botUser);
+            afterAnswerMessages.Should()
+                .NotContain(
+                    m => (m.FromId ?? 0) == _botUser.UserId
+                        && m.Media == null);
         }
-
-        private static bool CheckMessageCameIn(
-            IEnumerable<TLMessage> messages,
-            ExpectedTrack expectedTrack)
-        {
-            foreach (var message in messages)
-            {
-                var lastMessageMedia = message.Media as TLMessageMediaDocument;
-                if (lastMessageMedia == null)
-                    continue;
-
-                var document = (TLDocument)lastMessageMedia.Document;
-                var audioAttribute = document.Attributes
-                    .OfType<TLDocumentAttributeAudio>()
-                    .FirstOrDefault();
-                if (audioAttribute == null)
-                    continue;
-
-                audioAttribute.Title.Should().Be(expectedTrack.Title);
-                audioAttribute.Performer.Should().Be(expectedTrack.Author);
-                audioAttribute.Duration.Should().Be((int)expectedTrack.Duration.TotalSeconds);
-
-                return true;
-            }
-
-            return false;
-        }
-
 
         [Test]
+        // this test must be the last one because it changes static Options
+        [Order(Int32.MaxValue)]
+        [Timeout(120_000)] // 2 minutes
+        [TestCaseSource(nameof(TestCasesWithTgLimits))]
+        public async Task ShouldUploadAudioOnEchoWithTgLimits(
+            string url,
+            IReadOnlyCollection<ExpectedTrack> expectedTracks,
+            long fileBytesLimit)
+        {
+            BotOptions.FileBytesLimit = fileBytesLimit;
+
+            await ShouldUploadAudioOnEcho(url, expectedTracks);
+        }
+
+        [Test]
+        [Order(0)]
         [Timeout(30_000)] // 30 seconds
         [TestCase("https://youtu.be/wuROIJ0tRPU")]
         public async Task ShouldCancelLoadingUsingButton(string url)
@@ -141,14 +154,19 @@ namespace Console.IntegrationTest
                 break;
             }
 
+            // give some time for all evens to be finished
+            await Task.Delay(2.Seconds());
+
+            CheckNoErrorsLogged();
             messages = await TgClient.GetHistoryMessages(_botUser, minId: lastMessageId);
-            messages.Should().NotContain(m => m.FromId == _botUser.UserId);
+            // TODO: fix removing PrecessMessageId on cancel
+            messages.Should().NotContain(m => (m.FromId ?? 0) == _botUser.UserId);
 
             // TODO: fix this and rewrite tear down to delete full directory recursive
-            // CheckCacheDirectoryIsEmpty();
+            CheckCacheDirectoryIsEmpty();
         }
 
-        public static IEnumerable<TestCaseData> TestCases()
+        public static IEnumerable<TestCaseData> SimpleTestCases()
         {
             yield return new TestCaseData(
                 "https://youtu.be/wuROIJ0tRPU",
@@ -206,6 +224,26 @@ namespace Console.IntegrationTest
                         "Україна Кокаїна",
                         "Remafo",
                         TimeSpan.Parse("00:02:32")))) { TestName = "Youtube playlist", };
+        }
+
+        public static IEnumerable<TestCaseData> TestCasesWithTgLimits()
+        {
+            yield return new TestCaseData(
+                "https://youtu.be/Ih-ogf9acqI",
+                ImmutableArray.Create(
+                    new ExpectedTrack(
+                        "Останній танець",
+                        "Паліндром",
+                        TimeSpan.Parse("00:01:54")),
+                    new ExpectedTrack(
+                        "Останній танець",
+                        "Паліндром",
+                        TimeSpan.Parse("00:01:54")),
+                    new ExpectedTrack(
+                        "Останній танець",
+                        "Паліндром",
+                        TimeSpan.Parse("00:00:36"))),
+                3654400L) { TestName = "Split by silence then into equal parts", };
         }
 
         [TearDown]

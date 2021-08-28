@@ -14,7 +14,7 @@ using YoutubeMusicBot.UnitTests.Extensions;
 
 namespace YoutubeMusicBot.UnitTests
 {
-    public class MessageCreatedEventHandlerTests
+    public class MessageCreatedHandlerTests
     {
         [Test]
         [CustomAutoData]
@@ -22,7 +22,7 @@ namespace YoutubeMusicBot.UnitTests
         {
             @event.Aggregate.ClearUncommittedEvents();
             var container = AutoMockContainerFactory.Create();
-            var sut = container.Create<MessageCreatedEventHandler>();
+            var sut = container.Create<MessageCreatedHandler>();
             container.Mock<IValidator<Message>>()
                 .Setup(v => v.ValidateAsync(@event.Aggregate, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ValidationResult());
@@ -45,7 +45,7 @@ namespace YoutubeMusicBot.UnitTests
         {
             @event.Aggregate.ClearUncommittedEvents();
             var container = AutoMockContainerFactory.Create();
-            var sut = container.Create<MessageCreatedEventHandler>();
+            var sut = container.Create<MessageCreatedHandler>();
             container.Mock<IValidator<Message>>()
                 .Setup(v => v.ValidateAsync(@event.Aggregate, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(

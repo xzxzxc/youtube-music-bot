@@ -48,7 +48,7 @@ namespace YoutubeMusicBot.Application.EventSourcing
             return aggregate;
         }
 
-        public async Task SaveAsync(
+        public async Task SaveAndEmitEventsAsync(
             TAggregate aggregate,
             CancellationToken cancellationToken = default)
         {

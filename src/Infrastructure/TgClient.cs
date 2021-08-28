@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -34,13 +35,12 @@ namespace YoutubeMusicBot.Infrastructure
 
         public async Task<MessageModel> SendAudioAsync(
             long chatId,
-            IFileInfo audio,
+            Stream fileReadStream,
+            string title,
             CancellationToken cancellationToken = default)
         {
-            await using var fileStream = audio.OpenRead();
-            var inputMedia = new InputMedia(
-                fileStream,
-                audio.Name);
+            await using var _ = fileReadStream;
+            var inputMedia = new InputMedia(fileReadStream, title);
             return await Invoke(
                 () => _telegramBotClient.SendAudioAsync(
                     chatId,

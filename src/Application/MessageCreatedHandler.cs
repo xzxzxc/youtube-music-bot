@@ -7,12 +7,12 @@ using YoutubeMusicBot.Domain;
 
 namespace YoutubeMusicBot.Application
 {
-    public class MessageCreatedEventHandler : IEventHandler<MessageCreatedEvent, Message>
+    public class MessageCreatedHandler : IEventHandler<MessageCreatedEvent, Message>
     {
         private readonly IValidator<Message> _validator;
         private readonly IRepository<Message> _repository;
 
-        public MessageCreatedEventHandler(
+        public MessageCreatedHandler(
             IValidator<Message> validator,
             IRepository<Message> repository)
         {
@@ -21,10 +21,10 @@ namespace YoutubeMusicBot.Application
         }
 
         public async ValueTask Handle(
-            MessageCreatedEvent notification,
+            MessageCreatedEvent @event,
             CancellationToken cancellationToken = default)
         {
-            var message = notification.Aggregate;
+            var message = @event.Aggregate;
             var validationResult = await _validator.ValidateAsync(
                 message,
                 cancellationToken);
@@ -38,7 +38,7 @@ namespace YoutubeMusicBot.Application
                 message.Invalid(string.Join('\n', validationResult.Errors));
             }
 
-            await _repository.SaveAsync(message, cancellationToken);
+            await _repository.SaveAndEmitEventsAsync(message, cancellationToken);
         }
     }
 }

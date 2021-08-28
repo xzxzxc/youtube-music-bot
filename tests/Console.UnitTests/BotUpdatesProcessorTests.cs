@@ -22,8 +22,7 @@ namespace Console.UnitTests
         public async Task ShouldSendMessageRequest()
         {
             var cancellationToken = new CancellationToken();
-            var fixture = AutoFixtureFactory.Create();
-            var messageUpdate = fixture.Build<Update>()
+            var messageUpdate = AutoFixtureFactory.Create().Build<Update>()
                 .OmitAutoProperties()
                 .With(c => c.Id)
                 .With(c => c.Message)
@@ -57,11 +56,10 @@ namespace Console.UnitTests
         }
 
         [Test]
-        public async Task ShouldSendCallbackRequest()
+        public async Task ShouldSendCallbackRequestIfEaArchitectureDisabled()
         {
             var cancellationToken = new CancellationToken();
-            var fixture = AutoFixtureFactory.Create();
-            var callbackUpdate = fixture.Build<Update>()
+            var callbackUpdate = AutoFixtureFactory.Create().Build<Update>()
                 .OmitAutoProperties()
                 .With(c => c.Id)
                 .With(c => c.CallbackQuery)
@@ -80,17 +78,23 @@ namespace Console.UnitTests
 
             await sut.ProcessUpdatesAsync(cancellationToken);
 
-            CallbackQueryHandler.Request? sentRequest = null;
-            var match = new CaptureMatch<CallbackQueryHandler.Request>(c => sentRequest = c);
+            var capture = new LazyCapture<CallbackQueryHandler.Request>();
             container.Mock<IMediator>()
                 .Verify(
-                    s => s.Send(Capture.With(match), It.IsAny<CancellationToken>()),
+                    s => s.Send(Capture.With(capture.Match), It.IsAny<CancellationToken>()),
                     Times.Once);
-            sentRequest.Should().NotBeNull();
-            sentRequest!.Value.Should().NotBeNull();
-            sentRequest!.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
-            sentRequest!.Value.Chat.Should().NotBeNull();
+            var sentRequest = capture.Value;
+            sentRequest.Value.Should().NotBeNull();
+            sentRequest.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
+            sentRequest.Value.Chat.Should().NotBeNull();
             sentRequest.Value.Chat.Id.Should().Be(callbackUpdate.CallbackQuery.Message.Chat.Id);
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldCatchAndLogException()
+        {
+            // TODO: add test
         }
     }
 }

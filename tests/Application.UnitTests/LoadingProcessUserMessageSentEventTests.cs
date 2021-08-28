@@ -23,11 +23,27 @@ namespace YoutubeMusicBot.UnitTests
     {
         [Test]
         [CustomAutoData]
+        public async Task ShouldCreateTempFolder(
+            LoadingProcessMessageSentEvent @event,
+            string cacheFolder)
+        {
+            using var container = CreateContainerFor(@event, cacheFolder: cacheFolder);
+            var sut = container.Create<LoadingProcessUserMessageSentHandler>();
+
+            await sut.Handle(@event);
+        }
+
+        [Test]
+        [CustomAutoData]
         public async Task ShouldUpdateUserMessageOnTrackRawTitleParsed(
             LoadingProcessMessageSentEvent @event,
+            string callbackData,
             IReadOnlyList<RawTitleParsedResult> titles)
         {
             using var container = CreateContainerFor(@event, titles);
+            container.Mock<ICallbackDataFactory>()
+                .Setup(c => c.CreateForCancel(@event))
+                .Returns(callbackData);
             var sut = container.Create<LoadingProcessUserMessageSentHandler>();
 
             await sut.Handle(@event);
@@ -44,50 +60,76 @@ namespace YoutubeMusicBot.UnitTests
                             Capture.With(lazyCapture.Match),
                             It.IsAny<CancellationToken>()),
                         Times.Once);
-                lazyCapture.Value.VerifyCancelButton(@event);
+                lazyCapture.Value.VerifyCancelButton(callbackData);
             }
         }
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldRaiseNewTrackOnEachNewTrackLoaded(
+        public async Task ShouldRaiseMusicFileCreatedOnEachTrackLoaded(
             LoadingProcessMessageSentEvent @event,
             string cacheFolder,
             IReadOnlyList<FileLoadedResult> tracks)
         {
+            @event.Aggregate.ClearUncommittedEvents();
             using var container = CreateContainerFor(@event, tracks);
             var sut = container.Create<LoadingProcessUserMessageSentHandler>();
 
             await sut.Handle(@event);
 
             var uncommittedEvents = @event.Aggregate.GetUncommittedEvents();
-            foreach (var (uncommittedEvent, file) in uncommittedEvents.Zip(
-                tracks.Select(t => t.Value)))
+            foreach (var (resEvent, (musicFile, descrFile)) in uncommittedEvents.Zip(tracks))
             {
-                uncommittedEvent.Should()
-                    .BeOfType<NewMusicFileEvent>()
-                    .Which.FullPath.Should()
-                    .Be(file.FullName);
+                var musicFileCreatedEvent = resEvent.Should()
+                    .BeOfType<MusicFileCreatedEvent>()
+                    .Which;
+                musicFileCreatedEvent.MusicFilePath.Should().Be(musicFile);
+                musicFileCreatedEvent.DescriptionFilePath.Should().Be(descrFile);
             }
-            container.VerifyMessageSaved(@event.Aggregate, Times.Exactly(tracks.Count));
+
+            container.VerifyMessageSaved(@event.Aggregate, Times.AtLeast(tracks.Count));
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldRaiseMessageFinishedEvent(
+            LoadingProcessMessageSentEvent @event)
+        {
+            @event.Aggregate.ClearUncommittedEvents();
+            using var container = CreateContainerFor(@event);
+            var sut = container.Create<LoadingProcessUserMessageSentHandler>();
+
+            await sut.Handle(@event);
+
+            var lastEvent = @event.Aggregate.GetUncommittedEvents().LastOrDefault();
+            lastEvent.Should().NotBeNull();
+            lastEvent.Should().BeOfType<MessageFinishedEvent>();
+            container.VerifyMessageSaved(@event.Aggregate);
         }
 
         private static AutoMock CreateContainerFor(
             LoadingProcessMessageSentEvent messageValidEvent,
-            IReadOnlyList<IDownloadResult> tracks)
+            IReadOnlyList<IDownloadResult>? tracks = null,
+            string? cacheFolder = null)
         {
-            var cacheFolder = AutoFixtureFactory.Create().Create<string>();
+            cacheFolder ??= AutoFixtureFactory.Create().Create<string>();
             var res = AutoMockContainerFactory.Create();
+
             res.Mock<IFileSystem>()
-                .Setup(s => s.CreateTempFolder($"{messageValidEvent.Id}"))
+                .Setup(s => s.GetOrCreateTempFolder(messageValidEvent.AggregateId))
                 .Returns(cacheFolder);
-            res.Mock<IYoutubeDownloader>()
-                .Setup(
-                    y => y.DownloadAsync(
-                        cacheFolder,
-                        messageValidEvent.Aggregate.Text,
-                        It.IsAny<CancellationToken>()))
-                .Returns(tracks.ToAsyncEnumerable());
+
+            if (tracks != null)
+            {
+                res.Mock<IYoutubeDownloader>()
+                    .Setup(
+                        y => y.DownloadAsync(
+                            cacheFolder,
+                            messageValidEvent.Aggregate.Text,
+                            It.IsAny<CancellationToken>()))
+                    .Returns(tracks.ToAsyncEnumerable());
+            }
+
             return res;
         }
     }

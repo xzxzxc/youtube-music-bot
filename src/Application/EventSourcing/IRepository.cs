@@ -9,6 +9,6 @@ namespace YoutubeMusicBot.Application.EventSourcing
     {
         Task<TAggregate> GetByIdAsync(long id, CancellationToken cancellationToken);
 
-        Task SaveAsync(TAggregate aggregate, CancellationToken cancellationToken);
+        Task SaveAndEmitEventsAsync(TAggregate aggregate, CancellationToken cancellationToken);
     }
 }

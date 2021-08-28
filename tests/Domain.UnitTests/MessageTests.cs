@@ -84,23 +84,29 @@ namespace Domain.UnitTests
 
         [Test]
         [CustomAutoData]
-        public void ShouldRaiseNewMusicFileEvent(
+        public void ShouldRaiseMusicFileCreatedEvent(
             Message sut,
-            string fileFullPath)
+            string fileFullPath,
+            string? descriptionFilePath)
         {
             sut.ClearUncommittedEvents();
 
-            sut.NewMusicFile(fileFullPath);
+            sut.MusicFileCreated(fileFullPath, descriptionFilePath);
 
             var @event = sut.GetUncommittedEvents()
                 .Should()
                 .ContainSingle()
                 .Which.Should()
-                .BeOfType<NewMusicFileEvent>()
+                .BeOfType<MusicFileCreatedEvent>()
                 .Which;
             VerifyEventAggregateFields(@event, sut);
-            @event.FullPath.Should().Be(fileFullPath);
-            sut.Files.Should().Contain(f => f.FullPath == fileFullPath);
+            @event.MusicFilePath.Should().Be(fileFullPath);
+            @event.DescriptionFilePath.Should().Be(descriptionFilePath);
+            sut.CreatedMusicFiles.Should().ContainEquivalentOf(new
+            {
+                FullPath = fileFullPath,
+                DescriptionFilePath = descriptionFilePath,
+            });
         }
 
         private static void VerifyEventAggregateFields(EventBase<Message> @event, Message message)
