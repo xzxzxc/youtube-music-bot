@@ -7,7 +7,7 @@ namespace Domain.UnitTests
         [Test]
         public void AllAggregatesShouldHavePrivateConstructors()
         {
-
+            // TODO:
         }
     }
 }

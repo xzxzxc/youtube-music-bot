@@ -15,7 +15,7 @@ using YoutubeMusicBot.Application.Interfaces.Wrappers;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Tests.Common;
-using YoutubeMusicBot.UnitTests.Helpers;
+using YoutubeMusicBot.UnitTests.Extensions;
 
 namespace YoutubeMusicBot.UnitTests
 {
@@ -51,6 +51,7 @@ namespace YoutubeMusicBot.UnitTests
                 .BeOfType<LoadingProcessMessageSentEvent>()
                 .Which.MessageId.Should()
                 .Be(loadingProcessMessage.Id);
+            container.VerifyMessageSaved(@event.Aggregate);
         }
 
 

@@ -15,7 +15,7 @@ using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Models.YoutubeDownloader;
 using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Tests.Common;
-using YoutubeMusicBot.UnitTests.Helpers;
+using YoutubeMusicBot.UnitTests.Extensions;
 
 namespace YoutubeMusicBot.UnitTests
 {
@@ -69,6 +69,7 @@ namespace YoutubeMusicBot.UnitTests
                     .Which.FullPath.Should()
                     .Be(file.FullName);
             }
+            container.VerifyMessageSaved(@event.Aggregate, Times.Exactly(tracks.Count));
         }
 
         private static AutoMock CreateContainerFor(

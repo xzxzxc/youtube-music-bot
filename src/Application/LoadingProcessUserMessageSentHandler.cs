@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Application.Helpers;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Interfaces.Wrappers;
@@ -17,15 +18,18 @@ namespace YoutubeMusicBot.Application
         private readonly ITgClient _tgClient;
         private readonly IYoutubeDownloader _downloader;
         private readonly IFileSystem _fileSystem;
+        private readonly IRepository<Message> _repository;
 
         public LoadingProcessUserMessageSentHandler(
             ITgClient tgClient,
             IYoutubeDownloader downloader,
-            IFileSystem fileSystem)
+            IFileSystem fileSystem,
+            IRepository<Message> repository)
         {
             _tgClient = tgClient;
             _downloader = downloader;
             _fileSystem = fileSystem;
+            _repository = repository;
         }
 
         public async ValueTask Handle(
@@ -41,7 +45,8 @@ namespace YoutubeMusicBot.Application
                 switch (res)
                 {
                     case FileLoadedResult fileLoaded:
-                        @event.Aggregate.FileLoaded(fileLoaded.Value.FullName);
+                        @event.Aggregate.NewMusicFile(fileLoaded.Value.FullName);
+                        await _repository.SaveAsync(@event.Aggregate, cancellationToken);
                         continue;
                     case RawTitleParsedResult titleParsed:
                         await _tgClient.UpdateMessageAsync(

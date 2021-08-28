@@ -22,6 +22,8 @@ namespace YoutubeMusicBot.Domain
 
         public bool? IsValid { get; private set; }
 
+        public int? ProcessMessageId { get; private set; }
+
         public ICollection<File> Files { get; } = new List<File>();
 
         public void Valid()
@@ -39,7 +41,7 @@ namespace YoutubeMusicBot.Domain
             RaiseEvent(new LoadingProcessMessageSentEvent(messageId));
         }
 
-        public void FileLoaded(string fileFullPath)
+        public void NewMusicFile(string fileFullPath)
         {
             RaiseEvent(new NewMusicFileEvent(fileFullPath));
         }
@@ -62,13 +64,14 @@ namespace YoutubeMusicBot.Domain
             IsValid = false;
         }
 
+        public void Apply(LoadingProcessMessageSentEvent @event)
+        {
+            ProcessMessageId = @event.MessageId;
+        }
+
         public void Apply(NewMusicFileEvent @event)
         {
             Files.Add(new File(@event.FullPath));
-        }
-
-        public void Apply(LoadingProcessMessageSentEvent @event)
-        {
         }
     }
 

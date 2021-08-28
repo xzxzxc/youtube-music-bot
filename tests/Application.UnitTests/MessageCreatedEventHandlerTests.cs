@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Autofac.Extras.Moq;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -9,6 +10,7 @@ using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.UnitTests.Extensions;
 
 namespace YoutubeMusicBot.UnitTests
 {
@@ -32,11 +34,7 @@ namespace YoutubeMusicBot.UnitTests
                 .ContainSingle()
                 .Which.Should()
                 .BeOfType<MessageValidEvent>();
-            @event.Aggregate.IsValid.Should().BeTrue();
-            container.Mock<IRepository<Message>>()
-                .Verify(
-                    r => r.SaveAsync(@event.Aggregate, It.IsAny<CancellationToken>()),
-                    Times.Once);
+            container.VerifyMessageSaved(@event.Aggregate);
         }
 
         [Test]
@@ -68,11 +66,7 @@ namespace YoutubeMusicBot.UnitTests
                 .BeOfType<MessageInvalidEvent>()
                 .Which.ValidationMessage.Should()
                 .Be(validationMessage);
-            @event.Aggregate.IsValid.Should().BeFalse();
-            container.Mock<IRepository<Message>>()
-                .Verify(
-                    r => r.SaveAsync(@event.Aggregate, It.IsAny<CancellationToken>()),
-                    Times.Once);
+            container.VerifyMessageSaved(@event.Aggregate);
         }
     }
 }

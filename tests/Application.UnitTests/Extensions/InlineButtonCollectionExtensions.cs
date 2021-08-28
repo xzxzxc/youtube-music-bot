@@ -1,10 +1,9 @@
 ﻿using FluentAssertions;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Application.Models;
-using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Domain.Base;
 
-namespace YoutubeMusicBot.UnitTests.Helpers
+namespace YoutubeMusicBot.UnitTests.Extensions
 {
     public static class InlineButtonCollectionExtensions
     {
