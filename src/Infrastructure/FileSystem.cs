@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -27,8 +29,24 @@ namespace YoutubeMusicBot.Infrastructure
             return folder.FullName;
         }
 
-        public void RemoveTempFolderAndContent<T>(T folderId) =>
-            Directory.Delete(GetTempFolderPath(folderId), recursive: true);
+        public async ValueTask RemoveTempFolderAndContent<T>(T folderId)
+        {
+            // TODO: add test for this
+            Stopwatch? stopwatch = null;
+            var directoryInfo = new DirectoryInfo(GetTempFolderPath(folderId));
+            while (!TryDeleteDirectory(directoryInfo))
+            {
+                stopwatch ??= Stopwatch.StartNew();
+                if (stopwatch.Elapsed > _options.CurrentValue.WaitLockTimeout)
+                {
+                    throw new InvalidOperationException(
+                        "Waiting for lock to be removed has timed out");
+                }
+
+                // give some time to get rid of lock
+                await Task.Delay(50);
+            }
+        }
 
         public Task<string> GetFileTextAsync(
             string filePath,
@@ -59,5 +77,19 @@ namespace YoutubeMusicBot.Infrastructure
 
         private string GetTempFolderPath<T>(T folderId) =>
             Path.Join(_options.CurrentValue.TempFolderPath, $"{folderId}");
+
+        private bool TryDeleteDirectory(DirectoryInfo directoryInfo)
+        {
+            try
+            {
+                directoryInfo.Delete(recursive: true);
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

@@ -26,13 +26,13 @@ namespace YoutubeMusicBot.Application
             MessageFinishedEvent @event,
             CancellationToken cancellationToken = default)
         {
-            _fileSystem.RemoveTempFolderAndContent(@event.AggregateId);
-
             if (@event.Aggregate.ProcessMessageId.HasValue)
                 await _tgClient.DeleteMessageAsync(
                     @event.Aggregate.ChatId,
                     @event.Aggregate.ProcessMessageId.Value,
                     cancellationToken);
+
+            await _fileSystem.RemoveTempFolderAndContent(@event.AggregateId);
         }
     }
 }

@@ -1,9 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Mediator;
+using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.UnitTests
@@ -12,19 +15,26 @@ namespace YoutubeMusicBot.UnitTests
     {
         [Test]
         [CustomAutoData]
-        public async Task ShouldCancel(
+        public async Task ShouldCallCancelMessageHandler(
             CallbackQueryHandler.Request request,
-            string eventCancellationId)
+            CancelResult<Message> cancelResult)
         {
             using var container = AutoMockContainerFactory.Create();
+            var sut = container.Create<CallbackQueryHandler>();
             container.Mock<ICallbackDataFactory>()
                 .Setup(c => c.Parse(request.Value.CallbackData!))
-                .Returns(new CancelResult(eventCancellationId));
-            var sut = container.Create<CallbackQueryHandler>();
+                .Returns(cancelResult);
 
             await sut.Handle(request);
 
-            container.Mock<IMediator>().Verify(m => m.Cancel(eventCancellationId), Times.Once);
+            var lazyCapture = new LazyCapture<CancelMessageHandler.Request>();
+            container.Mock<IMediator>()
+                .Verify(
+                    m => m.Send(
+                        Capture.With(lazyCapture.Match),
+                        It.IsAny<CancellationToken>()),
+                    Times.Once);
+            lazyCapture.Value.MessageId.Should().Be(cancelResult.AggregateId);
         }
     }
 }

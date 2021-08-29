@@ -56,60 +56,59 @@ namespace YoutubeMusicBot.Application
             using var process = new Process { StartInfo = processInfo, };
             process.Start();
 
-            var onCancelTaskSource = new TaskCompletionSource();
-            cancellationToken.Register(() => onCancelTaskSource.SetCanceled(cancellationToken));
-
-
-            Task<string?>? readOutputTask = null;
-            Task<string?>? readErrorTask = null;
+            Task<string?> readOutputTask = process.StandardOutput.ReadLineAsync();
+            Task<string?> readErrorTask = process.StandardError.ReadLineAsync();
+            var outResultNull = false;
+            var errResultNull = false;
             while (true)
             {
                 if (cancellationToken.IsCancellationRequested)
-                    break;
-
-                if ((readOutputTask?.Result == null && process.StandardOutput.EndOfStream)
-                    && (readErrorTask?.Result == null && process.StandardError.EndOfStream))
                 {
+                    process.Kill();
+                    cancellationToken.ThrowIfCancellationRequested();
                     break;
                 }
 
-                readOutputTask ??= process.StandardOutput.ReadLineAsync();
-                readErrorTask ??= process.StandardError.ReadLineAsync();
+                if (outResultNull && errResultNull)
+                    break;
 
                 var resTask = await Task.WhenAny(
+                    Task.Delay(Timeout.Infinite, cancellationToken),
                     readErrorTask,
-                    readOutputTask,
-                    onCancelTaskSource.Task);
+                    readOutputTask);
 
                 if (resTask == readErrorTask)
                 {
                     var line = readErrorTask.Result;
-                    if (!string.IsNullOrEmpty(line))
+                    errResultNull = line == null;
+                    if (!errResultNull)
                     {
-                        _logger.LogError("Got {Error}", line); // TODO: do it by flag
-                        yield return new(line, IsError: true);
+                        _logger.LogError("Got {Error}", line);
+                        yield return new(line!, IsError: true);
                     }
 
-                    readErrorTask = null;
+                    readErrorTask = process.StandardError.ReadLineAsync();
                 }
                 else if (resTask == readOutputTask)
                 {
                     var line = readOutputTask.Result;
-                    if (!string.IsNullOrEmpty(line))
+                    outResultNull = line == null;
+                    if (!outResultNull)
                     {
                         _logger.LogInformation("Got {Output}", line);
-                        yield return new(line);
+                        yield return new(line!);
                     }
 
-                    readOutputTask = null;
+                    readOutputTask = process.StandardOutput.ReadLineAsync();
                 }
                 else
                 {
                     process.Kill();
 
-                    // throws TaskCancelledException
+                    // throws OperationCancelledException
                     await resTask;
                 }
+
             }
 
             await process.WaitForExitAsync(cancellationToken);

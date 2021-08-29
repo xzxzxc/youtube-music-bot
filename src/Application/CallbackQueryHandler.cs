@@ -6,6 +6,7 @@ using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Options;
+using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Domain.Enums;
 
 namespace YoutubeMusicBot.Application
@@ -47,8 +48,10 @@ namespace YoutubeMusicBot.Application
                 var parseResult = _callbackDataFactory.Parse(request.Value.CallbackData);
                 switch (parseResult)
                 {
-                    case CancelResult cancelResult:
-                        _mediator.Cancel(cancelResult.EventCancellationId);
+                    case CancelResult<Message> cancelMessageResult:
+                        await _mediator.Send(
+                            new CancelMessageHandler.Request(cancelMessageResult.AggregateId),
+                            cancellationToken);
                         break;
                     default:
                         var type = parseResult.GetType();

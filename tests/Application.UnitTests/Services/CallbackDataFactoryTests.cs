@@ -1,8 +1,11 @@
-﻿using FluentAssertions;
+﻿using System.Reflection;
+using Autofac;
+using FluentAssertions;
 using NUnit.Framework;
+using YoutubeMusicBot.Application.DependencyInjection;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Services;
-using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.Domain.Base;
 using YoutubeMusicBot.Tests.Common;
 
 namespace YoutubeMusicBot.UnitTests.Services
@@ -11,29 +14,26 @@ namespace YoutubeMusicBot.UnitTests.Services
     {
         [Test]
         [CustomAutoData]
-        public void ShouldCreateForCancel(
-            MessageCreatedEvent @event)
+        public void ShouldParseCreatedForCancel(SimpleTestEvent @event)
         {
-            using var container = AutoMockContainerFactory.Create();
-            var sut = container.Create<CallbackDataFactory>();
+            using var container = AutoMockContainerFactory.Create(
+                b => b.RegisterModule(
+                    new CallbackDataModule(Assembly.GetExecutingAssembly())));
+            var sut = container.Container.Resolve<ICallbackDataFactory>();
+            var callbackData = sut.CreateForCancel(@event);
 
-            var res = sut.CreateForCancel(@event);
+            var result = sut.Parse(callbackData);
 
-            res.Should().Be($"c{@event.AggregateId}");
+            result.Should()
+                .BeOfType<CancelResult<TestAggregate>>()
+                .Which.AggregateId.Should()
+                .Be(@event.AggregateId);
         }
 
-        [Test]
-        [CustomAutoData]
-        public void ShouldParseCancel(
-            string eventCancellationId)
+        public class TestAggregate : AggregateBase<TestAggregate>
         {
-            using var container = AutoMockContainerFactory.Create();
-            var sut = container.Create<CallbackDataFactory>();
-
-            var res = sut.Parse($"c{eventCancellationId}");
-
-            res.Should().BeOfType<CancelResult>()
-                .Which.EventCancellationId.Should().Be(eventCancellationId);
         }
+
+        public record SimpleTestEvent : EventBase<TestAggregate>;
     }
 }

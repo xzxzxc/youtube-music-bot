@@ -93,7 +93,7 @@ namespace YoutubeMusicBot.Domain
 
         public void Apply(MessageFinishedEvent @event)
         {
-            // TODO:
+            // TODO: add test and status
         }
     }
 }

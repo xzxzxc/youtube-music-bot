@@ -9,7 +9,6 @@ using FluentAssertions.Extensions;
 using Moq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.DependencyInjection;
-using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Application.Mediator;
 using YoutubeMusicBot.Application.Mediator.Implementation;
 using YoutubeMusicBot.Domain.Base;
@@ -106,13 +105,14 @@ namespace YoutubeMusicBot.UnitTests.Services
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCancelRequestHandling(SimpleTestRequest request)
+        public async Task ShouldCancelRequestHandling(InfiniteHandleTestRequest request)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
             var sut = container.Create<MediatorService>();
             var source = new CancellationTokenSource();
-            var sendTask = new Func<Task>(() => sut.Send(request, source.Token).AsTask());
+            var task = Task.Run(() => sut.Send(request, source.Token).AsTask());
+            var sendTask = new Func<Task>(() => task);
 
             source.Cancel();
 
@@ -121,15 +121,19 @@ namespace YoutubeMusicBot.UnitTests.Services
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCancelRequestWithResponseHandling(TestRequestWithResponse request)
+        public async Task ShouldCancelRequestWithResponseHandling(
+            InfiniteHandleTestRequestWithResponse request)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
             var sut = container.Create<MediatorService>();
             var source = new CancellationTokenSource();
-            var sendTask = new Func<Task<Guid>>(
-                () => sut.Send<TestRequestWithResponse, Guid>(request, source.Token)
+            var task = Task.Run(
+                () => sut.Send<InfiniteHandleTestRequestWithResponse, object?>(
+                        request,
+                        source.Token)
                     .AsTask());
+            var sendTask = new Func<Task>(() => task);
 
             source.Cancel();
 
@@ -138,7 +142,8 @@ namespace YoutubeMusicBot.UnitTests.Services
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCancelEventHandlingUsingCancellationToken(InfiniteHandleTestEvent @event)
+        public async Task ShouldCancelEventHandlingUsingCancellationToken(
+            InfiniteHandleTestEvent @event)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
@@ -153,21 +158,36 @@ namespace YoutubeMusicBot.UnitTests.Services
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCancelEventHandlingUsingCancellationId(
-            InfiniteHandleTestEvent @event)
+        public async Task ShouldCancelEventHandlingUsingAggregateId(InfiniteHandleTestEvent @event)
         {
-            // TODO:
-            // var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
-            // using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            // var sut = container.Create<MediatorService>();
-            // var emitTask = sut.Emit(@event).AsTask();
-            //
-            // sut.Cancel(@event.GetCancellationId());
-            //
-            // Func<Task> getEmitTask = () => emitTask;
-            // Func<Task> getEmitWithinTask =
-            //     () => getEmitTask.Should().CompleteWithinAsync(1.Seconds());
-            // await getEmitWithinTask.Should().ThrowAsync<OperationCanceledException>();
+            var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
+            using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
+            var sut = container.Create<MediatorService>();
+            var emitTask = sut.Emit(@event).AsTask();
+
+            sut.Cancel<TestAggregate>(@event.AggregateId);
+
+            Func<Task> getEmitTask = () => emitTask;
+            Func<Task> getEmitWithinTask =
+                () => getEmitTask.Should().CompleteWithinAsync(1.Seconds());
+            await getEmitWithinTask.Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        [Test]
+        [CustomAutoData]
+        public async Task ShouldCancelNestedEventHandling(NestedEventTestEvent @event)
+        {
+            var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
+            using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
+            var sut = container.Container.Resolve<IMediator>();
+            var emitTask = sut.Emit(@event, default).AsTask();
+
+            sut.Cancel<TestAggregate>(@event.AggregateId);
+
+            Func<Task> getEmitTask = () => emitTask;
+            Func<Task> getEmitWithinTask =
+                () => getEmitTask.Should().CompleteWithinAsync(1.Seconds());
+            await getEmitWithinTask.Should().ThrowAsync<OperationCanceledException>();
         }
 
         public record SimpleTestRequest : IRequest;
@@ -181,7 +201,6 @@ namespace YoutubeMusicBot.UnitTests.Services
                 CancellationToken cancellationToken)
             {
                 Called = true;
-                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
@@ -195,8 +214,32 @@ namespace YoutubeMusicBot.UnitTests.Services
                 TestRequestWithResponse request,
                 CancellationToken cancellationToken)
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 return Response;
+            }
+        }
+
+        public record InfiniteHandleTestRequest : IRequest;
+
+        public class InfiniteHandleTestRequestHandler :
+            IRequestHandler<InfiniteHandleTestRequest>
+        {
+            public ValueTask Handle(
+                InfiniteHandleTestRequest request,
+                CancellationToken cancellationToken) =>
+                new(Task.Delay(Timeout.Infinite, cancellationToken));
+        }
+
+        public record InfiniteHandleTestRequestWithResponse : IRequest<object?>;
+
+        public class InfiniteHandleTestRequestWithResponseHandler :
+            IRequestHandler<InfiniteHandleTestRequestWithResponse, object?>
+        {
+            public async ValueTask<object?> Handle(
+                InfiniteHandleTestRequestWithResponse request,
+                CancellationToken cancellationToken)
+            {
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+                return null;
             }
         }
 
@@ -227,7 +270,32 @@ namespace YoutubeMusicBot.UnitTests.Services
                 InfiniteHandleTestEvent @event,
                 CancellationToken cancellationToken)
             {
-                await Task.Delay(-1, cancellationToken); // -1 is infinite
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+            }
+        }
+
+        public record NestedEventTestEvent : EventBase<TestAggregate>;
+
+        public class NestedEventTestEventHandler :
+            IEventHandler<NestedEventTestEvent, TestAggregate>
+        {
+            private readonly IMediator _mediator;
+
+            public NestedEventTestEventHandler(IMediator mediator)
+            {
+                _mediator = mediator;
+            }
+
+            public async ValueTask Handle(
+                NestedEventTestEvent @event,
+                CancellationToken cancellationToken)
+            {
+                await _mediator.Emit(
+                    new InfiniteHandleTestEvent
+                    {
+                        AggregateId = @event.AggregateId, Aggregate = @event.Aggregate
+                    },
+                    cancellationToken);
             }
         }
     }

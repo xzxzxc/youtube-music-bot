@@ -155,14 +155,11 @@ namespace Console.IntegrationTest
             }
 
             // give some time for all evens to be finished
-            await Task.Delay(2.Seconds());
+            await Task.Delay(3.Seconds());
 
             CheckNoErrorsLogged();
             messages = await TgClient.GetHistoryMessages(_botUser, minId: lastMessageId);
-            // TODO: fix removing PrecessMessageId on cancel
             messages.Should().NotContain(m => (m.FromId ?? 0) == _botUser.UserId);
-
-            // TODO: fix this and rewrite tear down to delete full directory recursive
             CheckCacheDirectoryIsEmpty();
         }
 

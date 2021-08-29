@@ -21,9 +21,6 @@ namespace YoutubeMusicBot.Application.DependencyInjection
 
             builder.RegisterType<TrackListParser>()
                 .AsImplementedInterfaces();
-
-            builder.RegisterType<CallbackDataFactory>()
-                .AsImplementedInterfaces();
         }
     }
 }

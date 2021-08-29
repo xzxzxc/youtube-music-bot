@@ -26,8 +26,6 @@ namespace Console.IntegrationTest
         public static readonly SplitOptions SplitOptions = new();
         public static Task HostRunTask = null!;
 
-        public static DirectoryInfo CacheFolder => new("cache_folder");
-
         public static TelegramClient TgClient { get; private set; } = null!;
 
         public static ILifetimeScope RootScope { get; private set; } = null!;
@@ -49,7 +47,7 @@ namespace Console.IntegrationTest
                     (_, b) =>
                     {
                         b.RegisterOptions(
-                            new FileSystemOptions { TempFolderPath = CacheFolder.FullName, });
+                            new FileSystemOptions { TempFolderPath = GerCacheFolder.FullName, });
                         b.RegisterOptions(
                             new FeatureOptions { EsArchitectureEnabled = true, });
                         b.RegisterOptions(BotOptions);
@@ -64,21 +62,19 @@ namespace Console.IntegrationTest
             HostRunTask = _hostInstance.RunAsync();
         }
 
+        // this is property on purpose
+        public static DirectoryInfo GerCacheFolder => new("cache_folder");
+
         public static void CheckCacheDirectoryIsEmpty()
         {
-            CacheFolder.EnumerateFiles("*", SearchOption.AllDirectories)
+            GerCacheFolder.EnumerateFiles("*", SearchOption.AllDirectories)
                 .Should()
                 .BeEmpty();
         }
 
         public static void CheckNoErrorsLogged()
         {
-            var innerExceptions = ThrowExceptionLogger.Errors
-                .Select(e => e.InnerException)
-                .Where(e => e != null);
-
-            innerExceptions.Should().BeEmpty();
-            ThrowExceptionLogger.Errors.Should().BeEmpty();
+            ThrowExceptionLogger.ThrowIfNotEmpty();
         }
 
         [OneTimeTearDown]
@@ -87,8 +83,8 @@ namespace Console.IntegrationTest
             _hostInstance.Dispose();
             TgClient.Dispose();
 
-            if (CacheFolder.Exists)
-                CacheFolder.Delete(recursive: true);
+            if (GerCacheFolder.Exists)
+                GerCacheFolder.Delete(recursive: true);
         }
     }
 }

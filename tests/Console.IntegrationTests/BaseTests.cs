@@ -14,25 +14,17 @@ namespace Console.IntegrationTest
         {
             ThrowExceptionLogger.Errors.Clear();
 
-            if (CacheFolder.Exists)
-                CacheFolder.Delete(recursive: true);
+            if (GerCacheFolder.Exists)
+                GerCacheFolder.Delete(recursive: true);
 
-            CacheFolder.Create();
+            GerCacheFolder.Create();
         }
 
         [TearDown]
         public virtual async ValueTask TearDown()
         {
-            if (CacheFolder.Exists)
-                CacheFolder.Delete(recursive: true);
-
-            // var filesFromPrevRun = CacheFolder.Exists
-            //     ? CacheFolder.EnumerateFiles(
-            //         "*",
-            //         SearchOption.AllDirectories)
-            //     : Enumerable.Empty<FileInfo>();
-            // foreach (var fileInfo in filesFromPrevRun)
-            //     fileInfo.Delete();
+            if (GerCacheFolder.Exists)
+                GerCacheFolder.Delete(recursive: true);
         }
     }
 }

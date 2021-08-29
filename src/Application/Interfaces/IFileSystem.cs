@@ -8,7 +8,7 @@ namespace YoutubeMusicBot.Application.Interfaces
     {
         string GetOrCreateTempFolder<T>(T folderId);
 
-        void RemoveTempFolderAndContent<T>(T folderId);
+        ValueTask RemoveTempFolderAndContent<T>(T folderId);
 
         Task<string> GetFileTextAsync(string filePath, CancellationToken cancellationToken);
 

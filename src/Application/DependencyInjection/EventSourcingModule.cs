@@ -1,8 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Autofac;
 using YoutubeMusicBot.Application.EventSourcing;
 using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Domain.Base;
+using Module = Autofac.Module;
 
 namespace YoutubeMusicBot.Application.DependencyInjection
 {
@@ -16,18 +20,26 @@ namespace YoutubeMusicBot.Application.DependencyInjection
                 .As(typeof(IRepository<>))
                 .AsSelf();
 
-            var aggregateTypes = typeof(AggregateBase<>).Assembly.GetTypes()
-                .Where(t => t.IsClass && !t.IsAbstract)
-                .Where(
-                    t => t.BaseType != null
-                        && t.BaseType.IsGenericType
-                        && t.BaseType.GetGenericTypeDefinition() == typeof(AggregateBase<>));
+            var aggregateTypes = GetAggregateTypes();
             foreach (var aggregateType in aggregateTypes)
             {
                 var repoType = typeof(EventSourcingRepository<>).MakeGenericType(aggregateType);
                 builder.Register(ctx => ctx.Resolve(repoType))
                     .As<IInitializable>();
             }
+        }
+
+        public static IEnumerable<Type> GetAggregateTypes(params Assembly[] assembliesToScan)
+        {
+            var aggregateTypes = assembliesToScan
+                .Append(typeof(AggregateBase<>).Assembly)
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.IsClass && !t.IsAbstract)
+                .Where(
+                    t => t.BaseType != null
+                        && t.BaseType.IsGenericType
+                        && t.BaseType.GetGenericTypeDefinition() == typeof(AggregateBase<>));
+            return aggregateTypes;
         }
     }
 }

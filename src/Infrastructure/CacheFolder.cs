@@ -16,7 +16,7 @@ namespace YoutubeMusicBot.Infrastructure
 				downloadOptions.CurrentValue.TempFolderPath,
 				$"{messageContext.UserMessage.Chat.Id}");
 
-			Directory.CreateDirectory(chatFolderPath);
+			// Directory.CreateDirectory(chatFolderPath);
 		}
 
 		public string Value { get; }

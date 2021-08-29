@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using YoutubeMusicBot.Application.Extensions;
-using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Application.Mediator.Implementation
@@ -13,13 +11,11 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
     public class MediatorService : IMediator
     {
         private readonly ILifetimeScope _scope;
-        private readonly ICallbackDataFactory _callbackDataFactory;
-        private readonly ConcurrentDictionary<string, Action> _cancellationActions = new();
+        private readonly ConcurrentDictionary<string, Action> _cancellationActionsCache = new();
 
-        public MediatorService(ILifetimeScope scope, ICallbackDataFactory callbackDataFactory)
+        public MediatorService(ILifetimeScope scope)
         {
             _scope = scope;
-            _callbackDataFactory = callbackDataFactory;
         }
 
         public async ValueTask Send<TRequest>(
@@ -47,10 +43,10 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
             CancellationToken cancellationToken = default)
             where TAggregate : AggregateBase<TAggregate>
         {
-            using var cancellationHolder = new CancellationHolder(
-                _callbackDataFactory.CreateForCancel(@event),
+            using var cancellationHolder = new CancellationHolder<TAggregate>(
+                @event,
                 cancellationToken,
-                _cancellationActions);
+                _cancellationActionsCache);
             var handlerType = typeof(IEventHandler<,>).MakeGenericType(
                 @event.GetType(),
                 typeof(TAggregate));
@@ -59,32 +55,32 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
             await handler.Handle((dynamic)@event, cancellationHolder.CancellationToken);
         }
 
-        public void Cancel(string eventCancellationId)
+        public void Cancel<TAggregate>(long aggregateId)
+            where TAggregate : AggregateBase<TAggregate>
         {
-            var cancellationAction = _cancellationActions[eventCancellationId];
+            var cancellationAction = CancellationHolder<TAggregate>.GetCancelAction(
+                aggregateId,
+                _cancellationActionsCache);
             cancellationAction();
         }
 
-        private class CancellationHolder : IDisposable
+        private class CancellationHolder<TAggregate> : IDisposable
+            where TAggregate : AggregateBase<TAggregate>
         {
-            private readonly string _eventCancellationId;
+            private readonly string _cacheKey;
             private readonly ConcurrentDictionary<string, Action> _cancellationActions;
             private readonly CancellationTokenSource _aggregateSource;
 
             public CancellationHolder(
-                string eventCancellationId,
+                EventBase<TAggregate> @event,
                 CancellationToken initialToken,
                 ConcurrentDictionary<string, Action> cancellationActions)
             {
-                _eventCancellationId = eventCancellationId;
                 _cancellationActions = cancellationActions;
+                _cacheKey = CreateCacheKey(@event.AggregateId);
                 _aggregateSource = CancellationTokenSource.CreateLinkedTokenSource(
                     initialToken);
-                _cancellationActions.AddOrUpdate(
-                    eventCancellationId,
-                    Cancel,
-                    (key, _) => throw new InvalidOperationException(
-                        $"There is value with the same key: {key}."));
+                _cancellationActions.GetOrAdd(_cacheKey, Cancel);
             }
 
             private void Cancel() =>
@@ -93,7 +89,18 @@ namespace YoutubeMusicBot.Application.Mediator.Implementation
             public CancellationToken CancellationToken => _aggregateSource.Token;
 
             public void Dispose() =>
-                _cancellationActions.Remove(_eventCancellationId, out _);
+                _cancellationActions.Remove(_cacheKey, out _);
+
+            public static Action GetCancelAction(
+                long aggregateId,
+                ConcurrentDictionary<string, Action> cancellationActionsCache)
+            {
+                var cacheKey = CreateCacheKey(aggregateId);
+                return cancellationActionsCache[cacheKey];
+            }
+
+            private static string CreateCacheKey(long aggregateId) =>
+                $"{typeof(TAggregate).Name}{aggregateId}";
         }
     }
 }

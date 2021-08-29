@@ -17,6 +17,7 @@ namespace YoutubeMusicBot.Application.Mediator
         ValueTask Emit<TAggregate>(EventBase<TAggregate> @event, CancellationToken cancellationToken)
             where TAggregate : AggregateBase<TAggregate>;
 
-        void Cancel(string eventCancellationId);
+        void Cancel<TAggregate>(long aggregateId)
+            where TAggregate : AggregateBase<TAggregate>;
     }
 }

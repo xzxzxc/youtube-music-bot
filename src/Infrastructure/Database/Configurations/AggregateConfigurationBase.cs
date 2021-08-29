@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Infrastructure.Database.Configurations
@@ -29,7 +30,7 @@ namespace YoutubeMusicBot.Infrastructure.Database.Configurations
 
             var discriminatorBuilder = builder.HasDiscriminator<int>("event_type");
             foreach (var eventType in EventTypes)
-                discriminatorBuilder.HasValue(eventType, eventType.Name.GetHashCode());
+                discriminatorBuilder.HasValue(eventType, eventType.Name.GetDeterministicHashCode());
             builder.HasIndex("event_type");
         }
     }
