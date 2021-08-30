@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Application.Models.Telegram;
@@ -21,7 +20,7 @@ namespace YoutubeMusicBot.Application.Services
 
         public ICallbackResult Parse(string callbackData)
         {
-            var bytes = Convert.FromBase64String(callbackData);
+            ReadOnlySpan<byte> bytes = Convert.FromBase64String(callbackData);
 
             var aggregateId = BitConverter.ToInt64(bytes[1..9]);
             var cacheKey = BitConverter.ToInt32(bytes[9..13]);
