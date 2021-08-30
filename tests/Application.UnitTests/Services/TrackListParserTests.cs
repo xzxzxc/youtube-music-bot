@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
-using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Models.Music;
 using YoutubeMusicBot.Application.Services;
 
-namespace YoutubeMusicBot.UnitTests.Services
+namespace YoutubeMusicBot.Application.UnitTests.Services
 {
 	[Parallelizable]
 	public class TrackListParserTests
@@ -14,7 +14,7 @@ namespace YoutubeMusicBot.UnitTests.Services
 		[TestCaseSource(nameof(ParseData))]
 		public void ShouldParseDescription(
 			string description,
-			IEnumerable<TrackModel> expectedModels)
+			IEnumerable<Track> expectedModels)
 		{
 			var parser = new TrackListParser();
 
@@ -32,11 +32,11 @@ namespace YoutubeMusicBot.UnitTests.Services
 01:07:05 test 3",
 				new[]
 				{
-					new TrackModel(TimeSpan.Zero, "test 1"),
-					new TrackModel(
+					new Track(TimeSpan.Zero, "test 1"),
+					new Track(
 						TimeSpan.FromMinutes(5) + TimeSpan.FromSeconds(2),
 						"test 2"),
-					new TrackModel(
+					new Track(
 						TimeSpan.FromHours(1)
 						+ TimeSpan.FromMinutes(7)
 						+ TimeSpan.FromSeconds(5),

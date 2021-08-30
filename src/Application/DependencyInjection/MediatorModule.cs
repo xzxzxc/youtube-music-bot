@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Autofac;
-using YoutubeMusicBot.Application.Mediator;
-using YoutubeMusicBot.Application.Mediator.Implementation;
+using YoutubeMusicBot.Application.Abstractions.Mediator;
+using YoutubeMusicBot.Application.Services;
 using Module = Autofac.Module;
 
 namespace YoutubeMusicBot.Application.DependencyInjection
@@ -20,14 +20,14 @@ namespace YoutubeMusicBot.Application.DependencyInjection
         {
             base.Load(builder);
 
-            builder.RegisterType<MediatorService>()
+            builder.RegisterType<Mediator>()
                 .AsImplementedInterfaces()
                 .SingleInstance();
 
             builder.RegisterAssemblyTypes(AssembliesToScan)
                 .AsClosedTypesOf(typeof(IEventHandler<,>));
             builder.RegisterAssemblyTypes(AssembliesToScan)
-                .AsClosedTypesOf(typeof(IRequestHandler<>));
+                .AsClosedTypesOf(typeof(ICommandHandler<>));
             builder.RegisterAssemblyTypes(AssembliesToScan)
                 .AsClosedTypesOf(typeof(IRequestHandler<,>));
         }

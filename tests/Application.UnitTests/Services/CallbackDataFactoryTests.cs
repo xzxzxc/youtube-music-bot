@@ -1,17 +1,22 @@
 ﻿using System.Reflection;
+using System.Text;
 using Autofac;
 using FluentAssertions;
 using NUnit.Framework;
+using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.DependencyInjection;
-using YoutubeMusicBot.Application.Interfaces;
-using YoutubeMusicBot.Application.Services;
+using YoutubeMusicBot.Application.Models.Telegram;
 using YoutubeMusicBot.Domain.Base;
-using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
-namespace YoutubeMusicBot.UnitTests.Services
+namespace YoutubeMusicBot.Application.UnitTests.Services
 {
+    [Parallelizable]
     public class CallbackDataFactoryTests
     {
+        private const int TelegramMaxCallbackDataSize = 64;
+
         [Test]
         [CustomAutoData]
         public void ShouldParseCreatedForCancel(SimpleTestEvent @event)
@@ -28,6 +33,9 @@ namespace YoutubeMusicBot.UnitTests.Services
                 .BeOfType<CancelResult<TestAggregate>>()
                 .Which.AggregateId.Should()
                 .Be(@event.AggregateId);
+            Encoding.Unicode.GetBytes(callbackData)
+                .Should()
+                .HaveCountLessOrEqualTo(TelegramMaxCallbackDataSize);
         }
 
         public class TestAggregate : AggregateBase<TestAggregate>

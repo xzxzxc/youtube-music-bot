@@ -8,7 +8,7 @@ using TeleSharp.TL.Messages;
 using TLSharp.Core;
 using TLSharp.Core.Network.Exceptions;
 
-namespace Console.IntegrationTest.Extensions
+namespace YoutubeMusicBot.Console.IntegrationTest.Extensions
 {
     public static class TelegramClientExtension
     {

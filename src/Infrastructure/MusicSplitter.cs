@@ -5,11 +5,14 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Application.Interfaces;
-using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Abstractions;
+using YoutubeMusicBot.Application.Abstractions.Music;
 using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Models.Music;
 using YoutubeMusicBot.Application.Options;
+using YoutubeMusicBot.Infrastructure.Abstractions;
+using YoutubeMusicBot.Infrastructure.Models.ProcessRuner;
+using YoutubeMusicBot.Infrastructure.Options;
 
 namespace YoutubeMusicBot.Infrastructure
 {
@@ -35,13 +38,13 @@ namespace YoutubeMusicBot.Infrastructure
 
         public IAsyncEnumerable<string> SplitAsync(
             string filePath,
-            IReadOnlyList<TrackModel> tracks,
+            IReadOnlyList<Track> tracks,
             CancellationToken cancellationToken = default)
         {
             var workingDirectory = _fileSystem.GetFileDirectoryPath(filePath);
             var fileName = _fileSystem.GetFileName(filePath);
             var lines = _processRunner.RunAsync(
-                new ProcessRunner.Request(
+                new ProcessOptions(
                     "mp3splt",
                     workingDirectory,
                     Arguments: new[]
@@ -71,7 +74,7 @@ namespace YoutubeMusicBot.Infrastructure
             var workingDirectory = _fileSystem.GetFileDirectoryPath(filePath);
             var fileName = _fileSystem.GetFileName(filePath);
             var lines = _processRunner.RunAsync(
-                new ProcessRunner.Request(
+                new ProcessOptions(
                     ProcessName: "mp3splt",
                     WorkingDirectory: workingDirectory,
                     "-s",
@@ -92,7 +95,7 @@ namespace YoutubeMusicBot.Infrastructure
             var workingDirectory = _fileSystem.GetFileDirectoryPath(filePath);
             var fileName = _fileSystem.GetFileName(filePath);
             var lines = _processRunner.RunAsync(
-                new ProcessRunner.Request(
+                new ProcessOptions(
                     ProcessName: "mp3splt",
                     WorkingDirectory: workingDirectory,
                     "-q",
@@ -105,7 +108,7 @@ namespace YoutubeMusicBot.Infrastructure
         }
 
         private async IAsyncEnumerable<string> GetFiles(
-            IAsyncEnumerable<ProcessRunner.Line> lines,
+            IAsyncEnumerable<ProcessResultLine> lines,
             string workingDirectory,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {

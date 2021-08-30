@@ -8,12 +8,13 @@ using NUnit.Framework;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Application.Mediator;
-using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.Application.Abstractions.Mediator;
+using YoutubeMusicBot.Application.CommandHandlers;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
+using YoutubeMusicBot.IntegrationTests.Common.Moq;
 
-namespace Console.UnitTests
+namespace YoutubeMusicBot.Console.UnitTests
 {
     [Parallelizable]
     public class BotUpdatesProcessorTests
@@ -41,18 +42,14 @@ namespace Console.UnitTests
 
             await sut.ProcessUpdatesAsync(cancellationToken);
 
-            MessageHandler.Request? sentRequest = null;
-            var match = new CaptureMatch<MessageHandler.Request>(c => sentRequest = c);
+            var lazyCapture = new LazyCapture<MessageHandler.Command>();
             container.Mock<IMediator>()
                 .Verify(
-                    m => m.Send(Capture.With(match), cancellationToken),
+                    m => m.Send(Capture.With(lazyCapture.Match), cancellationToken),
                     Times.Once);
-            sentRequest.Should().NotBeNull();
-            sentRequest!.Value.Should().NotBeNull();
-            sentRequest.Value.Id.Should().Be(messageUpdate.Message.MessageId);
-            sentRequest.Value.Text.Should().Be(messageUpdate.Message.Text);
-            sentRequest.Value.Chat.Should().NotBeNull();
-            sentRequest.Value.Chat.Id.Should().Be(messageUpdate.Message.Chat.Id);
+            lazyCapture.Value.MessageId.Should().Be(messageUpdate.Message.MessageId);
+            lazyCapture.Value.Text.Should().Be(messageUpdate.Message.Text);
+            lazyCapture.Value.ChatId.Should().Be(messageUpdate.Message.Chat.Id);
         }
 
         [Test]
@@ -78,16 +75,13 @@ namespace Console.UnitTests
 
             await sut.ProcessUpdatesAsync(cancellationToken);
 
-            var capture = new LazyCapture<CallbackQueryHandler.Request>();
+            var lazyCapture = new LazyCapture<CallbackQueryHandler.Command>();
             container.Mock<IMediator>()
                 .Verify(
-                    s => s.Send(Capture.With(capture.Match), It.IsAny<CancellationToken>()),
+                    s => s.Send(Capture.With(lazyCapture.Match), It.IsAny<CancellationToken>()),
                     Times.Once);
-            var sentRequest = capture.Value;
-            sentRequest.Value.Should().NotBeNull();
-            sentRequest.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
-            sentRequest.Value.Chat.Should().NotBeNull();
-            sentRequest.Value.Chat.Id.Should().Be(callbackUpdate.CallbackQuery.Message.Chat.Id);
+            lazyCapture.Value.Should().NotBeNull();
+            lazyCapture.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
         }
 
         [Test]

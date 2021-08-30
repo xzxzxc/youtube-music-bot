@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
 
-namespace YoutubeMusicBot.Tests.Common
+namespace YoutubeMusicBot.IntegrationTests.Common
 {
     public static class ThrowExceptionLogger
     {

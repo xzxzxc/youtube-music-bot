@@ -8,10 +8,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using YoutubeMusicBot.Application.Abstractions;
 using YoutubeMusicBot.Application.Extensions;
-using YoutubeMusicBot.Application.Interfaces;
 using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Infrastructure.Extensions;
+using YoutubeMusicBot.Infrastructure.Options;
 
 namespace YoutubeMusicBot.Console
 {

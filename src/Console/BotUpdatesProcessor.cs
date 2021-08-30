@@ -6,8 +6,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Application.Mediator;
-using YoutubeMusicBot.Infrastructure.Extensions;
+using YoutubeMusicBot.Application.Abstractions.Mediator;
+using YoutubeMusicBot.Application.CommandHandlers;
 
 namespace YoutubeMusicBot.Console
 {
@@ -75,13 +75,18 @@ namespace YoutubeMusicBot.Console
                 switch (update.Type)
                 {
                     case UpdateType.Message:
+                        var message = update.Message;
                         await _mediator.Send(
-                            new MessageHandler.Request(update.Message.ToModel()),
+                            new MessageHandler.Command(
+                                message.MessageId,
+                                message.Chat.Id,
+                                message.Text ?? string.Empty),
                             cancellationToken);
                         break;
                     case UpdateType.CallbackQuery:
                         await _mediator.Send(
-                            new CallbackQueryHandler.Request(update.CallbackQuery.ToContext()),
+                            new CallbackQueryHandler.Command(
+                                update.CallbackQuery.Data),
                             cancellationToken);
                         break;
                     default:

@@ -1,6 +1,4 @@
 ﻿using Autofac;
-using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Infrastructure.Wrappers;
 
 namespace YoutubeMusicBot.Infrastructure.DependencyInjection
 {
@@ -14,23 +12,14 @@ namespace YoutubeMusicBot.Infrastructure.DependencyInjection
             builder.RegisterType<LinuxPathResolver>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<DescriptionService>()
-                .AsImplementedInterfaces();
-
             builder.RegisterType<YoutubeDlConfigPath>()
                 .AsImplementedInterfaces()
                 .SingleInstance();
 
-            builder.RegisterType<CacheFolder>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<TgClient>()
-                .AsImplementedInterfaces();
-
             builder.RegisterType<FileSystem>()
                 .AsImplementedInterfaces();
 
-            builder.RegisterType<YoutubeDownloader>()
+            builder.RegisterType<MusicDownloader>()
                 .AsImplementedInterfaces();
 
             builder.RegisterType<MusicSplitter>()

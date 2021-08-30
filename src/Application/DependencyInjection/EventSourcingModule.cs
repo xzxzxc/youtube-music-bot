@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Autofac;
-using YoutubeMusicBot.Application.EventSourcing;
-using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Abstractions;
+using YoutubeMusicBot.Application.Abstractions.Storage;
+using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Domain.Base;
 using Module = Autofac.Module;
 

@@ -1,7 +1,8 @@
 ﻿using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Abstractions;
+using YoutubeMusicBot.Application.Abstractions.Storage;
 
 namespace YoutubeMusicBot.Infrastructure.Database
 {

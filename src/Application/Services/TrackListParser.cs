@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Abstractions.Music;
 using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Models.Music;
 
 namespace YoutubeMusicBot.Application.Services
 {
@@ -35,7 +36,7 @@ $",
 			| RegexOptions.IgnorePatternWhitespace
 			| RegexOptions.Multiline);
 
-		public IEnumerable<TrackModel> Parse(string text)
+		public IEnumerable<Track> Parse(string text)
 		{
 			foreach (Match match in Regex.Matches(text))
 			{
@@ -53,7 +54,7 @@ $",
 					continue;
 				}
 
-				yield return new TrackModel(
+				yield return new Track(
 					ParseTime(time),
 					name);
 			}

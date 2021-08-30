@@ -13,9 +13,9 @@ using NUnit.Framework;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Infrastructure.DependencyInjection;
-using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 
-namespace Application.IntegrationTests
+namespace YoutubeMusicBot.Application.IntegrationTests
 {
     [SetUpFixture]
     public static class CommonFixture

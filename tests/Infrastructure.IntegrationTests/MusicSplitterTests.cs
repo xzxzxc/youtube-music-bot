@@ -3,25 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Autofac;
 using Autofac.Extras.Moq;
-using AutoFixture;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using Infrastructure.IntegrationTests.Helpers;
-using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using YoutubeMusicBot.Application.Interfaces;
-using YoutubeMusicBot.Application.Models;
-using YoutubeMusicBot.Application.Models.YoutubeDownloader;
-using YoutubeMusicBot.Application.Options;
-using YoutubeMusicBot.Infrastructure;
-using YoutubeMusicBot.Infrastructure.DependencyInjection;
-using YoutubeMusicBot.Infrastructure.Wrappers;
-using YoutubeMusicBot.Tests.Common;
-using YoutubeMusicBot.Tests.Common.Extensions;
+using YoutubeMusicBot.Application.Models.Download;
+using YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers;
+using YoutubeMusicBot.Infrastructure.Options;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
+using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 
-namespace Infrastructure.IntegrationTests
+namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
     [Parallelizable]
     public class MusicSplitterTests
@@ -41,7 +33,8 @@ namespace Infrastructure.IntegrationTests
             string url,
             int tracksCount)
         {
-            using var container = await CreateContainer();
+            using var container = await AutoMockInfrastructureContainerFactory.Create(
+                initialize: true);
             var file = await DownloadFile(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -58,24 +51,9 @@ namespace Infrastructure.IntegrationTests
             int tracksCount,
             TimeSpan minSilenceLength)
         {
-            using var container = await CreateContainer(
-                b => b.RegisterOptions(new SplitOptions { MinSilenceLength = minSilenceLength, }));
-            var file = await DownloadFile(url, container);
-            var sut = container.Create<MusicSplitter>();
-
-            var tracks = await sut.SplitBySilenceAsync(file).ToArrayAsync();
-
-            tracks.Should().NotBeNull();
-            tracks.Should().HaveCount(tracksCount);
-        }
-
-        [Test]
-        [CustomInlineAutoData("https://youtu.be/lfgWv3ypEIY", 13)]
-        public async Task ShouldSplitByError(
-            string url,
-            int tracksCount)
-        {
-            using var container = await CreateContainer();
+            using var container = await AutoMockInfrastructureContainerFactory.Create(
+                b => b.RegisterOptions(new SplitOptions { MinSilenceLength = minSilenceLength, }),
+                initialize: true);
             var file = await DownloadFile(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -89,10 +67,10 @@ namespace Infrastructure.IntegrationTests
         [CustomInlineAutoData("https://youtu.be/wuROIJ0tRPU", 6)]
         public async Task ShouldSplitInEqualParts(
             string url,
-            int tracksCount,
-            MessageContext context)
+            int tracksCount)
         {
-            using var container = await CreateContainer();
+            using var container = await AutoMockInfrastructureContainerFactory.Create(
+                initialize: true);
             var file = await DownloadFile(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -102,21 +80,9 @@ namespace Infrastructure.IntegrationTests
             tracks.Should().HaveCount(tracksCount);
         }
 
-        private static ValueTask<AutoMock> CreateContainer(Action<ContainerBuilder>? beforeBuild = null) =>
-            AutoMockInfrastructureContainerFactory.Create(
-                builder =>
-                {
-                    builder.RegisterModules(new CommonModule());
-                    builder.RegisterInstance(AutoFixtureFactory.Create().Create<MessageContext>());
-                    builder.RegisterMockOf<ICacheFolder>(f => f.Value == CacheFolder.Name);
-                    builder.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
-
-                    beforeBuild?.Invoke(builder);
-                });
-
         private static async Task<string> DownloadFile(string url, AutoMock container)
         {
-            var youtubeDlWrapper = container.Create<YoutubeDownloader>();
+            var youtubeDlWrapper = container.Create<MusicDownloader>();
             return await youtubeDlWrapper.DownloadAsync(CacheFolder.FullName, url)
                 .OfType<FileLoadedResult>()
                 .Select(r => r.MusicFilePath)

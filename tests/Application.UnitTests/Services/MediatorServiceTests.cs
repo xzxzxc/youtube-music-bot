@@ -8,38 +8,40 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using Moq;
 using NUnit.Framework;
+using YoutubeMusicBot.Application.Abstractions.Mediator;
 using YoutubeMusicBot.Application.DependencyInjection;
-using YoutubeMusicBot.Application.Mediator;
-using YoutubeMusicBot.Application.Mediator.Implementation;
+using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Domain.Base;
-using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
-namespace YoutubeMusicBot.UnitTests.Services
+namespace YoutubeMusicBot.Application.UnitTests.Services
 {
+    [Parallelizable]
     public class MediatorServiceTests
     {
         [Test]
         [CustomAutoData]
-        public async Task ShouldCallRequestHandler(SimpleTestRequest request)
+        public async Task ShouldCallRequestHandler(SimpleTestCommand command)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
 
-            await sut.Send(request);
+            await sut.Send(command);
 
-            SimpleTestRequestHandler.Called.Should().BeTrue();
+            SimpleTestCommandHandler.Called.Should().BeTrue();
         }
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldReturnValueFromHandler(TestRequestWithResponse request)
+        public async Task ShouldReturnValueFromHandler(TestCommandWithResponse command)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
 
-            var res = await sut.Send<TestRequestWithResponse, Guid>(request);
+            var res = await sut.Send<TestCommandWithResponse, Guid>(command);
 
             res.Should().Be(TestRequestWithResponseHandler.Response);
         }
@@ -50,7 +52,7 @@ namespace YoutubeMusicBot.UnitTests.Services
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
 
             await sut.Emit(@event);
 
@@ -59,15 +61,15 @@ namespace YoutubeMusicBot.UnitTests.Services
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCreateLifetimeScopeOnRequest(SimpleTestRequest request)
+        public async Task ShouldCreateLifetimeScopeOnRequest(SimpleTestCommand command)
         {
             var scopeMock = new Mock<ILifetimeScope>();
             using var container = AutoMockContainerFactory.Create(b => b.RegisterMock(scopeMock));
             scopeMock.Setup(m => m.BeginLifetimeScope())
                 .Returns(AutoMockContainerFactory.Create().Create<ILifetimeScope>());
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
 
-            await sut.Send(request);
+            await sut.Send(command);
 
             scopeMock.Verify(s => s.BeginLifetimeScope(), Times.Once);
         }
@@ -75,15 +77,15 @@ namespace YoutubeMusicBot.UnitTests.Services
         [Test]
         [CustomAutoData]
         public async Task ShouldCreateLifetimeScopeOnRequestWithResponse(
-            TestRequestWithResponse request)
+            TestCommandWithResponse command)
         {
             var scopeMock = new Mock<ILifetimeScope>();
             using var container = AutoMockContainerFactory.Create(b => b.RegisterMock(scopeMock));
             scopeMock.Setup(m => m.BeginLifetimeScope())
                 .Returns(AutoMockContainerFactory.Create().Create<ILifetimeScope>());
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
 
-            var res = await sut.Send<TestRequestWithResponse, Guid>(request);
+            var res = await sut.Send<TestCommandWithResponse, Guid>(command);
 
             scopeMock.Verify(s => s.BeginLifetimeScope(), Times.Once);
         }
@@ -96,7 +98,7 @@ namespace YoutubeMusicBot.UnitTests.Services
             using var container = AutoMockContainerFactory.Create(b => b.RegisterMock(scopeMock));
             scopeMock.Setup(m => m.BeginLifetimeScope())
                 .Returns(AutoMockContainerFactory.Create().Create<ILifetimeScope>());
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
 
             await sut.Emit(@event);
 
@@ -105,13 +107,13 @@ namespace YoutubeMusicBot.UnitTests.Services
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldCancelRequestHandling(InfiniteHandleTestRequest request)
+        public async Task ShouldCancelRequestHandling(InfiniteHandleTestCommand command)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
             var source = new CancellationTokenSource();
-            var task = Task.Run(() => sut.Send(request, source.Token).AsTask());
+            var task = Task.Run(() => sut.Send(command, source.Token).AsTask());
             var sendTask = new Func<Task>(() => task);
 
             source.Cancel();
@@ -122,15 +124,15 @@ namespace YoutubeMusicBot.UnitTests.Services
         [Test]
         [CustomAutoData]
         public async Task ShouldCancelRequestWithResponseHandling(
-            InfiniteHandleTestRequestWithResponse request)
+            InfiniteHandleTestCommandWithResponse command)
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
             var source = new CancellationTokenSource();
             var task = Task.Run(
-                () => sut.Send<InfiniteHandleTestRequestWithResponse, object?>(
-                        request,
+                () => sut.Send<InfiniteHandleTestCommandWithResponse, object?>(
+                        command,
                         source.Token)
                     .AsTask());
             var sendTask = new Func<Task>(() => task);
@@ -147,7 +149,7 @@ namespace YoutubeMusicBot.UnitTests.Services
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
             var source = new CancellationTokenSource();
             var sendTask = new Func<Task>(() => sut.Emit(@event, source.Token).AsTask());
 
@@ -162,7 +164,7 @@ namespace YoutubeMusicBot.UnitTests.Services
         {
             var module = new MediatorModule(assembliesToScan: Assembly.GetExecutingAssembly());
             using var container = AutoMockContainerFactory.Create(b => b.RegisterModule(module));
-            var sut = container.Create<MediatorService>();
+            var sut = container.Create<Mediator>();
             var emitTask = sut.Emit(@event).AsTask();
 
             sut.Cancel<TestAggregate>(@event.AggregateId);
@@ -190,52 +192,52 @@ namespace YoutubeMusicBot.UnitTests.Services
             await getEmitWithinTask.Should().ThrowAsync<OperationCanceledException>();
         }
 
-        public record SimpleTestRequest : IRequest;
+        public record SimpleTestCommand : ICommand;
 
-        public class SimpleTestRequestHandler : IRequestHandler<SimpleTestRequest>
+        public class SimpleTestCommandHandler : ICommandHandler<SimpleTestCommand>
         {
             public static bool Called = false;
 
             public async ValueTask Handle(
-                SimpleTestRequest request,
+                SimpleTestCommand command,
                 CancellationToken cancellationToken)
             {
                 Called = true;
             }
         }
 
-        public record TestRequestWithResponse : IRequest<Guid>;
+        public record TestCommandWithResponse : ICommand<Guid>;
 
-        public class TestRequestWithResponseHandler : IRequestHandler<TestRequestWithResponse, Guid>
+        public class TestRequestWithResponseHandler : IRequestHandler<TestCommandWithResponse, Guid>
         {
             public static Guid Response = Guid.NewGuid();
 
             public async ValueTask<Guid> Handle(
-                TestRequestWithResponse request,
+                TestCommandWithResponse command,
                 CancellationToken cancellationToken)
             {
                 return Response;
             }
         }
 
-        public record InfiniteHandleTestRequest : IRequest;
+        public record InfiniteHandleTestCommand : ICommand;
 
-        public class InfiniteHandleTestRequestHandler :
-            IRequestHandler<InfiniteHandleTestRequest>
+        public class InfiniteHandleTestCommandHandler :
+            ICommandHandler<InfiniteHandleTestCommand>
         {
             public ValueTask Handle(
-                InfiniteHandleTestRequest request,
+                InfiniteHandleTestCommand command,
                 CancellationToken cancellationToken) =>
                 new(Task.Delay(Timeout.Infinite, cancellationToken));
         }
 
-        public record InfiniteHandleTestRequestWithResponse : IRequest<object?>;
+        public record InfiniteHandleTestCommandWithResponse : ICommand<object?>;
 
         public class InfiniteHandleTestRequestWithResponseHandler :
-            IRequestHandler<InfiniteHandleTestRequestWithResponse, object?>
+            IRequestHandler<InfiniteHandleTestCommandWithResponse, object?>
         {
             public async ValueTask<object?> Handle(
-                InfiniteHandleTestRequestWithResponse request,
+                InfiniteHandleTestCommandWithResponse command,
                 CancellationToken cancellationToken)
             {
                 await Task.Delay(Timeout.Infinite, cancellationToken);

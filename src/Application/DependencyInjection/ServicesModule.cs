@@ -9,16 +9,6 @@ namespace YoutubeMusicBot.Application.DependencyInjection
         {
             base.Load(builder);
 
-            builder.RegisterType<CallbackFactory>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<MessageScopeFactory>()
-                .AsImplementedInterfaces();
-
-            builder.RegisterType<CancellationRegistration>()
-                .AsImplementedInterfaces()
-                .SingleInstance();
-
             builder.RegisterType<TrackListParser>()
                 .AsImplementedInterfaces();
         }

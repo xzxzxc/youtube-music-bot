@@ -4,18 +4,15 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Autofac;
 using FluentAssertions;
-using Infrastructure.IntegrationTests.Helpers;
 using MoreLinq.Extensions;
 using NUnit.Framework;
-using YoutubeMusicBot.Application.Interfaces.YoutubeDownloader;
-using YoutubeMusicBot.Application.Models.YoutubeDownloader;
-using YoutubeMusicBot.Infrastructure;
-using YoutubeMusicBot.Infrastructure.DependencyInjection;
+using YoutubeMusicBot.Application.Abstractions.Download;
+using YoutubeMusicBot.Application.Models.Download;
+using YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers;
 using TagFile = TagLib.File;
 
-namespace Infrastructure.IntegrationTests
+namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
     [Parallelizable]
     public class YoutubeDownloaderTests
@@ -38,11 +35,8 @@ namespace Infrastructure.IntegrationTests
             IReadOnlyCollection<ExpectedTrack> expectedTracks)
         {
             using var container = await AutoMockInfrastructureContainerFactory.Create(
-                b =>
-                {
-                    b.RegisterModule(new CommonModule());
-                });
-            var sut = container.Create<YoutubeDownloader>();
+                initialize: true);
+            var sut = container.Create<MusicDownloader>();
 
             var res = await sut.DownloadAsync(CacheFolder.Name, url)
                 .ToArrayAsync();

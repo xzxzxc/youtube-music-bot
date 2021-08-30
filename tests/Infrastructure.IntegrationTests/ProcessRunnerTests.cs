@@ -6,10 +6,10 @@ using AutoFixture.NUnit3;
 using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
-using YoutubeMusicBot.Application;
-using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.Infrastructure.Models.ProcessRuner;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 
-namespace Infrastructure.IntegrationTests
+namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
     [Parallelizable]
     public class ProcessRunnerTests
@@ -22,7 +22,7 @@ namespace Infrastructure.IntegrationTests
             var runProcessHandler = container.Create<ProcessRunner>();
 
             var outputLine = await runProcessHandler.RunAsync(
-                    new ProcessRunner.Request(
+                    new ProcessOptions(
                         "echo",
                         WorkingDirectory: ".",
                         Arguments: message))
@@ -45,7 +45,7 @@ namespace Infrastructure.IntegrationTests
             var runProcessHandler = container.Create<ProcessRunner>();
             // task run to force execution on another thread
             var task = Task.Run(() => runProcessHandler.RunAsync(
-                    new ProcessRunner.Request(
+                    new ProcessOptions(
                         "sleep",
                         WorkingDirectory: ".",
                         Arguments: "infinity"),

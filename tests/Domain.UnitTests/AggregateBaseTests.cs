@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace Domain.UnitTests
+namespace YoutubeMusicBot.Domain.UnitTests
 {
     public class AggregateBaseTests
     {

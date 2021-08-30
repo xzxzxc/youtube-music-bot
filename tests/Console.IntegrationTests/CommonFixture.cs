@@ -1,10 +1,8 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using FluentAssertions;
-using IntegrationTests.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,11 +10,11 @@ using Moq.Sequences;
 using NUnit.Framework;
 using TLSharp.Core;
 using YoutubeMusicBot.Application.Options;
-using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Tests.Common;
-using YoutubeMusicBot.Tests.Common.Extensions;
+using YoutubeMusicBot.Infrastructure.Options;
+using YoutubeMusicBot.IntegrationTests.Common;
+using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 
-namespace Console.IntegrationTest
+namespace YoutubeMusicBot.Console.IntegrationTest
 {
     [SetUpFixture]
     public class CommonFixture
@@ -48,8 +46,6 @@ namespace Console.IntegrationTest
                     {
                         b.RegisterOptions(
                             new FileSystemOptions { TempFolderPath = GerCacheFolder.FullName, });
-                        b.RegisterOptions(
-                            new FeatureOptions { EsArchitectureEnabled = true, });
                         b.RegisterOptions(BotOptions);
                         b.RegisterOptions(SplitOptions);
                         b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));

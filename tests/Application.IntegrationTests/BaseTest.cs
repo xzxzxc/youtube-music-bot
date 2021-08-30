@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using YoutubeMusicBot.Infrastructure.Database;
-using static Application.IntegrationTests.CommonFixture;
+using static YoutubeMusicBot.Application.IntegrationTests.CommonFixture;
 
-namespace Application.IntegrationTests
+namespace YoutubeMusicBot.Application.IntegrationTests
 {
     public abstract class BaseTest
     {

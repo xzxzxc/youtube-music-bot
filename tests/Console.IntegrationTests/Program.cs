@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using IntegrationTests.Common;
 using TeleSharp.TL;
 using TeleSharp.TL.Messages;
 using TLSharp.Core;
+using YoutubeMusicBot.IntegrationTests.Common;
 
 System.Console.OutputEncoding = Encoding.UTF8;
 // change working directory to dll location

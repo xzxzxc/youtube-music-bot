@@ -1,11 +1,9 @@
-﻿using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using NUnit.Framework;
-using YoutubeMusicBot.Tests.Common;
-using static Console.IntegrationTest.CommonFixture;
+using YoutubeMusicBot.IntegrationTests.Common;
+using static YoutubeMusicBot.Console.IntegrationTest.CommonFixture;
 
-namespace Console.IntegrationTest
+namespace YoutubeMusicBot.Console.IntegrationTest
 {
     public class BaseTests
     {

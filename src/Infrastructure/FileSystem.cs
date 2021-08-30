@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Abstractions;
 using YoutubeMusicBot.Application.Options;
+using YoutubeMusicBot.Infrastructure.Options;
 
 namespace YoutubeMusicBot.Infrastructure
 {

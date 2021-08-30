@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
-using YoutubeMusicBot.Application.Interfaces.Wrappers;
+using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.Models;
+using YoutubeMusicBot.Application.Models.Telegram;
 using YoutubeMusicBot.Infrastructure.Extensions;
 
 namespace YoutubeMusicBot.Infrastructure
@@ -21,7 +22,7 @@ namespace YoutubeMusicBot.Infrastructure
             _telegramBotClient = telegramBotClient;
         }
 
-        public async Task<MessageModel> SendMessageAsync(
+        public async Task<int> SendMessageAsync(
             long chatId,
             string text,
             InlineButtonCollection? inlineButtons = null,
@@ -33,7 +34,7 @@ namespace YoutubeMusicBot.Infrastructure
                     replyMarkup: inlineButtons?.ToMarkup(),
                     cancellationToken: cancellationToken));
 
-        public async Task<MessageModel> SendAudioAsync(
+        public async Task<int> SendAudioAsync(
             long chatId,
             Stream fileReadStream,
             string title,
@@ -48,7 +49,7 @@ namespace YoutubeMusicBot.Infrastructure
                     cancellationToken: cancellationToken));
         }
 
-        public async Task<MessageModel> UpdateMessageAsync(
+        public async Task UpdateMessageAsync(
             long chatId,
             int messageId,
             string text,
@@ -72,11 +73,11 @@ namespace YoutubeMusicBot.Infrastructure
                     messageId,
                     cancellationToken));
 
-        private async Task<MessageModel> Invoke(Func<Task<Message>> action)
+        private async Task<int> Invoke(Func<Task<Message>> action)
         {
             try
             {
-                return (await action()).ToModel();
+                return (await action()).MessageId;
             }
             catch (ApiRequestException ex)
                 when (ex.Parameters?.RetryAfter != null)

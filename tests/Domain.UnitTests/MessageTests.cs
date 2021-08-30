@@ -1,10 +1,9 @@
 using FluentAssertions;
 using NUnit.Framework;
-using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Domain.Base;
-using YoutubeMusicBot.Tests.Common;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
-namespace Domain.UnitTests
+namespace YoutubeMusicBot.Domain.UnitTests
 {
     public class MessageTests
     {

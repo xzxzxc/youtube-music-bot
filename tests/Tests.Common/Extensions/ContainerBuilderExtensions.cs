@@ -6,7 +6,7 @@ using Autofac.Extras.Moq;
 using Microsoft.Extensions.Options;
 using Moq;
 
-namespace YoutubeMusicBot.Tests.Common.Extensions
+namespace YoutubeMusicBot.IntegrationTests.Common.Extensions
 {
     public static class ContainerBuilderExtensions
     {

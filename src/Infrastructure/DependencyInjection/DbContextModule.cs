@@ -1,5 +1,6 @@
 ﻿using Autofac;
-using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Abstractions;
+using YoutubeMusicBot.Application.Abstractions.Storage;
 using YoutubeMusicBot.Infrastructure.Database;
 
 namespace YoutubeMusicBot.Infrastructure.DependencyInjection

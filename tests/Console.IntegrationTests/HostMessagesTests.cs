@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Console.IntegrationTest.Extensions;
 using FluentAssertions;
 using FluentAssertions.Extensions;
-using IntegrationTests.Common;
 using NUnit.Framework;
 using TeleSharp.TL;
 using TeleSharp.TL.Messages;
-using static Console.IntegrationTest.CommonFixture;
+using YoutubeMusicBot.Console.IntegrationTest.Extensions;
+using YoutubeMusicBot.IntegrationTests.Common;
+using static YoutubeMusicBot.Console.IntegrationTest.CommonFixture;
 
-namespace Console.IntegrationTest
+namespace YoutubeMusicBot.Console.IntegrationTest
 {
     public class HostMessagesTests : BaseTests
     {

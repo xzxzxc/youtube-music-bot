@@ -1,11 +1,10 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using Autofac.Extras.Moq;
 using Moq;
-using YoutubeMusicBot.Application.EventSourcing;
+using YoutubeMusicBot.Application.Abstractions.Storage;
 using YoutubeMusicBot.Domain;
 
-namespace YoutubeMusicBot.UnitTests.Extensions
+namespace YoutubeMusicBot.Application.UnitTests.Extensions
 {
     public static class AutoMockExtensions
     {

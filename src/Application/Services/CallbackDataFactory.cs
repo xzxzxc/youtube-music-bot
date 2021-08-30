@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.Extensions;
-using YoutubeMusicBot.Application.Interfaces;
+using YoutubeMusicBot.Application.Models.Telegram;
 using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Application.Services
@@ -12,8 +13,7 @@ namespace YoutubeMusicBot.Application.Services
     {
         private readonly Dictionary<int, Type> _aggregateTypes;
 
-        public CallbackDataFactory(
-            IEnumerable<Type> aggregateTypes)
+        public CallbackDataFactory(IEnumerable<Type> aggregateTypes)
         {
             _aggregateTypes = aggregateTypes
                 .ToDictionary(GetCacheKey);
@@ -21,8 +21,7 @@ namespace YoutubeMusicBot.Application.Services
 
         public ICallbackResult Parse(string callbackData)
         {
-            // we need only 13 bytes but use 14 because unicode uses 2 bytes to store char
-            Span<byte> stackSpan = stackalloc byte[14];
+            Span<byte> stackSpan = stackalloc byte[64];
             Encoding.Unicode.GetBytes(callbackData, stackSpan);
 
             var aggregateId = BitConverter.ToInt64(stackSpan[1..9]);
@@ -33,7 +32,8 @@ namespace YoutubeMusicBot.Application.Services
                     aggregateId,
                     _aggregateTypes[cacheKey]),
                 _ => throw new InvalidOperationException(
-                    $"Unknown callback data identifier {callbackData[0]}")
+                    $"Unknown callback data identifier. "
+                    + $"Bytes: {string.Join(",", stackSpan.ToArray())}")
             };
         }
 
@@ -41,8 +41,7 @@ namespace YoutubeMusicBot.Application.Services
         public string CreateForCancel<TAggregate>(EventBase<TAggregate> @event)
             where TAggregate : AggregateBase<TAggregate>
         {
-            // we need only 13 bytes but use 14 because unicode uses 2 bytes to store char
-            Span<byte> stackSpan = stackalloc byte[14];
+            Span<byte> stackSpan = stackalloc byte[64];
             stackSpan[0] = 1;
             BitConverter.TryWriteBytes(stackSpan[1..9], @event.AggregateId);
             var cacheKey = GetCacheKey(typeof(TAggregate));

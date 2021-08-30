@@ -3,12 +3,12 @@ using System.Threading.Tasks;
 using AutoFixture;
 using FluentAssertions;
 using NUnit.Framework;
-using YoutubeMusicBot.Application.EventSourcing;
+using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Domain;
-using YoutubeMusicBot.Tests.Common;
-using static Application.IntegrationTests.CommonFixture;
+using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
+using static YoutubeMusicBot.Application.IntegrationTests.CommonFixture;
 
-namespace Application.IntegrationTests
+namespace YoutubeMusicBot.Application.IntegrationTests
 {
     public class EventSourcingRepositoryTests : BaseTest
     {
