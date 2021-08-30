@@ -21,19 +21,18 @@ namespace YoutubeMusicBot.Application.Services
 
         public ICallbackResult Parse(string callbackData)
         {
-            Span<byte> stackSpan = stackalloc byte[64];
-            Encoding.Unicode.GetBytes(callbackData, stackSpan);
+            var bytes = Convert.FromBase64String(callbackData);
 
-            var aggregateId = BitConverter.ToInt64(stackSpan[1..9]);
-            var cacheKey = BitConverter.ToInt32(stackSpan[9..13]);
-            return stackSpan[0] switch
+            var aggregateId = BitConverter.ToInt64(bytes[1..9]);
+            var cacheKey = BitConverter.ToInt32(bytes[9..13]);
+            return bytes[0] switch
             {
                 1 => CreateCancelResult(
                     aggregateId,
                     _aggregateTypes[cacheKey]),
                 _ => throw new InvalidOperationException(
                     $"Unknown callback data identifier. "
-                    + $"Bytes: {string.Join(",", stackSpan.ToArray())}")
+                    + $"Bytes: {string.Join(",", bytes.ToArray())}")
             };
         }
 
@@ -41,13 +40,13 @@ namespace YoutubeMusicBot.Application.Services
         public string CreateForCancel<TAggregate>(EventBase<TAggregate> @event)
             where TAggregate : AggregateBase<TAggregate>
         {
-            Span<byte> stackSpan = stackalloc byte[64];
-            stackSpan[0] = 1;
-            BitConverter.TryWriteBytes(stackSpan[1..9], @event.AggregateId);
+            Span<byte> bytes = stackalloc byte[13];
+            bytes[0] = 1;
+            BitConverter.TryWriteBytes(bytes[1..9], @event.AggregateId);
             var cacheKey = GetCacheKey(typeof(TAggregate));
-            BitConverter.TryWriteBytes(stackSpan[9..13], cacheKey);
+            BitConverter.TryWriteBytes(bytes[9..13], cacheKey);
 
-            return Encoding.Unicode.GetString(stackSpan);
+            return Convert.ToBase64String(bytes);
         }
 
         private static ICancelResult CreateCancelResult(long aggregateId, Type aggregateType) =>
