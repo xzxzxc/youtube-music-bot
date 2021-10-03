@@ -248,6 +248,7 @@ namespace YoutubeMusicBot.Console.IntegrationTest
         {
             await base.TearDown();
             await DeleteBotChatHistory();
+            CheckNoErrorsLogged();
         }
 
         private async Task DeleteBotChatHistory()

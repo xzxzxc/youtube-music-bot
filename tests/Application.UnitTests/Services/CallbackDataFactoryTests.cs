@@ -19,6 +19,22 @@ namespace YoutubeMusicBot.Application.UnitTests.Services
 
         [Test]
         [CustomAutoData]
+        public void ShouldCreateForCancelNotTooBigString(SimpleTestEvent @event)
+        {
+            using var container = AutoMockContainerFactory.Create(
+                b => b.RegisterModule(
+                    new CallbackDataModule(Assembly.GetExecutingAssembly())));
+            var sut = container.Container.Resolve<ICallbackDataFactory>();
+
+            var callbackData = sut.CreateForCancel(@event);
+
+            Encoding.ASCII.GetBytes(callbackData)
+                .Should()
+                .HaveCountLessOrEqualTo(TelegramMaxCallbackDataSize);
+        }
+
+        [Test]
+        [CustomAutoData]
         public void ShouldParseCreatedForCancel(SimpleTestEvent @event)
         {
             using var container = AutoMockContainerFactory.Create(
@@ -33,9 +49,6 @@ namespace YoutubeMusicBot.Application.UnitTests.Services
                 .BeOfType<CancelResult<TestAggregate>>()
                 .Which.AggregateId.Should()
                 .Be(@event.AggregateId);
-            Encoding.Unicode.GetBytes(callbackData)
-                .Should()
-                .HaveCountLessOrEqualTo(TelegramMaxCallbackDataSize);
         }
 
         public class TestAggregate : AggregateBase<TestAggregate>

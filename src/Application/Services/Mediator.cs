@@ -47,7 +47,7 @@ namespace YoutubeMusicBot.Application.Services
             using var cancellationHolder = new CancellationHolder<TAggregate>(
                 @event,
                 cancellationToken,
-                _cancellationActionsCache);
+                _cancellationActionsCache); // TODO: fix remove key on dispose in nested events
             var handlerType = typeof(IEventHandler<,>).MakeGenericType(
                 @event.GetType(),
                 typeof(TAggregate));

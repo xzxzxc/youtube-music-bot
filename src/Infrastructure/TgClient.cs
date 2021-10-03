@@ -43,10 +43,14 @@ namespace YoutubeMusicBot.Infrastructure
             await using var _ = fileReadStream;
             var inputMedia = new InputMedia(fileReadStream, title);
             return await Invoke(
-                () => _telegramBotClient.SendAudioAsync(
-                    chatId,
-                    inputMedia,
-                    cancellationToken: cancellationToken));
+                () =>
+                {
+                    fileReadStream.Seek(0, SeekOrigin.Begin); // on case of multiple action calls
+                    return _telegramBotClient.SendAudioAsync(
+                        chatId,
+                        inputMedia,
+                        cancellationToken: cancellationToken);
+                });
         }
 
         public async Task UpdateMessageAsync(
