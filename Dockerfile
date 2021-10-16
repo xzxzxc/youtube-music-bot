@@ -10,8 +10,8 @@ RUN for test_proj in ./tests/*; do if echo "$test_proj" | grep -q "UnitTests"; t
 
 RUN dotnet publish ./src/Console -c release -o /publish
 
-
 FROM mcr.microsoft.com/dotnet/runtime:5.0
+ARG CACHEBUST=1
 
 WORKDIR /publish
 
