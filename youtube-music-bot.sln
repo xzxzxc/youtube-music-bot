@@ -19,6 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		youtube-dl.conf = youtube-dl.conf
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
+		Dockerfile = Dockerfile
+		.dockerignore = .dockerignore
+		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "tests\Tests.Common\Tests.Common.csproj", "{92864346-7FB7-488C-8657-BEEAB7DFC146}"
@@ -33,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.IntegrationTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console.UnitTests", "tests\Console.UnitTests\Console.UnitTests.csproj", "{C7BC0DC4-4073-4DA7-8397-47DC5A140A70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console.IntegrationTests", "tests\Console.IntegrationTests\Console.IntegrationTests.csproj", "{27FC8484-4187-467F-8856-FE7204482AE9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "tests\AcceptanceTests\AcceptanceTests.csproj", "{27FC8484-4187-467F-8856-FE7204482AE9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests.Common", "tests\IntegrationTests.Common\IntegrationTests.Common.csproj", "{9AD36FEF-B37B-45E7-9593-5C27F99BF699}"
 EndProject

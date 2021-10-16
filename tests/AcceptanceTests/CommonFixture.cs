@@ -10,11 +10,12 @@ using Moq.Sequences;
 using NUnit.Framework;
 using TLSharp.Core;
 using YoutubeMusicBot.Application.Options;
+using YoutubeMusicBot.Console;
 using YoutubeMusicBot.Infrastructure.Options;
 using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 
-namespace YoutubeMusicBot.Console.IntegrationTest
+namespace YoutubeMusicBot.AcceptanceTest
 {
     [SetUpFixture]
     public class CommonFixture

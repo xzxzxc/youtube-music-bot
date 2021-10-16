@@ -1,0 +1,11 @@
+Dockerfile
+.dockerignore
+**/[b|B]in
+**/[O|o]bj
+.vs
+.idea
+.git
+.gitignore
+.gitattributes
+.editorconfig
+**/*.DotSettings.user

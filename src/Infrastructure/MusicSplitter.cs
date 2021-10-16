@@ -59,7 +59,7 @@ namespace YoutubeMusicBot.Infrastructure
                         .Concat(
                             tracks.Select(
                                 track =>
-                                    $"{track.Start.TotalMinutes:F0}.{track.Start.Seconds}"))
+                                    $"{(int)track.Start.TotalMinutes}.{track.Start.Seconds}"))
                         // mean that we want split including last track
                         .Append("EOF")
                         .ToArray()),

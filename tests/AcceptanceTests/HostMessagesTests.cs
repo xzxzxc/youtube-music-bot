@@ -8,11 +8,11 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using TeleSharp.TL;
 using TeleSharp.TL.Messages;
-using YoutubeMusicBot.Console.IntegrationTest.Extensions;
+using YoutubeMusicBot.AcceptanceTest.Extensions;
 using YoutubeMusicBot.IntegrationTests.Common;
-using static YoutubeMusicBot.Console.IntegrationTest.CommonFixture;
+using static YoutubeMusicBot.AcceptanceTest.CommonFixture;
 
-namespace YoutubeMusicBot.Console.IntegrationTest
+namespace YoutubeMusicBot.AcceptanceTest
 {
     public class HostMessagesTests : BaseTests
     {

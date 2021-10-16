@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using NUnit.Framework;
 using YoutubeMusicBot.IntegrationTests.Common;
-using static YoutubeMusicBot.Console.IntegrationTest.CommonFixture;
+using static YoutubeMusicBot.AcceptanceTest.CommonFixture;
 
-namespace YoutubeMusicBot.Console.IntegrationTest
+namespace YoutubeMusicBot.AcceptanceTest
 {
     public class BaseTests
     {

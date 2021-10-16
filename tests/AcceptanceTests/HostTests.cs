@@ -3,9 +3,9 @@ using Autofac;
 using FluentAssertions.Extensions;
 using Microsoft.Extensions.Hosting;
 using NUnit.Framework;
-using static YoutubeMusicBot.Console.IntegrationTest.CommonFixture;
+using static YoutubeMusicBot.AcceptanceTest.CommonFixture;
 
-namespace YoutubeMusicBot.Console.IntegrationTest
+namespace YoutubeMusicBot.AcceptanceTest
 {
     public class HostTests : BaseTests
     {

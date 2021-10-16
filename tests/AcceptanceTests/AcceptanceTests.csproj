@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>YoutubeMusicBot.Console.IntegrationTest</RootNamespace>
+        <RootNamespace>YoutubeMusicBot.AcceptanceTest</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
