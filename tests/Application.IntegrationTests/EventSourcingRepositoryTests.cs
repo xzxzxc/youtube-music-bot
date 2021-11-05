@@ -12,6 +12,7 @@ namespace YoutubeMusicBot.Application.IntegrationTests
 {
     public class EventSourcingRepositoryTests : BaseTest
     {
+        // TODO: fix test first time fails
         [Test]
         // test must be called first because of static id sequence indexer in AggregateBase
         [Order(int.MinValue)]

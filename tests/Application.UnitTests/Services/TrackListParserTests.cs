@@ -42,6 +42,26 @@ namespace YoutubeMusicBot.Application.UnitTests.Services
 						+ TimeSpan.FromSeconds(5),
 						"test 3"),
 				});
+            yield return new TestCaseData(
+            @"
+01 Intro 00:00:00
+02 Двоє 00:03:37",
+            new[]
+            {
+                new Track(TimeSpan.Zero, "01 Intro"),
+                new Track(
+                    TimeSpan.FromMinutes(3) + TimeSpan.FromSeconds(37),
+                    "02 Двоє"),
+            });
+            yield return new TestCaseData(
+                @"
+Двоє чи троє 00:03:37",
+                new[]
+                {
+                    new Track(
+                        TimeSpan.FromMinutes(3) + TimeSpan.FromSeconds(37),
+                        "Двоє чи троє"),
+                });
 		}
 	}
 }

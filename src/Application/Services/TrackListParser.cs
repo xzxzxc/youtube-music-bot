@@ -8,65 +8,81 @@ using YoutubeMusicBot.Application.Models.Music;
 
 namespace YoutubeMusicBot.Application.Services
 {
-	public class TrackListParser : ITrackListParser
-	{
-		private static readonly Regex Regex = new(
-			@"^
+    public class TrackListParser : ITrackListParser
+    {
+        private static readonly Regex Regex = new(
+            @"^
 # first option
 	# special chars
 	(?:.*?[-\| \\_\.\[\]\(\)\{\}\""]+)?
 	# start time
-	(?:(?<time1>(?:\d{1,2}\:)?\d{1,2}\:\d\d)
-	# special chars
+	(?<time1>(?:\d{1,2}\:)?\d{1,2}\:\d\d)
+	# delimiters
 	[-\|\ \\_\.\[\]\(\)\{\}\""]+
 	# name
 	(?<name1>.+)
 
 #second option
 	# name
-	|(?<name2>.+)
-	# special chars
-	[-\|\\_\.\[\]\(\)\{\}\""]+
+	|(?:(?<name2>.+)
+	# delimiters
+	[-\|\ \\_\.\[\]\(\)\{\}\""]+
 	# start time
 	(?<time2>(?:\d{1,2}\:)?\d{1,2}\:\d\d))
 	# other
 	.*
 $",
-			RegexOptions.Compiled
-			| RegexOptions.IgnorePatternWhitespace
-			| RegexOptions.Multiline);
+            RegexOptions.Compiled
+            | RegexOptions.IgnorePatternWhitespace
+            | RegexOptions.Multiline);
 
-		public IEnumerable<Track> Parse(string text)
-		{
-			foreach (Match match in Regex.Matches(text))
-			{
-				if (!match.Success)
-					continue;
+        public IEnumerable<Track> Parse(string text)
+        {
+            foreach (Match match in Regex.Matches(text))
+            {
+                if (!match.Success)
+                    continue;
 
-				var name = (match.Groups.GetValueOrDefault("name1")
-					?? match.Groups.GetValueOrDefault("name2"))?.Value;
-				var time = (match.Groups.GetValueOrDefault("time1")
-					?? match.Groups.GetValueOrDefault("time2"))?.Value;
+                string name, time;
+                if (match.Groups.TryGetValue("name1", out var nameGroup)
+                    && nameGroup.Success
+                    && match.Groups.TryGetValue("time1", out var timeGroup)
+                    && timeGroup.Success)
+                {
+                    name = nameGroup.Value;
+                    time = timeGroup.Value;
+                }
+                else if (match.Groups.TryGetValue("name2", out nameGroup)
+                    && nameGroup.Success
+                    && match.Groups.TryGetValue("time2", out timeGroup)
+                    && timeGroup.Success)
+                {
+                    name = nameGroup.Value;
+                    time = timeGroup.Value;
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        "Match was successful but name wasn't parsed");
+                }
 
-				if (string.IsNullOrEmpty(name)
-					|| string.IsNullOrEmpty(time))
-				{
-					continue;
-				}
+                if (string.IsNullOrEmpty(name))
+                    throw new InvalidOperationException("Parsed empty name");
 
-				yield return new Track(
-					ParseTime(time),
-					name);
-			}
-		}
+                if (string.IsNullOrEmpty(time))
+                    throw new InvalidOperationException("Parsed empty time");
 
-		private static TimeSpan ParseTime(string time)
-		{
-			// transform 'm:s' to 'h:m:s'
-			if (time.Count(c => c == ':') < 2)
-				time = "0:" + time;
+                yield return new Track(ParseTime(time), name);
+            }
+        }
 
-			return TimeSpan.Parse(time);
-		}
-	}
+        private static TimeSpan ParseTime(string time)
+        {
+            // transform 'm:s' to 'h:m:s'
+            if (time.Count(c => c == ':') < 2)
+                time = "0:" + time;
+
+            return TimeSpan.Parse(time);
+        }
+    }
 }
