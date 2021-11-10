@@ -7,13 +7,13 @@ using YoutubeMusicBot.Application.Abstractions;
 using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.EventHandlers;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.UnitTests.EventHandlers
 {
-    [Parallelizable]
-    public class FileToBeSentCreatedHandlerTests
+    public class FileToBeSentCreatedHandlerTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]

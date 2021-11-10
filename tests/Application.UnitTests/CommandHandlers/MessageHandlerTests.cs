@@ -6,13 +6,13 @@ using NUnit.Framework;
 using YoutubeMusicBot.Application.Abstractions.Storage;
 using YoutubeMusicBot.Application.CommandHandlers;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.UnitTests.CommandHandlers
 {
-    [Parallelizable]
-    public class MessageHandlerTests
+    public class MessageHandlerTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]

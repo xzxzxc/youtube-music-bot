@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -10,23 +9,13 @@ using NUnit.Framework;
 using YoutubeMusicBot.Application.Abstractions.Download;
 using YoutubeMusicBot.Application.Models.Download;
 using YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers;
+using YoutubeMusicBot.IntegrationTests.Common;
 using TagFile = TagLib.File;
 
 namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
-    [Parallelizable]
-    public class YoutubeDownloaderTests
+    public class YoutubeDownloaderTests : BaseParallelizableWithTempFolderTest
     {
-        private static readonly DirectoryInfo CacheFolder =
-            new($"{nameof(YoutubeDownloaderTests)}_cache");
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            if (!CacheFolder.Exists)
-                CacheFolder.Create();
-        }
-
         [Test]
         [Timeout(60_000)] // 60 seconds
         [TestCaseSource(nameof(TestCases))]
@@ -38,7 +27,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
                 initialize: true);
             var sut = container.Create<MusicDownloader>();
 
-            var res = await sut.DownloadAsync(CacheFolder.Name, url)
+            var res = await sut.DownloadAsync(TempFolder.FullName, url)
                 .ToArrayAsync();
 
             var rawTitleChecks = expectedTracks
@@ -104,13 +93,6 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
                         "Remafo",
                         TimeSpan.Parse("00:02:32"),
                         DescriptionExists: true))) { TestName = "Youtube playlist", };
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            if (CacheFolder.Exists)
-                CacheFolder.Delete(recursive: true);
         }
 
         public record ExpectedTrack(

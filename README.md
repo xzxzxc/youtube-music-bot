@@ -100,6 +100,8 @@ public static class Secrets
 {
   // Token of your test bot (could be asked from @BotFather in telegram) 
   public const string BotToken = "";
+  // Id of chat with test bot (could be obtained in debug) 
+  public const long UserChatIdForBot = 0;
   // Id of chat where test bot is added as admin (could be obtained in debug) 
   public const long GroupChatIdForBot = 0;
   // Telegram app api_id (could be found here https://my.telegram.org/apps)

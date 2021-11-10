@@ -5,13 +5,13 @@ using NUnit.Framework;
 using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.EventHandlers;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.UnitTests.EventHandlers
 {
-    [Parallelizable]
-    public class MessageInvalidHandlerTests
+    public class MessageInvalidHandlerTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]

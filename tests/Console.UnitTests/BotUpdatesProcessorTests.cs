@@ -10,14 +10,14 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Application.Abstractions.Mediator;
 using YoutubeMusicBot.Application.CommandHandlers;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 using YoutubeMusicBot.IntegrationTests.Common.Moq;
 
 namespace YoutubeMusicBot.Console.UnitTests
 {
-    [Parallelizable]
-    public class BotUpdatesProcessorTests
+    public class BotUpdatesProcessorTests : BaseParallelizableTest
     {
         [Test]
         public async Task ShouldSendMessageRequest()

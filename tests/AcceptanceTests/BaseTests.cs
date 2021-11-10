@@ -12,17 +12,17 @@ namespace YoutubeMusicBot.AcceptanceTest
         {
             ThrowExceptionLogger.Errors.Clear();
 
-            if (GerCacheFolder.Exists)
-                GerCacheFolder.Delete(recursive: true);
+            if (TempaFolder.Exists)
+                TempaFolder.Delete(recursive: true);
 
-            GerCacheFolder.Create();
+            TempaFolder.Create();
         }
 
         [TearDown]
         public virtual async ValueTask TearDown()
         {
-            if (GerCacheFolder.Exists)
-                GerCacheFolder.Delete(recursive: true);
+            if (TempaFolder.Exists)
+                TempaFolder.Delete(recursive: true);
         }
     }
 }

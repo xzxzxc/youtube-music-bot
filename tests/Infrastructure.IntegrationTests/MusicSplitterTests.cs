@@ -12,24 +12,15 @@ using YoutubeMusicBot.Application.Models.Download;
 using YoutubeMusicBot.Application.Models.Music;
 using YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers;
 using YoutubeMusicBot.Infrastructure.Options;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 using TagFile = TagLib.File;
 
 namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
-    [Parallelizable]
-    public class MusicSplitterTests
+    public class MusicSplitterTests : BaseParallelizableWithTempFolderTest
     {
-        public static DirectoryInfo CacheFolder = new($"{nameof(MusicSplitterTests)}_tests_cache");
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            if (!CacheFolder.Exists)
-                CacheFolder.Create();
-        }
-
         [Test]
         [TestCaseSource(nameof(ShouldSplitByTrackListCases))]
         public async Task ShouldSplitByTrackList(string url, IReadOnlyList<Track> tracks)
@@ -110,10 +101,10 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             tracks.Should().HaveCount(tracksCount);
         }
 
-        private static async Task<string> DownloadFileAndGetPath(string url, AutoMock container)
+        private async Task<string> DownloadFileAndGetPath(string url, AutoMock container)
         {
             var youtubeDlWrapper = container.Create<MusicDownloader>();
-            return await youtubeDlWrapper.DownloadAsync(CacheFolder.FullName, url)
+            return await youtubeDlWrapper.DownloadAsync(TempFolder.FullName, url)
                 .OfType<FileLoadedResult>()
                 .Select(r => r.MusicFilePath)
                 .SingleAsync();
@@ -135,13 +126,6 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
                     new Track(1.Minutes() + 50.Seconds(), "fourth"),
                     new Track(2.Minutes() + 50.Seconds(), "fifth"),
                 });
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            if (CacheFolder.Exists)
-                CacheFolder.Delete(recursive: true);
         }
     }
 }

@@ -46,7 +46,7 @@ namespace YoutubeMusicBot.AcceptanceTest
                     (_, b) =>
                     {
                         b.RegisterOptions(
-                            new FileSystemOptions { TempFolderPath = GerCacheFolder.FullName, });
+                            new FileSystemOptions { TempFolderPath = TempaFolder.FullName, });
                         b.RegisterOptions(BotOptions);
                         b.RegisterOptions(SplitOptions);
                         b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
@@ -60,11 +60,11 @@ namespace YoutubeMusicBot.AcceptanceTest
         }
 
         // this is property on purpose
-        public static DirectoryInfo GerCacheFolder => new("cache_folder");
+        public static DirectoryInfo TempaFolder => new("cache_folder");
 
         public static void CheckCacheDirectoryIsEmpty()
         {
-            GerCacheFolder.EnumerateFiles("*", SearchOption.AllDirectories)
+            TempaFolder.EnumerateFiles("*", SearchOption.AllDirectories)
                 .Should()
                 .BeEmpty();
         }
@@ -80,8 +80,8 @@ namespace YoutubeMusicBot.AcceptanceTest
             _hostInstance.Dispose();
             TgClient.Dispose();
 
-            if (GerCacheFolder.Exists)
-                GerCacheFolder.Delete(recursive: true);
+            if (TempaFolder.Exists)
+                TempaFolder.Delete(recursive: true);
         }
     }
 }

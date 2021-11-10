@@ -13,6 +13,7 @@ using YoutubeMusicBot.Application.Models.Music;
 using YoutubeMusicBot.Application.Options;
 using YoutubeMusicBot.Application.UnitTests.Extensions;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 using YoutubeMusicBot.IntegrationTests.Common.Extensions;
@@ -20,8 +21,7 @@ using CT = System.Threading.CancellationToken;
 
 namespace YoutubeMusicBot.Application.UnitTests.EventHandlers
 {
-    [Parallelizable]
-    public class MusicFileCreatedHandlerTests
+    public class MusicFileCreatedHandlerTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]

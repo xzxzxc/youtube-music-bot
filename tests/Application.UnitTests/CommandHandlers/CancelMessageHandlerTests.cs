@@ -8,13 +8,13 @@ using YoutubeMusicBot.Application.Abstractions.Storage;
 using YoutubeMusicBot.Application.CommandHandlers;
 using YoutubeMusicBot.Application.UnitTests.Extensions;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.UnitTests.CommandHandlers
 {
-    [Parallelizable]
-    public class CancelMessageHandlerTests
+    public class CancelMessageHandlerTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]

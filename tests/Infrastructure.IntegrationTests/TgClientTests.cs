@@ -21,8 +21,7 @@ using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 
 namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
-    [Parallelizable]
-    public class TgClientTests
+    public class TgClientTests : BaseParallelizableTest
     {
         // TODO: remove message after test
         [Test]
@@ -45,7 +44,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 
         [Test]
         [Timeout(10_000)] // 10 seconds
-        [InlineAutoData(Secrets.GroupChatIdForBot)]
+        [InlineAutoData(Secrets.UserChatIdForBot)]
         public async Task ShouldSendMessageWithCancelCallbackButton(
             long chatId,
             SimpleTestEvent @event,

@@ -13,38 +13,53 @@ using NUnit.Framework;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Infrastructure.DependencyInjection;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 
-namespace YoutubeMusicBot.Application.IntegrationTests
+namespace YoutubeMusicBot.Application.IntegrationTests.Core
 {
-    [SetUpFixture]
-    public static class CommonFixture
+    public abstract class BaseIntegrationTest : BaseParallelizableWithTempFolderTest
     {
-        public static readonly DirectoryInfo DbFolder = new("temp_db");
-
-        public static AutoMock Container { get; private set; } = null!;
-
-        public static IFixture FixtureInstance { get; private set; } = null!;
-
-        [OneTimeSetUp]
-        public static async Task OneTimeSetUp()
+        static BaseIntegrationTest()
         {
             Sequence.ContextMode = SequenceContextMode.Async;
+        }
 
+        public BaseIntegrationTest()
+        {
             FixtureInstance = AutoFixtureFactory.Create();
             Container = AutoMockContainerFactory.Create(
                 (mockRepository, builder) =>
                 {
                     builder.RegisterApplicationModules();
                     builder.RegisterModule(
-                        new DbContextModule(DbFolder.FullName, enableSensitiveLogin: true));
+                        new DbContextModule(TempFolder.FullName, enableSensitiveLogin: true));
                 });
         }
 
-        public static Task AddToDb<T>(IEnumerable<T> entities) =>
+        protected IFixture FixtureInstance { get; }
+
+        protected AutoMock Container { get; }
+
+        public override async ValueTask SetUp()
+        {
+            await base.SetUp();
+
+            await EnsureDatabaseAsync();
+        }
+
+        [TearDown]
+        public override async ValueTask TearDown()
+        {
+            await base.SetUp();
+
+            Container.Dispose();
+        }
+
+        protected Task AddToDb<T>(IEnumerable<T> entities) =>
             AddToDb(entities.OfType<object>().ToArray());
 
-        public static async Task AddToDb(params object[] entities)
+        protected async Task AddToDb(params object[] entities)
         {
             await using var dbContext = Container.Create<ApplicationDbContext>();
             dbContext.AddRange(entities);
@@ -52,7 +67,7 @@ namespace YoutubeMusicBot.Application.IntegrationTests
             await dbContext.SaveChangesAsync();
         }
 
-        public static async Task AddToDb<T>(T entity)
+        protected async Task AddToDb<T>(T entity)
         {
             await using var dbContext = Container.Create<ApplicationDbContext>();
             dbContext.Add(entity);
@@ -60,8 +75,7 @@ namespace YoutubeMusicBot.Application.IntegrationTests
             await dbContext.SaveChangesAsync();
         }
 
-
-        public static async Task<T?> GetFromDb<T>(Expression<Func<T, bool>> predicate)
+        protected async Task<T?> GetFromDb<T>(Expression<Func<T, bool>> predicate)
             where T : class
         {
             await using var dbContext = Container.Create<ApplicationDbContext>();
@@ -70,10 +84,10 @@ namespace YoutubeMusicBot.Application.IntegrationTests
                 .FirstOrDefaultAsync();
         }
 
-        [OneTimeTearDown]
-        public static async Task OneTimeTearDown()
+        private async Task EnsureDatabaseAsync()
         {
-            Container.Dispose();
+            await using var dbContext = Container.Create<ApplicationDbContext>();
+            await dbContext.Database.MigrateAsync();
         }
     }
 }

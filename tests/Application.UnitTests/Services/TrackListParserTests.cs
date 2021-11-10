@@ -5,13 +5,12 @@ using FluentAssertions.Extensions;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Models.Music;
 using YoutubeMusicBot.Application.Services;
+using YoutubeMusicBot.IntegrationTests.Common;
 
 namespace YoutubeMusicBot.Application.UnitTests.Services
 {
-    [Parallelizable]
-    public class TrackListParserTests
+    public class TrackListParserTests : BaseParallelizableTest
     {
-        [Parallelizable]
         [TestCaseSource(nameof(ParseData))]
         public void ShouldParseDescription(
             string description,

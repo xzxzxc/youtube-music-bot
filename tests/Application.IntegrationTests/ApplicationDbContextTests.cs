@@ -1,14 +1,14 @@
 ﻿using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
+using YoutubeMusicBot.Application.IntegrationTests.Core;
 using YoutubeMusicBot.Domain;
 using YoutubeMusicBot.Domain.Base;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
-using static YoutubeMusicBot.Application.IntegrationTests.CommonFixture;
 
 namespace YoutubeMusicBot.Application.IntegrationTests
 {
-    public class ApplicationDbContextTests : BaseTest
+    public class ApplicationDbContextTests : BaseIntegrationTest
     {
         [Test]
         [CustomAutoData]

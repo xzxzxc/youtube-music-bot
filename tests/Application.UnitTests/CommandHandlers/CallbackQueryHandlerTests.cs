@@ -8,14 +8,14 @@ using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.CommandHandlers;
 using YoutubeMusicBot.Application.Models.Telegram;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 using YoutubeMusicBot.IntegrationTests.Common.Moq;
 
 namespace YoutubeMusicBot.Application.UnitTests.CommandHandlers
 {
-    [Parallelizable]
-    public class CallbackQueryHandlerTests
+    public class CallbackQueryHandlerTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]

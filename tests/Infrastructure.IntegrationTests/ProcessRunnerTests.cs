@@ -7,12 +7,12 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using NUnit.Framework;
 using YoutubeMusicBot.Infrastructure.Models.ProcessRuner;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 
 namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
-    [Parallelizable]
-    public class ProcessRunnerTests
+    public class ProcessRunnerTests : BaseParallelizableTest
     {
         [Test]
         [AutoData]

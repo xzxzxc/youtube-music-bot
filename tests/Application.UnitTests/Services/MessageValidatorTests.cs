@@ -4,12 +4,12 @@ using FluentAssertions;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Validation;
 using YoutubeMusicBot.Domain;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 
 namespace YoutubeMusicBot.Application.UnitTests.Services
 {
-    [Parallelizable]
-    public class MessageValidatorTests
+    public class MessageValidatorTests : BaseParallelizableTest
     {
         [Test]
         [TestCase("http://test.com")]

@@ -7,13 +7,13 @@ using YoutubeMusicBot.Application.Abstractions.Telegram;
 using YoutubeMusicBot.Application.DependencyInjection;
 using YoutubeMusicBot.Application.Models.Telegram;
 using YoutubeMusicBot.Domain.Base;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.UnitTests.Services
 {
-    [Parallelizable]
-    public class CallbackDataFactoryTests
+    public class CallbackDataFactoryTests : BaseParallelizableTest
     {
         private const int TelegramMaxCallbackDataSize = 64;
 

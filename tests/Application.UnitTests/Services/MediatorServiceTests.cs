@@ -12,13 +12,13 @@ using YoutubeMusicBot.Application.Abstractions.Mediator;
 using YoutubeMusicBot.Application.DependencyInjection;
 using YoutubeMusicBot.Application.Services;
 using YoutubeMusicBot.Domain.Base;
+using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.UnitTests.Services
 {
-    [Parallelizable]
-    public class MediatorServiceTests
+    public class MediatorServiceTests : BaseParallelizableTest
     {
         [Test]
         [CustomAutoData]
