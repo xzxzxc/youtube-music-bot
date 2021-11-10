@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 using Autofac.Extras.Moq;
 using FluentAssertions;
 using FluentAssertions.Extensions;
+using MoreLinq;
 using NUnit.Framework;
 using YoutubeMusicBot.Application.Models.Download;
+using YoutubeMusicBot.Application.Models.Music;
 using YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers;
 using YoutubeMusicBot.Infrastructure.Options;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 using YoutubeMusicBot.IntegrationTests.Common.Extensions;
+using TagFile = TagLib.File;
 
 namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
@@ -28,6 +31,33 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
         }
 
         [Test]
+        [TestCaseSource(nameof(ShouldSplitByTrackListCases))]
+        public async Task ShouldSplitByTrackList(string url, IReadOnlyList<Track> tracks)
+        {
+            using var container = await AutoMockInfrastructureContainerFactory.Create(
+                initialize: true);
+            var filePath = await DownloadFileAndGetPath(url, container);
+            var sut = container.Create<MusicSplitter>();
+
+            var trackPaths = await sut.SplitAsync(filePath, tracks).ToArrayAsync();
+
+            trackPaths.Should().NotBeNull();
+            var currentTrackStart = TimeSpan.Zero;
+            var zip = tracks
+                .ZipLongest(trackPaths, (expTrack, resPath) => (expTrack, resPath));
+            foreach (var (expTrack, resPath) in zip)
+            {
+                expTrack.Should().NotBeNull();
+                resPath.Should().NotBeNull();
+                var tagFile = TagFile.Create(resPath);
+                currentTrackStart.Should().BeCloseTo(expTrack.Start, 500.Milliseconds());
+                tagFile.Tag.Title.Should().Be(expTrack.Title);
+
+                currentTrackStart += tagFile.Properties.Duration;
+            }
+        }
+
+        [Test]
         [CustomInlineAutoData("https://youtu.be/lfgWv3ypEIY", 13)]
         public async Task ShouldSplitBySilence(
             string url,
@@ -35,7 +65,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
         {
             using var container = await AutoMockInfrastructureContainerFactory.Create(
                 initialize: true);
-            var file = await DownloadFile(url, container);
+            var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
             var tracks = await sut.SplitBySilenceAsync(file).ToArrayAsync();
@@ -54,7 +84,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             using var container = await AutoMockInfrastructureContainerFactory.Create(
                 b => b.RegisterOptions(new SplitOptions { MinSilenceLength = minSilenceLength, }),
                 initialize: true);
-            var file = await DownloadFile(url, container);
+            var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
             var tracks = await sut.SplitBySilenceAsync(file).ToArrayAsync();
@@ -71,7 +101,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
         {
             using var container = await AutoMockInfrastructureContainerFactory.Create(
                 initialize: true);
-            var file = await DownloadFile(url, container);
+            var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
             var tracks = await sut.SplitInEqualPartsAsync(file, tracksCount).ToArrayAsync();
@@ -80,7 +110,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             tracks.Should().HaveCount(tracksCount);
         }
 
-        private static async Task<string> DownloadFile(string url, AutoMock container)
+        private static async Task<string> DownloadFileAndGetPath(string url, AutoMock container)
         {
             var youtubeDlWrapper = container.Create<MusicDownloader>();
             return await youtubeDlWrapper.DownloadAsync(CacheFolder.FullName, url)
@@ -92,6 +122,19 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
         private static IEnumerable<TestCaseData> ShouldNotTakeIntoAccountTooShortSilenceData()
         {
             yield return new TestCaseData("https://youtu.be/lfgWv3ypEIY", 6, 1.Seconds());
+        }
+
+        private static IEnumerable<TestCaseData> ShouldSplitByTrackListCases()
+        {
+            yield return new TestCaseData(
+                "https://youtu.be/lfgWv3ypEIY",
+                new[]
+                {
+                    new Track(TimeSpan.Zero, "first"), new Track(30.Seconds(), "second"),
+                    new Track(1.Minutes() + 20.Seconds(), "third"),
+                    new Track(1.Minutes() + 50.Seconds(), "fourth"),
+                    new Track(2.Minutes() + 50.Seconds(), "fifth"),
+                });
         }
 
         [OneTimeTearDown]
