@@ -93,7 +93,7 @@ namespace YoutubeMusicBot.Application.UnitTests.EventHandlers
 
             var uncommittedEvents = @event.Aggregate.GetUncommittedEvents();
 
-            uncommittedEvents.Should().NotContain(e => e is MusicFileCreatedHandler);
+            uncommittedEvents.Should().NotContain(e => e is MusicFileCreatedEvent);
         }
 
         [Test]

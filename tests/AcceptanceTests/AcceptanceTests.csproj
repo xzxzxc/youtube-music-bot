@@ -3,6 +3,7 @@
     <PropertyGroup>
         <IsPackable>false</IsPackable>
         <RootNamespace>YoutubeMusicBot.AcceptanceTest</RootNamespace>
+        <NoWarn>7022</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

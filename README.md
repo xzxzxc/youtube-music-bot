@@ -36,6 +36,7 @@ youtube-dl --version
 - install ffmpeg
 code for linux:
 ```
+sudo add-apt-repository ppa:savoury1/ffmpeg4
 sudo apt update
 sudo apt install ffmpeg
 ffmpeg -version

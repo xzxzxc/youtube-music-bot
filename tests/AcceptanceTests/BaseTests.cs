@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using NUnit.Framework;
 using YoutubeMusicBot.IntegrationTests.Common;
+using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 using static YoutubeMusicBot.AcceptanceTest.CommonFixture;
 
 namespace YoutubeMusicBot.AcceptanceTest
@@ -12,17 +13,15 @@ namespace YoutubeMusicBot.AcceptanceTest
         {
             ThrowExceptionLogger.Errors.Clear();
 
-            if (TempaFolder.Exists)
-                TempaFolder.Delete(recursive: true);
+            await TempFolder.WaitToDelete(recursive: true);
 
-            TempaFolder.Create();
+            TempFolder.Create();
         }
 
         [TearDown]
         public virtual async ValueTask TearDown()
         {
-            if (TempaFolder.Exists)
-                TempaFolder.Delete(recursive: true);
+            await TempFolder.WaitToDelete(recursive: true);
         }
     }
 }

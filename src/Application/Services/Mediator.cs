@@ -47,7 +47,7 @@ namespace YoutubeMusicBot.Application.Services
             using var cancellationHolder = new CancellationHolder<TAggregate>(
                 @event,
                 cancellationToken,
-                _cancellationActionsCache); // TODO: fix remove key on dispose in nested events
+                _cancellationActionsCache);
             var handlerType = typeof(IEventHandler<,>).MakeGenericType(
                 @event.GetType(),
                 typeof(TAggregate));
@@ -71,6 +71,7 @@ namespace YoutubeMusicBot.Application.Services
             private readonly string _cacheKey;
             private readonly ConcurrentDictionary<string, Action> _cancellationActions;
             private readonly CancellationTokenSource _aggregateSource;
+            private readonly bool _shouldRemoveOnDispose;
 
             public CancellationHolder(
                 EventBase<TAggregate> @event,
@@ -79,9 +80,8 @@ namespace YoutubeMusicBot.Application.Services
             {
                 _cancellationActions = cancellationActions;
                 _cacheKey = CreateCacheKey(@event.AggregateId);
-                _aggregateSource = CancellationTokenSource.CreateLinkedTokenSource(
-                    initialToken);
-                _cancellationActions.GetOrAdd(_cacheKey, Cancel);
+                _aggregateSource = CancellationTokenSource.CreateLinkedTokenSource(initialToken);
+                _shouldRemoveOnDispose = _cancellationActions.TryAdd(_cacheKey, Cancel);
             }
 
             private void Cancel() =>
@@ -89,8 +89,11 @@ namespace YoutubeMusicBot.Application.Services
 
             public CancellationToken CancellationToken => _aggregateSource.Token;
 
-            public void Dispose() =>
-                _cancellationActions.Remove(_cacheKey, out _);
+            public void Dispose()
+            {
+                if (_shouldRemoveOnDispose)
+                    _cancellationActions.Remove(_cacheKey, out _);
+            }
 
             public static Action GetCancelAction(
                 long aggregateId,

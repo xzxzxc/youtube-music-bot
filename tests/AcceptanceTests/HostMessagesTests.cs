@@ -106,7 +106,7 @@ namespace YoutubeMusicBot.AcceptanceTest
 
         [Test]
         [Order(0)]
-        [Timeout(30_000)] // 30 seconds
+        [Timeout(60_000)]
         [TestCase("https://youtu.be/wuROIJ0tRPU")]
         public async Task ShouldCancelLoadingUsingButton(string url)
         {

@@ -41,30 +41,30 @@ namespace YoutubeMusicBot.AcceptanceTest
                 throw new InvalidOperationException(
                     "Please login to telegram running this project as a program from folder with dll.");
 
-            _hostInstance = Program.CreateHostBuilder()
+            _hostInstance = Console.Program.CreateHostBuilder()
                 .ConfigureContainer<ContainerBuilder>(
                     (_, b) =>
                     {
                         b.RegisterOptions(
-                            new FileSystemOptions { TempFolderPath = TempaFolder.FullName, });
+                            new FileSystemOptions { TempFolderPath = TempFolder.FullName, });
                         b.RegisterOptions(BotOptions);
                         b.RegisterOptions(SplitOptions);
                         b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
                     })
                 .Build();
 
-            await Program.Initialize(_hostInstance);
+            await Console.Program.Initialize(_hostInstance);
             RootScope = _hostInstance.Services.GetRequiredService<ILifetimeScope>();
 
             HostRunTask = _hostInstance.RunAsync();
         }
 
         // this is property on purpose
-        public static DirectoryInfo TempaFolder => new("cache_folder");
+        public static DirectoryInfo TempFolder => new("cache_folder");
 
         public static void CheckCacheDirectoryIsEmpty()
         {
-            TempaFolder.EnumerateFiles("*", SearchOption.AllDirectories)
+            TempFolder.EnumerateFiles("*", SearchOption.AllDirectories)
                 .Should()
                 .BeEmpty();
         }
@@ -80,8 +80,8 @@ namespace YoutubeMusicBot.AcceptanceTest
             _hostInstance.Dispose();
             TgClient.Dispose();
 
-            if (TempaFolder.Exists)
-                TempaFolder.Delete(recursive: true);
+            if (TempFolder.Exists)
+                TempFolder.Delete(recursive: true);
         }
     }
 }
