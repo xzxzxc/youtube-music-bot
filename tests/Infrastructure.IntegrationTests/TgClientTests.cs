@@ -23,7 +23,6 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
 {
     public class TgClientTests : BaseParallelizableTest
     {
-        // TODO: remove message after test
         [Test]
         [Timeout(120_000)] // 2 minutes
         [InlineAutoData(Secrets.GroupChatIdForBot, 21)]
@@ -65,7 +64,6 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
                 messageText,
                 new InlineButtonCollection(button));
 
-            // TODO: check message could be read back
             response.Should().NotBe(default);
         }
 

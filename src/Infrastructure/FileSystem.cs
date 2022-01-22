@@ -31,7 +31,6 @@ namespace YoutubeMusicBot.Infrastructure
 
         public async ValueTask RemoveTempFolderAndContent<T>(T folderId)
         {
-            // TODO: add test for this
             Stopwatch? stopwatch = null;
             var directoryInfo = new DirectoryInfo(GetTempFolderPath(folderId));
             while (!TryDeleteDirectory(directoryInfo))

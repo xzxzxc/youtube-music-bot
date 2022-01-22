@@ -51,7 +51,6 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
                             tagFile.Tag.FirstPerformer.Should().Be(t.Author);
                             tagFile.Properties.Duration.Should()
                                 .BeCloseTo(t.Duration, precision: TimeSpan.FromSeconds(1));
-                            // TODO: add check for that description is null if there is no file
                             result.DescriptionFilePath.Should().NotBeNull();
                         }));
             res.Should().SatisfyRespectively(rawTitleChecks.Interleave(fileChecks));
