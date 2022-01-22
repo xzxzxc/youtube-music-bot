@@ -52,8 +52,9 @@ namespace YoutubeMusicBot.Application.Services
                 @event.GetType(),
                 typeof(TAggregate));
             await using var scope = _scope.BeginLifetimeScope();
-            dynamic handler = scope.Resolve(handlerType);
-            await handler.Handle((dynamic)@event, cancellationHolder.CancellationToken);
+            dynamic? handler = scope.ResolveOptional(handlerType);
+            if (handler != null)
+                await handler.Handle((dynamic)@event, cancellationHolder.CancellationToken);
         }
 
         public void Cancel<TAggregate>(long aggregateId)

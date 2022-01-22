@@ -84,8 +84,14 @@ namespace YoutubeMusicBot.Infrastructure
                     errResultNull = line == null;
                     if (!errResultNull)
                     {
+                        if (line!.StartsWith("Warning", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogWarning("Gor {Warning}", line);
+                            yield return new(line, IsError: false);
+                        }
+
                         _logger.LogError("Got {Error}", line);
-                        yield return new(line!, IsError: true);
+                        yield return new(line, IsError: true);
                     }
 
                     readErrorTask = process.StandardError.ReadLineAsync();

@@ -34,7 +34,7 @@ namespace YoutubeMusicBot.AcceptanceTest
 
         [Test]
         [Order(0)]
-        [Timeout(120_000)] // 2 minutes
+        [Timeout(200_000)]
         [TestCaseSource(nameof(SimpleTestCases))]
         public async Task ShouldUploadAudioOnEcho(
             string url,

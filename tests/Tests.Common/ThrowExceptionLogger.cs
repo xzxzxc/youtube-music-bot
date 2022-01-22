@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
@@ -39,6 +40,8 @@ namespace YoutubeMusicBot.IntegrationTests.Common
                 ThrowExceptionLogger.Errors.Add(info);
                 info.Throw();
             }
+
+            Debug.WriteLine(formatter(state, exception));
         }
 
         public bool IsEnabled(LogLevel logLevel) =>

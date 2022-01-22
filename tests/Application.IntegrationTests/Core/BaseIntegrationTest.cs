@@ -71,6 +71,7 @@ namespace YoutubeMusicBot.Application.IntegrationTests.Core
         }
 
         protected async Task AddToDb<T>(T entity)
+            where T : notnull
         {
             await using var dbContext = Container.Create<ApplicationDbContext>();
             dbContext.Add(entity);

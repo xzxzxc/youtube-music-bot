@@ -13,9 +13,8 @@ namespace YoutubeMusicBot.Infrastructure.Extensions
                         .Select(b => b.ToButton())));
 
         private static InlineKeyboardButton ToButton(this InlineButton button) =>
-            new()
+            new(button.Text)
             {
-                Text = button.Text,
                 CallbackData = button.CallbackData,
             };
     }

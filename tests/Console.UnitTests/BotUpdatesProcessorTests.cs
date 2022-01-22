@@ -6,6 +6,7 @@ using FluentAssertions;
 using Moq;
 using NUnit.Framework;
 using Telegram.Bot;
+using Telegram.Bot.Requests;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using YoutubeMusicBot.Application.Abstractions.Mediator;
@@ -31,11 +32,8 @@ namespace YoutubeMusicBot.Console.UnitTests
             using var container = AutoMockContainerFactory.Create();
             container.Mock<ITelegramBotClient>()
                 .Setup(
-                    c => c.GetUpdatesAsync(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
-                        It.IsAny<IEnumerable<UpdateType>>(),
+                    c => c.MakeRequestAsync(
+                        It.IsAny<GetUpdatesRequest>(),
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { messageUpdate });
             var sut = container.Create<BotUpdatesProcessor>();
@@ -47,7 +45,7 @@ namespace YoutubeMusicBot.Console.UnitTests
                 .Verify(
                     m => m.Send(Capture.With(lazyCapture.Match), cancellationToken),
                     Times.Once);
-            lazyCapture.Value.MessageId.Should().Be(messageUpdate.Message.MessageId);
+            lazyCapture.Value.MessageId.Should().Be(messageUpdate.Message!.MessageId);
             lazyCapture.Value.Text.Should().Be(messageUpdate.Message.Text);
             lazyCapture.Value.ChatId.Should().Be(messageUpdate.Message.Chat.Id);
         }
@@ -64,11 +62,8 @@ namespace YoutubeMusicBot.Console.UnitTests
             using var container = AutoMockContainerFactory.Create();
             container.Mock<ITelegramBotClient>()
                 .Setup(
-                    c => c.GetUpdatesAsync(
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
-                        It.IsAny<int>(),
-                        It.IsAny<IEnumerable<UpdateType>>(),
+                    c => c.MakeRequestAsync(
+                        It.IsAny<GetUpdatesRequest>(),
                         It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new[] { callbackUpdate });
             var sut = container.Create<BotUpdatesProcessor>();
@@ -81,7 +76,7 @@ namespace YoutubeMusicBot.Console.UnitTests
                     s => s.Send(Capture.With(lazyCapture.Match), It.IsAny<CancellationToken>()),
                     Times.Once);
             lazyCapture.Value.Should().NotBeNull();
-            lazyCapture.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
+            lazyCapture.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery!.Data);
         }
     }
 }

@@ -6,7 +6,6 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using YoutubeMusicBot.Application.Abstractions.Telegram;
-using YoutubeMusicBot.Application.Models;
 using YoutubeMusicBot.Application.Models.Telegram;
 using YoutubeMusicBot.Infrastructure.Extensions;
 
@@ -86,7 +85,7 @@ namespace YoutubeMusicBot.Infrastructure
             catch (ApiRequestException ex)
                 when (ex.Parameters?.RetryAfter != null)
             {
-                var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter);
+                var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter.Value);
                 await Task.Delay(time);
                 return await Invoke(action);
             }
@@ -101,7 +100,7 @@ namespace YoutubeMusicBot.Infrastructure
             catch (ApiRequestException ex)
                 when (ex.Parameters?.RetryAfter != null)
             {
-                var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter);
+                var time = TimeSpan.FromSeconds(ex.Parameters.RetryAfter.Value);
                 await Task.Delay(time);
                 await Invoke(action);
             }

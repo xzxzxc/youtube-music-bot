@@ -141,14 +141,13 @@ namespace YoutubeMusicBot.Domain.UnitTests
 
             sut.Cancalled();
 
-            var @event = sut.GetUncommittedEvents()
+            MessageCancelledEvent? @event = null;
+            sut.GetUncommittedEvents()
                 .Should()
-                .ContainSingle()
-                .Which.Should()
-                .BeOfType<MessageCancelledEvent>()
-                .Which;
-            VerifyEventAggregateFields(@event, sut);
-            sut.IsFinished.Should().BeTrue();
+                .SatisfyRespectively(
+                    ef => ef.Should().BeOfType<MessageFinishedEvent>(),
+                    ec => @event = ec.Should().BeOfType<MessageCancelledEvent>().Which);
+            VerifyEventAggregateFields(@event!, sut);
             sut.IsCancelled.Should().BeTrue();
         }
 

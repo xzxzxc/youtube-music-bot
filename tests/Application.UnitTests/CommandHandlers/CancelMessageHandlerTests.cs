@@ -31,7 +31,7 @@ namespace YoutubeMusicBot.Application.UnitTests.CommandHandlers
 
         [Test]
         [CustomAutoData]
-        public async Task ShouldRaiseMessageFinishedEvent(Message message)
+        public async Task ShouldRaiseMessageCancelledEvent(Message message)
         {
             message.ClearUncommittedEvents();
             using var container = AutoMockContainerFactory.Create();
@@ -44,9 +44,7 @@ namespace YoutubeMusicBot.Application.UnitTests.CommandHandlers
 
             var uncommittedEvents = message.GetUncommittedEvents();
             uncommittedEvents.Should()
-                .ContainSingle()
-                .Which.Should()
-                .BeOfType<MessageFinishedEvent>();
+                .Contain(e => e is MessageCancelledEvent);
             container.VerifyMessageSaved(message);
         }
     }

@@ -107,8 +107,8 @@ namespace YoutubeMusicBot.Domain
 
         public void Apply(MessageCancelledEvent _)
         {
-            IsFinished = true;
             IsCancelled = true;
+            Finished();
         }
     }
 }

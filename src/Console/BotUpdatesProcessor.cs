@@ -51,9 +51,17 @@ namespace YoutubeMusicBot.Console
 
                 foreach (var update in updates)
                 {
+                    try
+                    {
 #pragma warning disable 4014
-                    ProcessUpdateAsync(update, cancellationToken);
+                        ProcessUpdateAsync(update, cancellationToken);
 #pragma warning restore 4014
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _logger.LogError(ex, "Exception during process update");
+                    }
+
                     MessageOffset = update.Id + 1;
                 }
             }
@@ -68,35 +76,19 @@ namespace YoutubeMusicBot.Console
 
         private async Task ProcessUpdateAsync(
             Update update,
-            CancellationToken cancellationToken)
-        {
-            try
+            CancellationToken cancellationToken) =>
+            await (update switch
             {
-                switch (update.Type)
-                {
-                    case UpdateType.Message:
-                        var message = update.Message;
-                        await _mediator.Send(
-                            new MessageHandler.Command(
-                                message.MessageId,
-                                message.Chat.Id,
-                                message.Text ?? string.Empty),
-                            cancellationToken);
-                        break;
-                    case UpdateType.CallbackQuery:
-                        await _mediator.Send(
-                            new CallbackQueryHandler.Command(
-                                update.CallbackQuery.Data),
-                            cancellationToken);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                _logger.LogError(ex, "Exception during process update");
-            }
-        }
+                { Message : { } } => _mediator.Send(
+                    new MessageHandler.Command(
+                        update.Message.MessageId,
+                        update.Message.Chat.Id,
+                        update.Message.Text ?? string.Empty),
+                    cancellationToken),
+                { CallbackQuery : { } } => _mediator.Send(
+                    new CallbackQueryHandler.Command(update.CallbackQuery.Data),
+                    cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(update), update, "Unknown update")
+            });
     }
 }

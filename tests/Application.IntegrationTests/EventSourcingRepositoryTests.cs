@@ -10,6 +10,7 @@ using YoutubeMusicBot.IntegrationTests.Common.AutoFixture.Attributes;
 
 namespace YoutubeMusicBot.Application.IntegrationTests
 {
+    [Parallelizable(ParallelScope.None)]
     public class EventSourcingRepositoryTests : BaseIntegrationTest
     {
         [Test]
