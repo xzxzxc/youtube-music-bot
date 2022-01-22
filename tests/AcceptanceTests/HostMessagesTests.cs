@@ -106,11 +106,12 @@ namespace YoutubeMusicBot.AcceptanceTest
 
         [Test]
         [Order(0)]
-        [Timeout(60_000)]
+        [Timeout(120_000)]
         [TestCase("https://youtu.be/wuROIJ0tRPU")]
         public async Task ShouldCancelLoadingUsingButton(string url)
         {
             await TgClient.SendMessageAsync(_botUser, url);
+            await Task.Delay(5.Seconds());
 
             int? lastMessageId = default;
 
@@ -206,14 +207,14 @@ namespace YoutubeMusicBot.AcceptanceTest
                     new ExpectedTrack(
                         "Глава 94 \"Gavno\"",
                         "Stepan Glava",
-                        TimeSpan.Parse("00:03:30")))) { TestName = "Double quotes in file name", };
+                        TimeSpan.Parse("00:03:30")))) { TestName = "Double quotes in file name", }; // TODO: this should not be acceptance test
             yield return new TestCaseData(
                 "https://youtu.be/kqrcUKehT_Y",
                 ImmutableArray.Create(
                     new ExpectedTrack(
                         "Зав'язав / Stage 13",
                         "Глава 94",
-                        TimeSpan.Parse("00:03:40")))) { TestName = "Single quotes in file name", };
+                        TimeSpan.Parse("00:03:40")))) { TestName = "Single quotes in file name", }; // TODO: this should not be acceptance test
             yield return new TestCaseData(
                 "https://www.youtube.com/watch?v=rJ_rcbUB32Y&list=OLAK5uy_ksq4lX25NiCtiwvwPlG5cK1SvCfkp-Hrc",
                 ImmutableArray.Create(

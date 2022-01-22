@@ -44,8 +44,7 @@ namespace YoutubeMusicBot.Application.IntegrationTests
         }
 
         [Test]
-        [CustomAutoData]
-        public async Task ShouldPersistsAggregateState(long aggregateId)
+        public async Task ShouldPersistsAggregateState()
         {
             var message = FixtureInstance.Create<Message>();
             message.Valid();

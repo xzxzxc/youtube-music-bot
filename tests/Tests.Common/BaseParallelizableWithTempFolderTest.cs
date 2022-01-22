@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using FluentAssertions.Extensions;
+using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 
 namespace YoutubeMusicBot.IntegrationTests.Common
 {
@@ -20,11 +20,7 @@ namespace YoutubeMusicBot.IntegrationTests.Common
         {
             await base.TearDown();
 
-            if (TempFolder.Exists)
-            {
-                await Task.Delay(500.Milliseconds());
-                TempFolder.Delete(recursive: true);
-            }
+            await TempFolder.WaitToDelete(recursive: true);
         }
     }
 }

@@ -6,6 +6,6 @@ namespace YoutubeMusicBot.Infrastructure.Options
     {
         public string TempFolderPath { get; set; } = "cache";
 
-        public TimeSpan WaitLockTimeout { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan WaitLockTimeout { get; set; } = TimeSpan.FromMinutes(5);
     }
 }
