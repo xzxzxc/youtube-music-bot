@@ -57,6 +57,9 @@ namespace YoutubeMusicBot.Application.IntegrationTests.Core
         }
 
         protected Task AddToDb<T>(IEnumerable<T> entities) =>
+            AddToDb(entities.ToArray());
+
+        protected Task AddToDb<T>(params T[] entities) =>
             AddToDb(entities.OfType<object>().ToArray());
 
         protected async Task AddToDb(params object[] entities)

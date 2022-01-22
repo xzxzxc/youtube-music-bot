@@ -202,20 +202,6 @@ namespace YoutubeMusicBot.AcceptanceTest
                         thirdAuthor,
                         TimeSpan.Parse("00:06:21")))) { TestName = "Track list in description", };
             yield return new TestCaseData(
-                "https://youtu.be/1PYGkzyz_YM",
-                ImmutableArray.Create(
-                    new ExpectedTrack(
-                        "Глава 94 \"Gavno\"",
-                        "Stepan Glava",
-                        TimeSpan.Parse("00:03:30")))) { TestName = "Double quotes in file name", }; // TODO: this should not be acceptance test
-            yield return new TestCaseData(
-                "https://youtu.be/kqrcUKehT_Y",
-                ImmutableArray.Create(
-                    new ExpectedTrack(
-                        "Зав'язав / Stage 13",
-                        "Глава 94",
-                        TimeSpan.Parse("00:03:40")))) { TestName = "Single quotes in file name", }; // TODO: this should not be acceptance test
-            yield return new TestCaseData(
                 "https://www.youtube.com/watch?v=rJ_rcbUB32Y&list=OLAK5uy_ksq4lX25NiCtiwvwPlG5cK1SvCfkp-Hrc",
                 ImmutableArray.Create(
                     new ExpectedTrack(

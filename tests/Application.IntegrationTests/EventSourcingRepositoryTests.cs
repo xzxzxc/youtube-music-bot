@@ -12,7 +12,6 @@ namespace YoutubeMusicBot.Application.IntegrationTests
 {
     public class EventSourcingRepositoryTests : BaseIntegrationTest
     {
-        // TODO: fix test first time fails
         [Test]
         // test must be called first because of static id sequence indexer in AggregateBase
         [Order(int.MinValue)]
@@ -32,7 +31,8 @@ namespace YoutubeMusicBot.Application.IntegrationTests
         {
             var events = FixtureInstance.Build<MessageCreatedEvent>()
                 .With(c => c.AggregateId, aggregateId)
-                .CreateMany();
+                .CreateMany()
+                .ToArray();
             await AddToDb(events);
             var sut = Container.Create<EventSourcingRepository<Message>>();
 

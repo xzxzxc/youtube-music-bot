@@ -101,6 +101,20 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             tracks.Should().HaveCount(tracksCount);
         }
 
+        [Test]
+        [TestCaseSource(nameof(CornerCases))]
+        public async Task ShouldWorkWithCornerCases(string url)
+        {
+            using var container = await AutoMockInfrastructureContainerFactory.Create(
+                initialize: true);
+            var file = await DownloadFileAndGetPath(url, container);
+            var sut = container.Create<MusicSplitter>();
+
+            var tracks = await sut.SplitInEqualPartsAsync(file, partsCount: 2).ToArrayAsync();
+
+            tracks.Should().NotBeNull();
+        }
+
         private async Task<string> DownloadFileAndGetPath(string url, AutoMock container)
         {
             var youtubeDlWrapper = container.Create<MusicDownloader>();
@@ -126,6 +140,14 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
                     new Track(1.Minutes() + 50.Seconds(), "fourth"),
                     new Track(2.Minutes() + 50.Seconds(), "fifth"),
                 });
+        }
+
+        private static IEnumerable<TestCaseData> CornerCases()
+        {
+            yield return new TestCaseData(
+                "https://youtu.be/1PYGkzyz_YM") { TestName = "Double quotes in file name", };
+            yield return new TestCaseData(
+                "https://youtu.be/kqrcUKehT_Y") { TestName = "Single quotes in file name", };
         }
     }
 }
