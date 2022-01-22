@@ -83,12 +83,5 @@ namespace YoutubeMusicBot.Console.UnitTests
             lazyCapture.Value.Should().NotBeNull();
             lazyCapture.Value.CallbackData.Should().Be(callbackUpdate.CallbackQuery.Data);
         }
-
-        [Test]
-        [CustomAutoData]
-        public async Task ShouldCatchAndLogException()
-        {
-            // TODO: add test
-        }
     }
 }

@@ -109,6 +109,49 @@ namespace YoutubeMusicBot.Domain.UnitTests
             });
         }
 
+        [Test]
+        [CustomAutoData]
+        public void ShouldRaiseFinishedEvent(
+            Message sut,
+            string fileFullPath,
+            string? descriptionFilePath)
+        {
+            sut.ClearUncommittedEvents();
+
+            sut.Finished();
+
+            var @event = sut.GetUncommittedEvents()
+                .Should()
+                .ContainSingle()
+                .Which.Should()
+                .BeOfType<MessageFinishedEvent>()
+                .Which;
+            VerifyEventAggregateFields(@event, sut);
+            sut.IsFinished.Should().BeTrue();
+        }
+
+        [Test]
+        [CustomAutoData]
+        public void ShouldRaiseCancelledEvent(
+            Message sut,
+            string fileFullPath,
+            string? descriptionFilePath)
+        {
+            sut.ClearUncommittedEvents();
+
+            sut.Cancalled();
+
+            var @event = sut.GetUncommittedEvents()
+                .Should()
+                .ContainSingle()
+                .Which.Should()
+                .BeOfType<MessageCancelledEvent>()
+                .Which;
+            VerifyEventAggregateFields(@event, sut);
+            sut.IsFinished.Should().BeTrue();
+            sut.IsCancelled.Should().BeTrue();
+        }
+
         private static void VerifyEventAggregateFields(EventBase<Message> @event, Message message)
         {
             @event.Aggregate.Should().Be(message);

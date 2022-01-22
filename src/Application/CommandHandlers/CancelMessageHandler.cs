@@ -26,7 +26,7 @@ namespace YoutubeMusicBot.Application.CommandHandlers
             _mediator.Cancel<Message>(command.MessageId);
 
             var message = await _repository.GetByIdAsync(command.MessageId, cancellationToken);
-            message.Finished();
+            message.Cancalled();
             await _repository.SaveAndEmitEventsAsync(message, cancellationToken);
         }
 

@@ -28,6 +28,10 @@ namespace YoutubeMusicBot.Domain
 
         public ICollection<File> MusicFilesToBeSent { get; } = new List<File>();
 
+        public bool IsFinished { get; private set; } = false;
+
+        public bool IsCancelled { get; private set; } = false;
+
         public void Valid()
         {
             RaiseEvent(new MessageValidEvent());
@@ -58,6 +62,11 @@ namespace YoutubeMusicBot.Domain
             RaiseEvent(new MessageFinishedEvent());
         }
 
+        public void Cancalled()
+        {
+            RaiseEvent(new MessageCancelledEvent());
+        }
+
         public void Apply(MessageCreatedEvent @event)
         {
             Id = @event.AggregateId;
@@ -66,7 +75,7 @@ namespace YoutubeMusicBot.Domain
             ChatId = @event.ChatId;
         }
 
-        public void Apply(MessageValidEvent @event)
+        public void Apply(MessageValidEvent _)
         {
             IsValid = true;
         }
@@ -91,9 +100,15 @@ namespace YoutubeMusicBot.Domain
             MusicFilesToBeSent.Add(new File(@event.FilePath));
         }
 
-        public void Apply(MessageFinishedEvent @event)
+        public void Apply(MessageFinishedEvent _)
         {
-            // TODO: add test and status
+            IsFinished = true;
+        }
+
+        public void Apply(MessageCancelledEvent _)
+        {
+            IsFinished = true;
+            IsCancelled = true;
         }
     }
 }
