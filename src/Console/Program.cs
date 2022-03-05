@@ -71,7 +71,7 @@ namespace YoutubeMusicBot.Console
             IConfigurationBuilder builder)
         {
             builder.SetBasePath(AppDomain.CurrentDomain.BaseDirectory);
-            builder.AddJsonFile("appsettings.Secrets.json");
+            builder.AddJsonFile("appsettings.Secrets.json", optional: true, reloadOnChange: true);
         }
     }
 }
