@@ -1,0 +1,11 @@
+#setup:
+build:
+  docker:
+    worker: Dockerfile
+#  config:
+#release:
+#  command:
+#    - ./deployment-tasks.sh
+#  image: worker
+run:
+  worker: dotnet Console.dll
