@@ -7,5 +7,5 @@ build:
 #  command:
 #    - ./deployment-tasks.sh
 #  image: worker
-run:
-  worker: dotnet Console.dll
+#run:
+#  worker: dotnet Console.dll

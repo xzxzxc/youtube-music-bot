@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 
 COPY . youtube-music-bot/
 
@@ -10,7 +10,13 @@ RUN for test_proj in ./tests/*; do if echo "$test_proj" | grep -q "UnitTests"; t
 
 RUN dotnet publish ./src/Console -c release -o /publish
 
-FROM mcr.microsoft.com/dotnet/runtime:5.0
+FROM ubuntu:focal AS run
+
+COPY ./setup.sh ./
+RUN chmod +x setup.sh
+RUN ./setup.sh
+
+FROM run
 ARG CACHEBUST=1
 
 WORKDIR /publish
