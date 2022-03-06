@@ -2,23 +2,24 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>YoutubeMusicBot.Infrastructure.IntegrationTest</RootNamespace>
+        <RootNamespace>YoutubeMusicBot.Application.IntegrationTests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoBogus" Version="2.13.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+        <PackageReference Include="Moq.Sequences" Version="2.2.1" />
         <PackageReference Include="NUnit" Version="3.13.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
         <PackageReference Include="coverlet.collector" Version="3.1.0">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Respawn" Version="5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Infrastructure\Infrastructure.csproj" />
-      <ProjectReference Include="..\IntegrationTests.Common\IntegrationTests.Common.csproj" />
+      <ProjectReference Include="..\..\Console\Console.csproj" />
+      <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
     </ItemGroup>
 

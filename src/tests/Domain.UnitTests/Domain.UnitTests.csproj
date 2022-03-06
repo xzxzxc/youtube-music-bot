@@ -2,32 +2,23 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>YoutubeMusicBot.Application.IntegrationTests</RootNamespace>
+        <RootNamespace>YoutubeMusicBot.Domain.UnitTests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentAssertions" Version="6.4.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-        <PackageReference Include="Moq.Sequences" Version="2.2.1" />
         <PackageReference Include="NUnit" Version="3.13.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
         <PackageReference Include="coverlet.collector" Version="3.1.0">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Respawn" Version="5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Console\Console.csproj" />
-      <ProjectReference Include="..\..\src\Infrastructure\Infrastructure.csproj" />
+      <ProjectReference Include="..\..\Domain\Domain.csproj" />
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Content Include="..\..\youtube-dl.conf">
-        <Link>youtube-dl.conf</Link>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
 </Project>

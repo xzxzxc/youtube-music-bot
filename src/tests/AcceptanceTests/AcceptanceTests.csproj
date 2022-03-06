@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Console\Console.csproj" />
+      <ProjectReference Include="..\..\Console\Console.csproj" />
       <ProjectReference Include="..\IntegrationTests.Common\IntegrationTests.Common.csproj" />
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
     </ItemGroup>

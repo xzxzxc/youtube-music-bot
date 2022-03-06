@@ -22,7 +22,7 @@ sudo apt-get update; \
 - install python (needed for youtube-dl)
 ```
 sudo apt update
-sudo apt install python
+sudo apt install python3 python-is-python3
 python --version
 ```
 

@@ -1,17 +1,24 @@
 ﻿#!/bin/sh
 
-# TODO: add versions
-add-apt-repository ppa:savoury1/ffmpeg4
-apt update
-apt --assume-yes install wget curl apt-transport-https python mp3splt
+set -e # exit on first error
+
+apt-get -qq update
+apt-get -y -qq install software-properties-common \
+  wget \
+  apt-transport-https \
+  python3=3.8.2-0ubuntu2 \
+  python-is-python3 \
+  mp3splt=2.6.2+20170630-3
+
+add-apt-repository -y ppa:savoury1/ffmpeg4
 
 wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 dpkg -i packages-microsoft-prod.deb
 rm packages-microsoft-prod.deb
 
-apt update
+apt-get -qq update
 
-apt --assume-yes install -y dotnet-runtime-6.0 ffmpeg
+apt-get -y -qq install dotnet-runtime-6.0 ffmpeg=7:4.4.1-3ubuntu1+20.04.sav0.2
 
-curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+wget https://yt-dl.org/downloads/2021.12.17/youtube-dl -O /usr/local/bin/youtube-dl
 chmod a+rx /usr/local/bin/youtube-dl

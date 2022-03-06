@@ -2,11 +2,10 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>YoutubeMusicBot.Domain.UnitTests</RootNamespace>
+        <RootNamespace>YoutubeMusicBot.Console.UnitTests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentAssertions" Version="6.4.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
         <PackageReference Include="NUnit" Version="3.13.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
@@ -17,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Domain\Domain.csproj" />
+      <ProjectReference Include="..\..\Console\Console.csproj" />
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
     </ItemGroup>
 

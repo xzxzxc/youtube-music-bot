@@ -31,14 +31,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\youtube-dl.conf">
-      <Link>youtube-dl.conf</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <Content Include="..\youtube-dl.conf">
+      <Link>youtube-dl.conf</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

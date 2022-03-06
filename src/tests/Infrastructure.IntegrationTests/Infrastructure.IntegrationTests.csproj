@@ -2,10 +2,11 @@
 
     <PropertyGroup>
         <IsPackable>false</IsPackable>
-        <RootNamespace>YoutubeMusicBot.Console.UnitTests</RootNamespace>
+        <RootNamespace>YoutubeMusicBot.Infrastructure.IntegrationTest</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AutoBogus" Version="2.13.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
         <PackageReference Include="NUnit" Version="3.13.2" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
@@ -16,8 +17,16 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Console\Console.csproj" />
+      <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
+      <ProjectReference Include="..\IntegrationTests.Common\IntegrationTests.Common.csproj" />
       <ProjectReference Include="..\Tests.Common\Tests.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\youtube-dl.conf">
+        <Link>youtube-dl.conf</Link>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>

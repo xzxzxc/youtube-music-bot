@@ -7,26 +7,26 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Console", "src\Console\Cons
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B89DC0F8-ACC3-4EB4-8CD5-CA71DC836EB6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8E2CAF60-B729-4468-800B-9B5BCB37A68B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "src\tests", "{8E2CAF60-B729-4468-800B-9B5BCB37A68B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.UnitTests", "tests\Application.UnitTests\Application.UnitTests.csproj", "{4EDA1C49-1019-4090-B40F-A0626338D1E0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application.UnitTests", "src\tests\Application.UnitTests\Application.UnitTests.csproj", "{4EDA1C49-1019-4090-B40F-A0626338D1E0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FDD077D7-FE46-4A06-850F-D8929E4F4932}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		Directory.Build.props = Directory.Build.props
 		README.md = README.md
-		youtube-dl.conf = youtube-dl.conf
-		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		Dockerfile = Dockerfile
 		.dockerignore = .dockerignore
 		docker-compose.yml = docker-compose.yml
 		heroku.yml = heroku.yml
 		setup.sh = setup.sh
+		src\.editorconfig = src\.editorconfig
+		src\Directory.Build.props = src\Directory.Build.props
+		src\youtube-dl.conf = src\youtube-dl.conf
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "tests\Tests.Common\Tests.Common.csproj", "{92864346-7FB7-488C-8657-BEEAB7DFC146}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "src\tests\Tests.Common\Tests.Common.csproj", "{92864346-7FB7-488C-8657-BEEAB7DFC146}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "src\Domain\Domain.csproj", "{6A27F1C5-236F-4810-9490-5CDF4155A8B4}"
 EndProject
@@ -34,17 +34,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "src\Applicat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "src\Infrastructure\Infrastructure.csproj", "{CAEDE91E-3707-41F6-8508-CD00AEA35438}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.IntegrationTests", "tests\Application.IntegrationTests\Application.IntegrationTests.csproj", "{13D0BBCE-A264-4ED8-BBB4-29A51432FF2B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application.IntegrationTests", "src\tests\Application.IntegrationTests\Application.IntegrationTests.csproj", "{13D0BBCE-A264-4ED8-BBB4-29A51432FF2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console.UnitTests", "tests\Console.UnitTests\Console.UnitTests.csproj", "{C7BC0DC4-4073-4DA7-8397-47DC5A140A70}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Console.UnitTests", "src\tests\Console.UnitTests\Console.UnitTests.csproj", "{C7BC0DC4-4073-4DA7-8397-47DC5A140A70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "tests\AcceptanceTests\AcceptanceTests.csproj", "{27FC8484-4187-467F-8856-FE7204482AE9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcceptanceTests", "src\tests\AcceptanceTests\AcceptanceTests.csproj", "{27FC8484-4187-467F-8856-FE7204482AE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests.Common", "tests\IntegrationTests.Common\IntegrationTests.Common.csproj", "{9AD36FEF-B37B-45E7-9593-5C27F99BF699}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests.Common", "src\tests\IntegrationTests.Common\IntegrationTests.Common.csproj", "{9AD36FEF-B37B-45E7-9593-5C27F99BF699}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.IntegrationTests", "tests\Infrastructure.IntegrationTests\Infrastructure.IntegrationTests.csproj", "{9D101F3C-2E12-48EA-9AB0-59E85F25A737}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.IntegrationTests", "src\tests\Infrastructure.IntegrationTests\Infrastructure.IntegrationTests.csproj", "{9D101F3C-2E12-48EA-9AB0-59E85F25A737}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain.UnitTests", "tests\Domain.UnitTests\Domain.UnitTests.csproj", "{32CD2C1C-36C3-4F4A-983B-5BCA9A889589}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain.UnitTests", "src\tests\Domain.UnitTests\Domain.UnitTests.csproj", "{32CD2C1C-36C3-4F4A-983B-5BCA9A889589}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,6 +117,7 @@ Global
 		{9AD36FEF-B37B-45E7-9593-5C27F99BF699} = {8E2CAF60-B729-4468-800B-9B5BCB37A68B}
 		{9D101F3C-2E12-48EA-9AB0-59E85F25A737} = {8E2CAF60-B729-4468-800B-9B5BCB37A68B}
 		{32CD2C1C-36C3-4F4A-983B-5BCA9A889589} = {8E2CAF60-B729-4468-800B-9B5BCB37A68B}
+		{8E2CAF60-B729-4468-800B-9B5BCB37A68B} = {B89DC0F8-ACC3-4EB4-8CD5-CA71DC836EB6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0AD41B7B-E102-4019-8F2E-D14490AD9F6A}
