@@ -18,16 +18,9 @@ namespace YoutubeMusicBot.Application.DependencyInjection
             base.Load(builder);
 
             builder.RegisterGeneric(typeof(EventSourcingRepository<>))
-                .As(typeof(IRepository<>))
+                .AsImplementedInterfaces();
+            builder.RegisterGeneric(typeof(RepositoryInitializer<>))
                 .AsSelf();
-
-            var aggregateTypes = GetAggregateTypes();
-            foreach (var aggregateType in aggregateTypes)
-            {
-                var repoType = typeof(EventSourcingRepository<>).MakeGenericType(aggregateType);
-                builder.Register(ctx => ctx.Resolve(repoType))
-                    .As<IInitializable>();
-            }
         }
 
         public static IEnumerable<Type> GetAggregateTypes(params Assembly[] assembliesToScan)

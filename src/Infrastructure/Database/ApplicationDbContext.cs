@@ -1,14 +1,10 @@
 ﻿using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using YoutubeMusicBot.Application.Abstractions;
 using YoutubeMusicBot.Application.Abstractions.Storage;
 
 namespace YoutubeMusicBot.Infrastructure.Database
 {
-    public class ApplicationDbContext : DbContext,
-        IDbContext,
-        IInitializable
+    public class ApplicationDbContext : DbContext, IDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -24,13 +20,6 @@ namespace YoutubeMusicBot.Infrastructure.Database
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-        }
-
-        int IInitializable.Order => int.MinValue;
-
-        async ValueTask IInitializable.Initialize()
-        {
-            await Database.MigrateAsync();
         }
     }
 }

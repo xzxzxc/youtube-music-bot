@@ -1,37 +1,36 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using YoutubeMusicBot.Application.Abstractions;
+using YoutubeMusicBot.Application.DependencyInjection;
 using YoutubeMusicBot.Application.Extensions;
 using YoutubeMusicBot.Application.Options;
+using YoutubeMusicBot.Application.Services;
+using YoutubeMusicBot.Domain.Base;
+using YoutubeMusicBot.Infrastructure.Database;
 using YoutubeMusicBot.Infrastructure.Extensions;
 using YoutubeMusicBot.Infrastructure.Options;
 
 namespace YoutubeMusicBot.Console
 {
-    public class Program
+    public static class Program
     {
         public static async Task Main(string[] args)
         {
-            var host = CreateHostBuilder(args)
+            using var host = CreateHostBuilder(args)
                 .Build();
-
-            await Initialize(host);
 
             await host.RunAsync();
         }
 
         public static IHostBuilder CreateHostBuilder(params string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration(ConfigureConfiguration)
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+                .ConfigureServices(ConfigureServices)
                 .ConfigureContainer<ContainerBuilder>(ConfigureContainer)
                 .UseSerilog(
                     (ctx, config) =>
@@ -46,32 +45,36 @@ namespace YoutubeMusicBot.Console
             builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
 
             builder.RegisterType<BotUpdatesProcessor>();
-
-            var serviceCollection = new ServiceCollection();
-
-            serviceCollection.AddHostedService<BotHostedService>();
-
-            serviceCollection.AddOptions<FileSystemOptions>().BindConfiguration("Download");
-            serviceCollection.AddOptions<BotOptions>().BindConfiguration("Bot");
-            serviceCollection.AddOptions<SplitOptions>().BindConfiguration("Split");
-
-            builder.Populate(serviceCollection);
         }
 
-        public static async Task Initialize(IHost host)
+        private static void ConfigureServices(IServiceCollection collection)
         {
-            var initializables = host.Services.GetServices<IInitializable>();
+            collection.AddOptions<FileSystemOptions>().BindConfiguration("Download");
+            collection.AddOptions<BotOptions>().BindConfiguration("Bot");
+            collection.AddOptions<SplitOptions>().BindConfiguration("Split");
 
-            foreach (var initializable in initializables.OrderBy(i => i.Order))
-                await initializable.Initialize();
+
+            collection.AddHostedService<MigrationHostedService>();
+            collection.AddRepositoryInitializers();
+            collection.AddHostedService<BotHostedService>();
         }
 
-        private static void ConfigureConfiguration(
-            HostBuilderContext _,
-            IConfigurationBuilder builder)
+        private static void AddRepositoryInitializers(this IServiceCollection services)
         {
-            builder.SetBasePath(AppDomain.CurrentDomain.BaseDirectory);
-            builder.AddJsonFile("appsettings.Secrets.json", optional: true, reloadOnChange: true);
+            var addInitializerOpenMethod = typeof(Program)
+                .GetMethod(
+                    nameof(AddRepositoryInitializer),
+                    BindingFlags.Static | BindingFlags.NonPublic)!;
+            foreach (var aggregateType in EventSourcingModule.GetAggregateTypes())
+            {
+                addInitializerOpenMethod.MakeGenericMethod(aggregateType)
+                    .Invoke(null, new object?[] { services });
+            }
         }
+
+        private static IServiceCollection AddRepositoryInitializer<TAggregate>(
+            this IServiceCollection services)
+            where TAggregate : AggregateBase<TAggregate> =>
+            services.AddHostedService<RepositoryInitializer<TAggregate>>();
     }
 }

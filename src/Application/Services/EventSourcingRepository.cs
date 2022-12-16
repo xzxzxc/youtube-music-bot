@@ -3,16 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using YoutubeMusicBot.Application.Abstractions;
 using YoutubeMusicBot.Application.Abstractions.Mediator;
 using YoutubeMusicBot.Application.Abstractions.Storage;
 using YoutubeMusicBot.Domain.Base;
 
 namespace YoutubeMusicBot.Application.Services
 {
-    public class EventSourcingRepository<TAggregate> :
-        IRepository<TAggregate>,
-        IInitializable
+    public class EventSourcingRepository<TAggregate> : IRepository<TAggregate>
         where TAggregate : AggregateBase<TAggregate>
     {
         private readonly IDbContext _dbContext;
@@ -64,21 +61,6 @@ namespace YoutubeMusicBot.Application.Services
             var emitTasks = uncommittedEvents
                 .Select(e => _mediator.Emit(e, cancellationToken).AsTask());
             await Task.WhenAll(emitTasks);
-        }
-
-        public async ValueTask Initialize()
-        {
-            var maxEventId = await _dbContext.GetEventDbSet<TAggregate>()
-                .AsQueryable()
-                .MaxAsync(e => (long?)e.Id);
-            var maxAggregateId = await _dbContext.GetEventDbSet<TAggregate>()
-                .AsQueryable()
-                .MaxAsync(e => (long?)e.AggregateId);
-
-            if (maxEventId.HasValue)
-                EventBase<TAggregate>.Initialize(maxEventId.Value);
-            if (maxAggregateId.HasValue)
-                AggregateBase<TAggregate>.Initialize(maxAggregateId.Value);
         }
     }
 }

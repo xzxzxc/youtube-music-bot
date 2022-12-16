@@ -20,8 +20,7 @@ namespace YoutubeMusicBot.Infrastructure.DependencyInjection
 
             builder.Register(_ => _contextFactory.CreateDbContext())
                 .As<IDbContext>()
-                .AsSelf()
-                .As<IInitializable>();
+                .AsSelf();
         }
     }
 }

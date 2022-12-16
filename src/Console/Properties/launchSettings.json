@@ -3,7 +3,7 @@
     "YoutubeMusicBot": {
       "commandName": "Project",
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Production"
       }
     },
     "WSL 2": {

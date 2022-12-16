@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using YoutubeMusicBot.Application.Abstractions;
+using Microsoft.Extensions.Hosting;
 using YoutubeMusicBot.Infrastructure.Abstractions;
 
 namespace YoutubeMusicBot.Infrastructure
 {
-    public class YoutubeDlConfigPath : IYoutubeDlConfigPath, IInitializable
+    public class YoutubeDlConfigPath : IYoutubeDlConfigPath, IHostedService
     {
         private readonly ILinuxPathResolver _linuxPathResolver;
         private string? _cachedValue;
@@ -18,9 +19,9 @@ namespace YoutubeMusicBot.Infrastructure
 
         public string Value =>
             _cachedValue ?? throw new InvalidOperationException(
-                $"Please call {nameof(Initialize)} first");
+                $"Please call {nameof(StartAsync)} first");
 
-        public async ValueTask Initialize()
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             _cachedValue = await _linuxPathResolver.Resolve(
                 Path.Join(
@@ -28,5 +29,8 @@ namespace YoutubeMusicBot.Infrastructure
                     "youtube-dl.conf"),
                 cancellationToken: default);
         }
+
+        public Task StopAsync(CancellationToken cancellationToken) =>
+            Task.CompletedTask;
     }
 }
