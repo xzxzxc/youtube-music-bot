@@ -340,8 +340,10 @@ ASALocalRun/
 healthchecksdb
 
 # cache
-/cache/
-/src/YoutubeMusicBot/cache/
+cache/
 
 # deb packages
 *.deb
+
+# production configuration
+src/Console/appsettings.Production.json
