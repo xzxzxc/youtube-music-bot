@@ -13,9 +13,8 @@ RUN dotnet publish ./src/Console -c release -o /publish
 
 FROM ubuntu:focal AS run
 
-COPY ./setup.sh /
-RUN chmod +x /setup.sh
-RUN sh /setup.sh
+COPY ./setup.sh /setup.sh
+RUN chmod +x /setup.sh && /setup.sh
 
 FROM run
 ARG CACHEBUST=1

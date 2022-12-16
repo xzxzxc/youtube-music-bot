@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e # exit on first error
 
@@ -18,7 +18,7 @@ rm packages-microsoft-prod.deb
 
 apt-get -qq update
 
-apt-get -y -qq install dotnet-runtime-6.0 ffmpeg=7:4.4.1-3ubuntu1+20.04.sav0.2
+apt-get -y -qq install dotnet-runtime-6.0 ffmpeg=7:4.4.3-0ubuntu1~20.04.sav1
 
 wget https://yt-dl.org/downloads/2021.12.17/youtube-dl -O /usr/local/bin/youtube-dl
 chmod a+rx /usr/local/bin/youtube-dl
