@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="6.0.0" />
     <PackageReference Include="Moq.Sequences" Version="2.2.1" />
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="4.2.0" />

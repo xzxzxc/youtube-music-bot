@@ -1,4 +1,3 @@
-using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
@@ -49,15 +48,23 @@ namespace YoutubeMusicBot.Console
 
         private static void ConfigureServices(IServiceCollection collection)
         {
-            collection.AddOptions<FileSystemOptions>().BindConfiguration("Download");
-            collection.AddOptions<BotOptions>().BindConfiguration("Bot");
-            collection.AddOptions<SplitOptions>().BindConfiguration("Split");
+            collection.AddOptionsFromConfiguration<FileSystemOptions>("Download");
+            collection.AddOptionsFromConfiguration<BotOptions>("Bot");
+            collection.AddOptionsFromConfiguration<SplitOptions>("Split");
 
 
             collection.AddHostedService<MigrationHostedService>();
             collection.AddRepositoryInitializers();
             collection.AddHostedService<BotHostedService>();
         }
+
+        private static void AddOptionsFromConfiguration<TOptions>(
+            this IServiceCollection collection,
+            string configSectionPath)
+            where TOptions : class =>
+            collection.AddOptions<TOptions>()
+                .BindConfiguration(configSectionPath)
+                .ValidateDataAnnotations();
 
         private static void AddRepositoryInitializers(this IServiceCollection services)
         {

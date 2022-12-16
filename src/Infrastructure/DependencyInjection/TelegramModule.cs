@@ -1,5 +1,4 @@
-﻿using System;
-using Autofac;
+﻿using Autofac;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using YoutubeMusicBot.Application.Options;
@@ -15,13 +14,8 @@ namespace YoutubeMusicBot.Infrastructure.DependencyInjection
             builder.Register(
                     ctx =>
                     {
-                        var botOptions = ctx
-                            .Resolve<IOptionsMonitor<BotOptions>>()
-                            .CurrentValue;
-                        return new TelegramBotClient(
-                            botOptions.Token
-                            ?? throw new InvalidOperationException(
-                                "Bot token must be not empty!"));
+                        var botOptions = ctx.Resolve<IOptions<BotOptions>>().Value;
+                        return new TelegramBotClient(botOptions.Token);
                     })
                 .As<ITelegramBotClient>()
                 .SingleInstance();
