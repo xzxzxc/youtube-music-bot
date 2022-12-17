@@ -1,33 +1,25 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Autofac;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Moq.Sequences;
 using NUnit.Framework;
 using TLSharp.Core;
 using YoutubeMusicBot.Application.Options;
-using YoutubeMusicBot.Console;
-using YoutubeMusicBot.Infrastructure.Options;
 using YoutubeMusicBot.IntegrationTests.Common;
-using YoutubeMusicBot.IntegrationTests.Common.Extensions;
 
 namespace YoutubeMusicBot.AcceptanceTest
 {
     [SetUpFixture]
     public class CommonFixture
     {
-        private static IHost _hostInstance = null!;
         public static readonly BotOptions BotOptions = new() { Token = Secrets.BotToken, };
-        public static readonly SplitOptions SplitOptions = new();
-        public static Task HostRunTask = null!;
+        private static TestcontainersContainer _container = null!;
 
         public static TelegramClient TgClient { get; private set; } = null!;
 
-        public static ILifetimeScope RootScope { get; private set; } = null!;
 
         [OneTimeSetUp]
         public static async Task OneTimeSetUp()
@@ -41,22 +33,26 @@ namespace YoutubeMusicBot.AcceptanceTest
                 throw new InvalidOperationException(
                     "Please login to telegram running this project as a program from folder with dll.");
 
-            _hostInstance = Console.Program.CreateHostBuilder()
-                .ConfigureContainer<ContainerBuilder>(
-                    (_, b) =>
-                    {
-                        b.RegisterOptions(
-                            new FileSystemOptions { TempFolderPath = TempFolder.FullName, });
-                        b.RegisterOptions(BotOptions);
-                        b.RegisterOptions(SplitOptions);
-                        b.RegisterGeneric(typeof(ThrowExceptionLogger<>)).As(typeof(ILogger<>));
-                    })
+            var imageName = await new ImageFromDockerfileBuilder()
+                .WithName("telegram-youtube-music-bot-test")
+                .WithDockerfileDirectory(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath)
+                .WithDockerfile("Dockerfile")
+                .WithDeleteIfExists(true)
                 .Build();
 
-            await Console.Program.Initialize(_hostInstance);
-            RootScope = _hostInstance.Services.GetRequiredService<ILifetimeScope>();
-
-            HostRunTask = _hostInstance.RunAsync();
+            var output = Consume.RedirectStdoutAndStderrToStream(
+                new MemoryStream(),
+                new MemoryStream());
+            _container = new TestcontainersBuilder<TestcontainersContainer>()
+                .WithImage(imageName)
+                .WithEnvironment("BOT__TOKEN", Secrets.BotToken)
+                .WithEnvironment("DOWNLOAD__TempFolderPath", TempFolder.FullName)
+                .WithOutputConsumer(output)
+                .WithWaitStrategy(
+                    Wait.ForUnixContainer()
+                        .UntilMessageIsLogged(output.Stdout, "Hosting environment: Production"))
+                .Build();
+           await _container.StartAsync();
         }
 
         // this is property on purpose
@@ -69,15 +65,16 @@ namespace YoutubeMusicBot.AcceptanceTest
                 .BeEmpty();
         }
 
-        public static void CheckNoErrorsLogged()
+        public static async Task CheckNoErrorsLogged()
         {
-            ThrowExceptionLogger.ThrowIfNotEmpty();
+            var (_, error) = await _container.GetLogs();
+            error.Should().BeEmpty();
         }
 
         [OneTimeTearDown]
         public static async Task OneTimeTearDown()
         {
-            _hostInstance.Dispose();
+            await _container.DisposeAsync();
             TgClient.Dispose();
 
             if (TempFolder.Exists)

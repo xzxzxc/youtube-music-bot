@@ -23,8 +23,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             string url,
             IReadOnlyCollection<ExpectedTrack> expectedTracks)
         {
-            using var container = await AutoMockInfrastructureContainerFactory.Create(
-                initialize: true);
+            using var container = await AutoMockInfrastructureContainerFactory.Create();
             var sut = container.Create<MusicDownloader>();
 
             var res = await sut.DownloadAsync(TempFolder.FullName, url)

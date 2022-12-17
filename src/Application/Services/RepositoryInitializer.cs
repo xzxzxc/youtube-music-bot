@@ -17,7 +17,7 @@ public class RepositoryInitializer<TAggregate> : IHostedService
         _dbContext = dbContext;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         var maxEventId = await _dbContext.GetEventDbSet<TAggregate>()
             .AsQueryable()

@@ -18,7 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitattributes = .gitattributes
 		Dockerfile = Dockerfile
 		.dockerignore = .dockerignore
-		docker-compose.yml = docker-compose.yml
 		heroku.yml = heroku.yml
 		setup.sh = setup.sh
 		src\.editorconfig = src\.editorconfig

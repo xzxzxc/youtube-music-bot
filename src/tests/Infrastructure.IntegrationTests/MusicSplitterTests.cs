@@ -25,8 +25,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
         [TestCaseSource(nameof(ShouldSplitByTrackListCases))]
         public async Task ShouldSplitByTrackList(string url, IReadOnlyList<Track> tracks)
         {
-            using var container = await AutoMockInfrastructureContainerFactory.Create(
-                initialize: true);
+            using var container = await AutoMockInfrastructureContainerFactory.Create();
             var filePath = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -54,8 +53,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             string url,
             int tracksCount)
         {
-            using var container = await AutoMockInfrastructureContainerFactory.Create(
-                initialize: true);
+            using var container = await AutoMockInfrastructureContainerFactory.Create();
             var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -73,8 +71,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             TimeSpan minSilenceLength)
         {
             using var container = await AutoMockInfrastructureContainerFactory.Create(
-                b => b.RegisterOptions(new SplitOptions { MinSilenceLength = minSilenceLength, }),
-                initialize: true);
+                b => b.RegisterOptions(new SplitOptions { MinSilenceLength = minSilenceLength, }));
             var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -90,8 +87,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
             string url,
             int tracksCount)
         {
-            using var container = await AutoMockInfrastructureContainerFactory.Create(
-                initialize: true);
+            using var container = await AutoMockInfrastructureContainerFactory.Create();
             var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 
@@ -105,8 +101,7 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest
         [TestCaseSource(nameof(CornerCases))]
         public async Task ShouldWorkWithCornerCases(string url)
         {
-            using var container = await AutoMockInfrastructureContainerFactory.Create(
-                initialize: true);
+            using var container = await AutoMockInfrastructureContainerFactory.Create();
             var file = await DownloadFileAndGetPath(url, container);
             var sut = container.Create<MusicSplitter>();
 

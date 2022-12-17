@@ -133,6 +133,6 @@ public static class Secrets
 ```
  - Authenticate your test user in your test telegram app. For this run:
 ```shell
-dotnet run --project tests\Console.IntegrationTests
+dotnet run --project src\tests\AcceptanceTests
 ```
  - To obtain `BotUserId` and `BotUserAccessHash` you could use previous command. It asks you to show last user chats. Answer `y` and find your test user data by this user's name (you could use `| grep` for this). If you have no chat with bot - create it manually.

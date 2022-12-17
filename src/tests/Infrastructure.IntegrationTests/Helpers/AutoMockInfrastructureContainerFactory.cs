@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extras.Moq;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using YoutubeMusicBot.Application.Abstractions;
 using YoutubeMusicBot.Infrastructure.DependencyInjection;
 using YoutubeMusicBot.IntegrationTests.Common;
 using YoutubeMusicBot.IntegrationTests.Common.AutoFixture;
@@ -17,7 +16,6 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers
     {
         public static async ValueTask<AutoMock> Create(
             Action<ContainerBuilder>? beforeBuild = null,
-            bool initialize = false,
             bool verifyAllMocks = true)
         {
             var container = AutoMockContainerFactory.Create(
@@ -30,14 +28,10 @@ namespace YoutubeMusicBot.Infrastructure.IntegrationTest.Helpers
                 },
                 verifyAllMocks);
 
-            if (initialize)
+            foreach (var hostedService in
+                     container.Container.Resolve<IEnumerable<IHostedService>>())
             {
-                foreach (var initializable in container.Container
-                    .Resolve<IEnumerable<IInitializable>>()
-                    .OrderBy(e => e.Order))
-                {
-                    await initializable.Initialize();
-                }
+                await hostedService.StartAsync(default);
             }
 
             return container;
